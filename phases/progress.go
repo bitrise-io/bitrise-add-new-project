@@ -5,6 +5,7 @@ import (
 	"os"
 )
 
+// Progress ...
 type Progress struct {
 	filePath     string
 	Account      *string `json:"account,omitempty"`
@@ -17,6 +18,7 @@ type Progress struct {
 	AutoCodesign *bool   `json:"codesign,omitempty"`
 }
 
+// Store ...
 func (p *Progress) Store() error {
 	f, err := os.Create(p.filePath)
 	if err != nil {
@@ -25,6 +27,7 @@ func (p *Progress) Store() error {
 	return json.NewEncoder(f).Encode(p)
 }
 
+// Destroy ...
 func (p *Progress) Destroy() error {
 	if err := os.RemoveAll(p.filePath); err != nil {
 		return err
@@ -32,6 +35,7 @@ func (p *Progress) Destroy() error {
 	return nil
 }
 
+// LoadProgress ...
 func LoadProgress(filePath string) (*Progress, error) {
 	switch f, err := os.Open(filePath); {
 	case os.IsNotExist(err):

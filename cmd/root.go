@@ -201,6 +201,7 @@ func run(cmd *cobra.Command, args []string) {
 	}
 }
 
+// Execute ...
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Printf("Failed to execute the command, error: %s\n", err)
