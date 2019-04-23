@@ -21,6 +21,7 @@ const (
 	cmdFlagKeyStack        = "stack"
 	cmdFlagKeyAddWebhook   = "add-webhook"
 	cmdFlagKeyAutoCodesign = "auto-codesign"
+	cmdFlagKeyAPIToken = "api-token"
 )
 
 var (
@@ -41,6 +42,8 @@ var (
 	You can quit the process at any phase and continue from where you left off later.`,
 	}
 )
+
+var cmdFlagAPIToken string
 
 func progressFilePath() (string, error) {
 	bitriseToolsDirPth := configs.GetBitriseToolsDirPath()
@@ -72,6 +75,7 @@ func init() {
 	rootCmd.Flags().StringVar(&cmdFlagStack, cmdFlagKeyStack, "", "The stack to run the builds on")
 	rootCmd.Flags().BoolVar(&cmdFlagAddWebhook, cmdFlagKeyAddWebhook, false, "To register a webhook for the git provider")
 	rootCmd.Flags().BoolVar(&cmdFlagAutoCodesign, cmdFlagKeyAutoCodesign, false, "Upload codesign files for iOS project")
+	rootCmd.Flags().StringVar(&cmdFlagAPIToken, cmdFlagKeyAPIToken, "", "Your Bitrise personal API token")
 }
 
 func executePhases(cmd cobra.Command, progress *phases.Progress) error {
@@ -79,7 +83,7 @@ func executePhases(cmd cobra.Command, progress *phases.Progress) error {
 		progress.Account = &cmdFlagAccount
 	}
 	if progress.Account == nil {
-		account, err := phases.Account()
+		account, err := phases.Account(cmdFlagAPIToken)
 		if err != nil {
 			return err
 		}
