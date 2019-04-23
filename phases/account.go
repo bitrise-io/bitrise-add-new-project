@@ -1,8 +1,11 @@
 package phases
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
+	"os"
+	"strconv"
 	// "io/ioutil"
 	"time"
 	"net/http"
@@ -82,6 +85,21 @@ func Account(apiToken string) (string, error) {
 	fmt.Print("CHOOSE ACCOUNT: ")
 	
 	// scan for input
+	reader := bufio.NewReader(os.Stdin)
+
+	input, err := reader.ReadString('\n')
+	if err != nil {
+		// todo
+	}
+	
+	choice, err := strconv.Atoi(input)
+	if err != nil {
+		// todo
+	}
+
+	fmt.Printf("your choice was %s", options[choice].Name)
+	fmt.Println()
+
 	
 	return "", nil
 }
