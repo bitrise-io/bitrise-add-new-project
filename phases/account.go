@@ -43,10 +43,45 @@ func Account(apiToken string) (string, error) {
 	if err := json.NewDecoder(res.Body).Decode(&m); err != nil {
 		return "", err
 	}
+	
+	req, err = http.NewRequest(http.MethodGet, "https://api.bitrise.io/v0.1/me", nil)
+	if err != nil {
+		return "", err
+	}
+	
+	req.Header.Set("Authorization", "token " + apiToken)
+	res, err = c.Do(req)
+	if err != nil {
+		return "", err
+	}
+	
+	if res.StatusCode != 200 {
+		return "", fmt.Errorf("fetch user: %s", res.Status)
+	}
+	
+	u := struct{
+		Data struct{
+			Username string
+		}
+	}{}
+	if err := json.NewDecoder(res.Body).Decode(&u); err != nil {
+		return "", err
+	}
 
+	fmt.Println(u)
+	
+	options := []organizationData{organizationData{Name: u.Data.Username}}
+	options = append(options, m.Data...)
+	
 	// display orgs
-	fmt.Println(m)
+	fmt.Println("ACCOUNT OPTIONS")
+	for i, opt := range options {
+		fmt.Printf("%d) %s", i + 1, opt.Name)
+		fmt.Println()
+	}
+	fmt.Print("CHOOSE ACCOUNT: ")
+	
 	// scan for input
-
+	
 	return "", nil
 }
