@@ -99,7 +99,6 @@ func Account(apiToken string) (string, error) {
 
 	fmt.Printf("your choice was %s", options[choice].Name)
 	fmt.Println()
-
 	
-	return "", nil
+	return options[choice].Slug, nil
 }
