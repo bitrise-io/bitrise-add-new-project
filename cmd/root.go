@@ -112,11 +112,11 @@ func executePhases(cmd cobra.Command, progress *phases.Progress) error {
 		progress.PrivateKey = &cmdFlagPrivateKey
 	}
 	if progress.PrivateKey == nil {
-		key, err := phases.PrivateKey()
+		_, privKey, _, err := phases.PrivateKey()
 		if err != nil {
 			return err
 		}
-		progress.PrivateKey = &key
+		progress.PrivateKey = &privKey
 	}
 
 	if cmd.Flags().Changed(cmdFlagKeyBitriseYML) {
