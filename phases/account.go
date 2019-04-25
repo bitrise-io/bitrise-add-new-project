@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 	"net/http"
 
 )
@@ -86,7 +87,7 @@ func Account(apiToken string) (string, error) {
 		// todo
 	}
 	
-	choice, err := strconv.Atoi(input)
+	choice, err := strconv.Atoi(strings.TrimSpace(input))
 	if err != nil {
 		// todo
 	}
