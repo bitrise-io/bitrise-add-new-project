@@ -20,6 +20,10 @@ type organizationsResponse struct{
 	Data []organizationData
 }
 
+func isValid(choice int, limit int ) bool {
+	return choice >= 1 && choice <= limit
+}
+
 // Account ...
 func Account(apiToken string) (string, error) {
 	req, err := http.NewRequest(http.MethodGet, "https://api.bitrise.io/v0.1/organizations", nil)
@@ -77,22 +81,37 @@ func Account(apiToken string) (string, error) {
 		fmt.Printf("%d) %s", i + 1, opt.Name)
 		fmt.Println()
 	}
-	fmt.Print("CHOOSE ACCOUNT: ")
-	
-	// scan for input
-	reader := bufio.NewReader(os.Stdin)
 
-	input, err := reader.ReadString('\n')
-	if err != nil {
-		// todo
+	var choice int
+	for !isValid(choice, len(options)) {
+		fmt.Print("CHOOSE ACCOUNT: ")
+	
+		// scan for input
+		reader := bufio.NewReader(os.Stdin)
+
+		input, err := reader.ReadString('\n')
+		if err != nil {
+			fmt.Printf("error reading choice from stdin: %s", err)
+			fmt.Println()
+			continue
+		}
+		
+		choice, err = strconv.Atoi(strings.TrimSpace(input))
+		if err != nil {
+			fmt.Printf("error reading choice from stdin: %s", err)
+			fmt.Println()
+			continue
+		} else if !isValid(choice, len(options)) {
+			fmt.Printf("invalid choice: %s", err)
+			fmt.Println()
+			continue
+		} else {
+			break
+		}
 	}
 	
-	choice, err := strconv.Atoi(strings.TrimSpace(input))
-	if err != nil {
-		// todo
-	}
 
-	fmt.Printf("your choice was %s", options[choice - 1].Name)
+	fmt.Printf("your choice was %d", choice)
 	fmt.Println()
 	
 	return options[choice].Slug, nil
