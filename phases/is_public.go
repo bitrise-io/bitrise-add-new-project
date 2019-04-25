@@ -25,19 +25,31 @@ func IsPublic() (bool, error) {
 		fmt.Printf("%d) %s", i + 1, opt.Name)
 		fmt.Println()
 	}
-	fmt.Print("CHOOSE THE VISIBILITY: ")
 
-	// scan for input
-	reader := bufio.NewReader(os.Stdin)
+	var choice int
+	for !isValid(choice, len(options)) {
+		fmt.Print("CHOOSE THE VISIBILITY: ")
 
-	input, err := reader.ReadString('\n')
-	if err != nil {
-		// todo
-	}
-	
-	choice, err := strconv.Atoi(strings.TrimSpace(input))
-	if err != nil {
-		// todo
+		reader := bufio.NewReader(os.Stdin)
+		input, err := reader.ReadString('\n')
+		if err != nil {
+			fmt.Printf("error reading choice from stdin: %s", err)
+			fmt.Println()
+			continue
+		}
+		
+		choice, err = strconv.Atoi(strings.TrimSpace(input))
+		if err != nil {
+			fmt.Printf("error reading choice from stdin: %s", err)
+			fmt.Println()
+			continue
+		} else if !isValid(choice, len(options)) {
+			fmt.Printf("invalid choice")
+			fmt.Println()
+			continue
+		} else {
+			break
+		}
 	}
 
 	fmt.Printf("your choice was %s", options[choice - 1].Name)
