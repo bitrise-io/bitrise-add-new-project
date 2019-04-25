@@ -105,7 +105,7 @@ func executePhases(cmd cobra.Command, progress *phases.Progress) error {
 		progress.Repo = &cmdFlagRepo
 	}
 	if progress.Repo == nil {
-		repo, err := phases.Repo()
+		repo, _, _, _, _, err := phases.Repo(*progress.Public)
 		if err != nil {
 			return err
 		}

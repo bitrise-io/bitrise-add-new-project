@@ -1,9 +1,48 @@
 package phases
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/bitrise-io/go-utils/command"
+	"github.com/bitrise-io/go-utils/errorutil"
+)
+
+type urlParts struct{
+	host string
+	owner string
+	slug string
+}
+
+func getProviderHandler(cloneURL string) providerHandler {
+	return githubHandler{}
+}
 
 // Repo ...
-func Repo() (string, error) {
-	fmt.Println("SetRepo")
-	return "", nil
+func Repo(isPublic bool) (string, string, string, string, string, error) {
+	cmd := command.New("git", "remote", "get-url", "origin")
+	out, err := cmd.RunAndReturnTrimmedCombinedOutput()
+	if err != nil {
+		if errorutil.IsExitStatusError(err) {
+			//
+		} else {
+			//
+		}
+	}
+
+	handler := getProviderHandler(out)
+	parts := handler.parseURL(out)
+	repoType := "git"
+
+
+	var url string
+	if isPublic {
+		url = handler.buildURL(parts, "https")
+	} else {
+		url = handler.buildURL(parts, "ssh")
+	}
+
+	fmt.Printf("REPOSITORY SCANNED. DETAILS: url=%s provider=%s owner=%s slug=%s repoType=%s", url, handler.provider(), parts.owner, parts.slug, repoType)
+	fmt.Println()
+
+	return url, handler.provider(), parts.owner, parts.slug, repoType, nil
 }
