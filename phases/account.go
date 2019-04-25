@@ -20,7 +20,8 @@ func isValid(choice int, limit int ) bool {
 	return choice >= 1 && choice <= limit
 }
 
-// Account ...
+// Account returns the slug of the selected account. If the user selects
+// the personal account, the slug is empty.
 func Account(apiToken string) (string, error) {
 	req, err := http.NewRequest(http.MethodGet, "https://api.bitrise.io/v0.1/organizations", nil)
 	if err != nil {
