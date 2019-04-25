@@ -7,7 +7,6 @@ import (
 	"os"
 	"strconv"
 	// "io/ioutil"
-	"time"
 	"net/http"
 
 )
@@ -30,10 +29,7 @@ func Account(apiToken string) (string, error) {
 	}
 
 	req.Header.Set("Authorization", "token " + apiToken)
-	c := http.Client{
-		Timeout: 3 * time.Second,
-	}
-	res, err := c.Do(req)
+	res, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return "", err
 	}
@@ -53,7 +49,7 @@ func Account(apiToken string) (string, error) {
 	}
 	
 	req.Header.Set("Authorization", "token " + apiToken)
-	res, err = c.Do(req)
+	res, err = http.DefaultClient.Do(req)
 	if err != nil {
 		return "", err
 	}
