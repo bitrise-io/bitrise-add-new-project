@@ -16,10 +16,6 @@ type organizationData struct{
 	Slug string
 }
 
-type organizationsResponse struct{
-	Data []organizationData
-}
-
 func isValid(choice int, limit int ) bool {
 	return choice >= 1 && choice <= limit
 }
@@ -41,7 +37,9 @@ func Account(apiToken string) (string, error) {
 		return "", fmt.Errorf("fetch orgs: %s", res.Status)
 	}
 
-	m := organizationsResponse{}
+	m := struct{
+		Data []organizationData
+	}{}
 	if err := json.NewDecoder(res.Body).Decode(&m); err != nil {
 		return "", err
 	}
