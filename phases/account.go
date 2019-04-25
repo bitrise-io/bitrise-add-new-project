@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"os"
 	"strconv"
-	// "io/ioutil"
 	"net/http"
 
 )
@@ -22,7 +21,6 @@ type organizationsResponse struct{
 
 // Account ...
 func Account(apiToken string) (string, error) {
-	fmt.Println("SetAccount")
 	req, err := http.NewRequest(http.MethodGet, "https://api.bitrise.io/v0.1/organizations", nil)
 	if err != nil {
 		return "", err
