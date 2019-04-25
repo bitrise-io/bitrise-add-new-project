@@ -67,13 +67,10 @@ func Account(apiToken string) (string, error) {
 	if err := json.NewDecoder(res.Body).Decode(&u); err != nil {
 		return "", err
 	}
-
-	fmt.Println(u)
 	
 	options := []organizationData{organizationData{Name: u.Data.Username}}
 	options = append(options, m.Data...)
 	
-	// display orgs
 	fmt.Println("ACCOUNT OPTIONS")
 	for i, opt := range options {
 		fmt.Printf("%d) %s", i + 1, opt.Name)
@@ -83,10 +80,8 @@ func Account(apiToken string) (string, error) {
 	var choice int
 	for !isValid(choice, len(options)) {
 		fmt.Print("CHOOSE ACCOUNT: ")
-	
-		// scan for input
+		
 		reader := bufio.NewReader(os.Stdin)
-
 		input, err := reader.ReadString('\n')
 		if err != nil {
 			fmt.Printf("error reading choice from stdin: %s", err)
@@ -107,10 +102,6 @@ func Account(apiToken string) (string, error) {
 			break
 		}
 	}
-	
-
-	fmt.Printf("your choice was %d", choice)
-	fmt.Println()
 	
 	return options[choice].Slug, nil
 }
