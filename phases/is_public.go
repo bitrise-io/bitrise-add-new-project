@@ -35,7 +35,7 @@ func IsPublic() (bool, error) {
 		// todo
 	}
 	
-	choice, err := strconv.Atoi(strings.Trim(input, "\n"))
+	choice, err := strconv.Atoi(strings.TrimSpace(input))
 	if err != nil {
 		// todo
 	}
