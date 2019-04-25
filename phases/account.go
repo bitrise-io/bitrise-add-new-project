@@ -92,7 +92,7 @@ func Account(apiToken string) (string, error) {
 		// todo
 	}
 
-	fmt.Printf("your choice was %s", options[choice].Name)
+	fmt.Printf("your choice was %s", options[choice - 1].Name)
 	fmt.Println()
 	
 	return options[choice].Slug, nil
