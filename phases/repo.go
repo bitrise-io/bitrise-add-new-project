@@ -50,15 +50,15 @@ func buildURL(parts urlParts, protocol string) (cloneURL string) {
 	return
 }
 
-func getProvider(cloneURL string) string {
+func getProvider(cloneURL string) (string, error) {
 	if strings.Contains(cloneURL, "github.com") {
-		return "github"
+		return "github", nil
 	} else if strings.Contains(cloneURL, "gitlab.com") {
-		return "gitlab"
+		return "gitlab", nil
 	} else if strings.Contains(cloneURL, "bitbucket.org") {
-		return "bitbucket"
+		return "bitbucket", nil
 	}
-	return ""
+	return "", fmt.Errorf("version control provider not supported")
 }
 
 // Repo returns repository details extracted from the working
@@ -75,7 +75,10 @@ func Repo(isPublic bool) (string, string, string, string, string, error) {
 		}
 	}
 
-	provider := getProvider(out)
+	provider, err := getProvider(out)
+	if err != nil {
+		return "", "", "", "", "", err
+	}
 	repoType := "git"
 
 	parts := parseURL(out)
