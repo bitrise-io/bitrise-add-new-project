@@ -11,6 +11,10 @@ func (bh bitbucketHandler) provider() string {
 	return "bitbucket"
 }
 
+func (bh bitbucketHandler) repoType() string {
+	return "git"
+}
+
 func (bh bitbucketHandler) parseURL(cloneURL string) urlParts {
 	parts := strings.SplitAfter(cloneURL, "https://")
 	if len(parts) > 1 {

@@ -31,7 +31,6 @@ func Repo(isPublic bool) (string, string, string, string, string, error) {
 
 	handler := getProviderHandler(out)
 	parts := handler.parseURL(out)
-	repoType := "git"
 
 
 	var url string
@@ -41,8 +40,8 @@ func Repo(isPublic bool) (string, string, string, string, string, error) {
 		url = handler.buildURL(parts, "ssh")
 	}
 
-	fmt.Printf("REPOSITORY SCANNED. DETAILS: url=%s provider=%s owner=%s slug=%s repoType=%s", url, handler.provider(), parts.owner, parts.slug, repoType)
+	fmt.Printf("REPOSITORY SCANNED. DETAILS: url=%s provider=%s owner=%s slug=%s repoType=%s", url, handler.provider(), parts.owner, parts.slug, handler.repoType())
 	fmt.Println()
 
-	return url, handler.provider(), parts.owner, parts.slug, repoType, nil
+	return url, handler.provider(), parts.owner, parts.slug, handler.repoType(), nil
 }

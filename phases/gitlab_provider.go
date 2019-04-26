@@ -11,6 +11,10 @@ func (gh gitlabHandler) provider() string {
 	return "gitlab"
 }
 
+func (gh gitlabHandler) repoType() string {
+	return "git"
+}
+
 func (gh gitlabHandler) parseURL(cloneURL string) urlParts {
 	parts := strings.SplitAfter(cloneURL, "https://")
 	if len(parts) > 1 {
