@@ -104,5 +104,5 @@ func Account(apiToken string) (string, error) {
 		}
 	}
 	
-	return options[choice].Slug, nil
+	return options[choice - 1].Slug, nil
 }
