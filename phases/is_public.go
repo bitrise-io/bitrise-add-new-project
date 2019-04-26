@@ -13,7 +13,8 @@ type visibilityOption struct{
 	IsPublic bool
 }
 
-// IsPublic ...
+// IsPublic returns the whether the Bitrise project
+// should be public or not.
 func IsPublic() (bool, error) {
 	options := []visibilityOption{
 		visibilityOption{"Private", false},

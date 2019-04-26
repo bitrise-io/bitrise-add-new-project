@@ -17,7 +17,9 @@ func getProviderHandler(cloneURL string) providerHandler {
 	return githubHandler{}
 }
 
-// Repo ...
+// Repo returns repository details extracted from the working
+// directory. If the Project visibility was set to public, the
+// https clone url will be used.
 func Repo(isPublic bool) (string, string, string, string, string, error) {
 	cmd := command.New("git", "remote", "get-url", "origin")
 	out, err := cmd.RunAndReturnTrimmedCombinedOutput()
