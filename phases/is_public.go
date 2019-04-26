@@ -2,10 +2,11 @@ package phases
 
 import (
 	"bufio"
-	"fmt"
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/bitrise-io/go-utils/log"
 )
 
 type visibilityOption struct{
@@ -21,40 +22,34 @@ func IsPublic() (bool, error) {
 		visibilityOption{"Public", true},
 	}
 
-	fmt.Println("SET THE PRIVACY OF THE APP")
+	log.Infof("SET THE PRIVACY OF THE APP")
+	log.Infof("==========================")
 	for i, opt := range options {
-		fmt.Printf("%d) %s", i + 1, opt.Name)
-		fmt.Println()
+		log.Printf("%d) %s", i + 1, opt.Name)
 	}
 
 	var choice int
 	for !isValid(choice, len(options)) {
-		fmt.Print("CHOOSE THE VISIBILITY: ")
+		log.Warnf("CHOOSE THE VISIBILITY: ")
 
 		reader := bufio.NewReader(os.Stdin)
 		input, err := reader.ReadString('\n')
 		if err != nil {
-			fmt.Printf("error reading choice from stdin: %s", err)
-			fmt.Println()
+			log.Warnf("error reading choice from stdin: %s", err)
 			continue
 		}
 		
 		choice, err = strconv.Atoi(strings.TrimSpace(input))
 		if err != nil {
-			fmt.Printf("error reading choice from stdin: %s", err)
-			fmt.Println()
+			log.Warnf("error reading choice from stdin: %s", err)
 			continue
 		} else if !isValid(choice, len(options)) {
-			fmt.Printf("invalid choice")
-			fmt.Println()
+			log.Warnf("invalid choice")
 			continue
 		} else {
 			break
 		}
 	}
-
-	fmt.Printf("your choice was %s", options[choice - 1].Name)
-	fmt.Println()
 
 	return options[choice - 1].IsPublic, nil
 }

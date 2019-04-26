@@ -6,6 +6,7 @@ import (
 
 	"github.com/bitrise-io/go-utils/command"
 	"github.com/bitrise-io/go-utils/errorutil"
+	"github.com/bitrise-io/go-utils/log"
 )
 
 type urlParts struct{
@@ -65,6 +66,9 @@ func getProvider(cloneURL string) (string, error) {
 // directory. If the Project visibility was set to public, the
 // https clone url will be used.
 func Repo(isPublic bool) (string, string, string, string, string, error) {
+	log.Infof("SCANNING WORKDIR FOR GIT REPO")
+	log.Infof("=============================")
+
 	cmd := command.New("git", "remote", "get-url", "origin")
 	out, err := cmd.RunAndReturnTrimmedCombinedOutput()
 	if err != nil {
@@ -89,8 +93,12 @@ func Repo(isPublic bool) (string, string, string, string, string, error) {
 		url = buildURL(parts, "ssh")
 	}
 
-	fmt.Printf("REPOSITORY SCANNED. DETAILS: url=%s provider=%s owner=%s slug=%s repoType=%s", url, provider, parts.owner, parts.slug, repoType)
-	fmt.Println()
+	log.Donef("REPOSITORY SCANNED. DETAILS:")
+	log.Donef("- url: %s", url)
+	log.Donef("- provider: %s", provider)
+	log.Donef("- owner: %s", parts.owner)
+	log.Donef("- slug: %s", parts.slug)
+	log.Donef("- repo type: %s", repoType)
 
 	return url, provider, parts.owner, parts.slug, repoType, nil
 }

@@ -9,6 +9,7 @@ import (
 	"strings"
 	"net/http"
 
+	"github.com/bitrise-io/go-utils/log"
 )
 
 type organizationData struct{
@@ -72,32 +73,29 @@ func Account(apiToken string) (string, error) {
 	options := []organizationData{organizationData{Name: u.Data.Username}}
 	options = append(options, m.Data...)
 	
-	fmt.Println("ACCOUNT OPTIONS")
+	log.Infof("ACCOUNT OPTIONS")
+	log.Infof("===============")
 	for i, opt := range options {
-		fmt.Printf("%d) %s", i + 1, opt.Name)
-		fmt.Println()
+		log.Printf("%d) %s", i + 1, opt.Name)
 	}
 
 	var choice int
 	for !isValid(choice, len(options)) {
-		fmt.Print("CHOOSE ACCOUNT: ")
+		log.Warnf("CHOOSE ACCOUNT: ")
 		
 		reader := bufio.NewReader(os.Stdin)
 		input, err := reader.ReadString('\n')
 		if err != nil {
-			fmt.Printf("error reading choice from stdin: %s", err)
-			fmt.Println()
+			log.Warnf("error reading choice from stdin: %s", err)
 			continue
 		}
 		
 		choice, err = strconv.Atoi(strings.TrimSpace(input))
 		if err != nil {
-			fmt.Printf("error reading choice from stdin: %s", err)
-			fmt.Println()
+			log.Warnf("error reading choice from stdin: %s", err)
 			continue
 		} else if !isValid(choice, len(options)) {
-			fmt.Printf("invalid choice")
-			fmt.Println()
+			log.Warnf("invalid choice")
 			continue
 		} else {
 			break
