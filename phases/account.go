@@ -96,7 +96,7 @@ func Account(apiToken string) (string, error) {
 			fmt.Println()
 			continue
 		} else if !isValid(choice, len(options)) {
-			fmt.Printf("invalid choice: %s", err)
+			fmt.Printf("invalid choice")
 			fmt.Println()
 			continue
 		} else {
