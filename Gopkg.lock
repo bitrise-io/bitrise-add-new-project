@@ -19,10 +19,14 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:5462a6f33039f89a9cea326804928ddb8ec7fd88ad984a3d6ad96d218db47eca"
+  digest = "1:71b695fff9b882d8a8bf2085bfb93c52c3ba06eade680d21d0008d2930495b6d"
   name = "github.com/bitrise-io/go-utils"
   packages = [
+    "colorstring",
+    "command",
+    "errorutil",
     "fileutil",
+    "log",
     "pathutil",
   ]
   pruneopts = "UT"
@@ -73,6 +77,9 @@
   analyzer-version = 1
   input-imports = [
     "github.com/bitrise-io/bitrise/configs",
+    "github.com/bitrise-io/go-utils/command",
+    "github.com/bitrise-io/go-utils/errorutil",
+    "github.com/bitrise-io/go-utils/log",
     "github.com/bitrise-io/go-utils/pathutil",
     "github.com/spf13/cobra",
   ]
