@@ -23,9 +23,9 @@ func Repo(isPublic bool) (string, string, string, string, string, error) {
 	out, err := cmd.RunAndReturnTrimmedCombinedOutput()
 	if err != nil {
 		if errorutil.IsExitStatusError(err) {
-			//
+			return "", "", "", "", "", fmt.Errorf("get repo origin url: %s", out)
 		} else {
-			//
+			return "", "", "", "", "", fmt.Errorf("get repo origin url: %s", err)
 		}
 	}
 
