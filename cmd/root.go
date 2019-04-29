@@ -25,6 +25,7 @@ const (
 )
 
 var (
+	cmdFlagAPIToken     string
 	cmdFlagAccount      string
 	cmdFlagPublic       bool
 	cmdFlagRepo         string
@@ -42,8 +43,6 @@ var (
 	You can quit the process at any phase and continue from where you left off later.`,
 	}
 )
-
-var cmdFlagAPIToken string
 
 func progressFilePath() (string, error) {
 	bitriseToolsDirPth := configs.GetBitriseToolsDirPath()

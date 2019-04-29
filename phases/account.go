@@ -39,9 +39,9 @@ func Account(apiToken string) (string, error) {
 		return "", fmt.Errorf("fetch orgs: %s", res.Status)
 	}
 
-	m := struct {
+	var m struct {
 		Data []organizationData
-	}{}
+	}
 	if err := json.NewDecoder(res.Body).Decode(&m); err != nil {
 		return "", err
 	}
@@ -61,11 +61,11 @@ func Account(apiToken string) (string, error) {
 		return "", fmt.Errorf("fetch user: %s", res.Status)
 	}
 
-	u := struct {
+	var u struct {
 		Data struct {
 			Username string
 		}
-	}{}
+	}
 	if err := json.NewDecoder(res.Body).Decode(&u); err != nil {
 		return "", err
 	}
