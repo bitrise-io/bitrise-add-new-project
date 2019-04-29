@@ -15,9 +15,10 @@ import (
 const bitriseYMLName = "bitrise.yml"
 
 func currentBranch() (string, error) {
-	out, err := command.New("git", "symbolic-ref", "HEAD").RunAndReturnTrimmedCombinedOutput()
+	cmd := command.New("git", "symbolic-ref", "HEAD")
+	out, err := cmd.RunAndReturnTrimmedCombinedOutput()
 	if err != nil {
-		return "", errors.Wrap(err, out)
+		return "", errors.Wrap(fmt.Errorf("failed to run command: %s, error: %s", cmd.PrintableCommandArgs(), err), out)
 	}
 	return strings.TrimPrefix(out, "refs/heads/"), nil
 }
@@ -81,7 +82,9 @@ func BitriseYML() (string, string, error) {
 								return nil
 							}
 							if newBranch == branch {
-								if err = command.New("bitrise", ":init").SetStderr(os.Stderr).SetStdin(os.Stdin).SetStdout(os.Stdout).Run(); err != nil {
+								cmd := command.New("bitrise", ":init")
+								if err = cmd.SetStderr(os.Stderr).SetStdin(os.Stdin).SetStdout(os.Stdout).Run(); err != nil {
+									err = fmt.Errorf("failed to run command: %s, error: %s", cmd.PrintableCommandArgs(), err)
 									return nil
 								}
 								fmt.Println()

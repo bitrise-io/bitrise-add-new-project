@@ -1,80 +1,15 @@
 package phases
 
 import (
-	"bufio"
 	"fmt"
 	"io/ioutil"
-	"os"
 	"path/filepath"
-	"strconv"
-	"strings"
 
 	"github.com/bitrise-io/go-utils/command"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
 	"github.com/pkg/errors"
 )
-
-type option struct {
-	title        string
-	valueOptions []string
-	action       func(string) *option
-}
-
-func (o *option) run() {
-	answer := ask(o.title, o.valueOptions...)
-	if o.action != nil {
-		if nextOption := o.action(answer); nextOption != nil {
-			nextOption.run()
-		}
-	}
-}
-
-func ask(title string, options ...string) string {
-	if len(options) == 1 {
-		return options[0]
-	}
-
-	fmt.Print(strings.TrimSuffix(title, ":") + ":")
-
-	if len(options) == 0 {
-		fmt.Print(" ")
-		for {
-			input, err := bufio.NewReader(os.Stdin).ReadString('\n')
-			if err != nil {
-				log.Errorf("Error: failed to read input value")
-				continue
-			}
-			fmt.Println()
-			return strings.TrimSpace(input)
-		}
-	}
-
-	fmt.Println()
-	for i, option := range options {
-		log.Printf("(%d) %s", i+1, option)
-	}
-
-	for {
-		fmt.Print("Option number: ")
-		answer, err := bufio.NewReader(os.Stdin).ReadString('\n')
-		if err != nil {
-			log.Errorf("Error: failed to read input value")
-			continue
-		}
-		optionNo, err := strconv.Atoi(strings.TrimSpace(answer))
-		if err != nil {
-			log.Errorf("Error: failed to parse option number, pick a number from 1-%d", len(options))
-			continue
-		}
-		if optionNo-1 < 0 || optionNo-1 >= len(options) {
-			log.Errorf("Error: invalid option number, pick a number 1-%d", len(options))
-			continue
-		}
-		fmt.Println()
-		return options[optionNo-1]
-	}
-}
 
 func generateSSHKey() (string, string, error) {
 	tempDir, err := pathutil.NormalizedOSTempDirPath("_key_")
@@ -84,8 +19,9 @@ func generateSSHKey() (string, string, error) {
 
 	keyFilePath := filepath.Join(tempDir, "key")
 
-	if out, err := command.New("ssh-keygen", "-q", "-t", "rsa", "-b", "4096", "-C", "builds@bitrise.io", "-P", "", "-f", keyFilePath).RunAndReturnTrimmedCombinedOutput(); err != nil {
-		return "", "", errors.Wrap(err, out)
+	cmd := command.New("ssh-keygen", "-q", "-t", "rsa", "-b", "4096", "-C", "builds@bitrise.io", "-P", "", "-f", keyFilePath)
+	if out, err := cmd.RunAndReturnTrimmedCombinedOutput(); err != nil {
+		return "", "", errors.Wrap(fmt.Errorf("failed to run command: %s, error: %s", cmd.PrintableCommandArgs(), err), out)
 	}
 
 	return keyFilePath + ".pub", keyFilePath, nil
