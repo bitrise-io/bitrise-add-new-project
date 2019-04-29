@@ -123,7 +123,7 @@ func executePhases(cmd cobra.Command, progress *phases.Progress) error {
 		progress.BitriseYML = &cmdFlagBitriseYML
 	}
 	if progress.BitriseYML == nil {
-		yml, err := phases.BitriseYML()
+		yml, _, err := phases.BitriseYML()
 		if err != nil {
 			return err
 		}

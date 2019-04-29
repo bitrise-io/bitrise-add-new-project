@@ -9,9 +9,18 @@
 
 [[projects]]
   name = "github.com/bitrise-io/bitrise"
-  packages = ["configs"]
+  packages = [
+    "configs",
+    "models"
+  ]
   revision = "a7523d99944aaf56c644dec41f374f746db9a453"
   version = "1.29.0"
+
+[[projects]]
+  name = "github.com/bitrise-io/envman"
+  packages = ["models"]
+  revision = "dce389aa0508c35e26577e66970433e9e6750c14"
+  version = "2.2.2"
 
 [[projects]]
   branch = "master"
@@ -22,9 +31,23 @@
     "errorutil",
     "fileutil",
     "log",
-    "pathutil"
+    "parseutil",
+    "pathutil",
+    "pointers"
   ]
   revision = "2a09aab8380d7842750328aebd5671bcccea89c8"
+
+[[projects]]
+  name = "github.com/bitrise-io/stepman"
+  packages = ["models"]
+  revision = "8cd3398fab6c211eef53502b65ec7ad5510f556a"
+  version = "0.11.4"
+
+[[projects]]
+  name = "github.com/go-yaml/yaml"
+  packages = ["."]
+  revision = "51d6538a90f86fe93ac480b35f37b2be17fef232"
+  version = "v2.2.2"
 
 [[projects]]
   name = "github.com/inconshreveable/mousetrap"
@@ -45,6 +68,12 @@
   version = "v0.8.1"
 
 [[projects]]
+  name = "github.com/ryanuber/go-glob"
+  packages = ["."]
+  revision = "51a8f68e6c24dc43f1e371749c89a267de4ebc53"
+  version = "v1.0.0"
+
+[[projects]]
   name = "github.com/spf13/cobra"
   packages = ["."]
   revision = "ef82de70bb3f60c65fb8eebacbb2d122ef517385"
@@ -60,11 +89,11 @@
   branch = "master"
   name = "golang.org/x/sys"
   packages = ["unix"]
-  revision = "953cdadca894cdc07be76fc99f95b40c28f06623"
+  revision = "9f0b1ff7b46a4014ddb5d4bdb6602a43b882cb27"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "48c1ec36f0f9a4d954e2534a86b3fb7eacfd2520e942b8ca18a39ebeb0181b59"
+  inputs-digest = "a7ff6c37cd5490eebc149c5c0a3cb75e72105a4787eb5349ce87b524f7e8cd43"
   solver-name = "gps-cdcl"
   solver-version = 1
