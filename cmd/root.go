@@ -104,11 +104,16 @@ func executePhases(cmd cobra.Command, progress *phases.Progress) error {
 		progress.Repo = &cmdFlagRepo
 	}
 	if progress.Repo == nil {
-		repo, _, _, _, _, err := phases.Repo(*progress.Public)
+		repoDetails, err := phases.Repo(*progress.Public)
 		if err != nil {
 			return err
 		}
-		progress.Repo = &repo
+
+		progress.RepoURL = &repoDetails.URL
+		progress.RepoProvider = &repoDetails.Provider
+		progress.RepoOwner = &repoDetails.Owner
+		progress.RepoSlug = &repoDetails.Slug
+		progress.RepoType = &repoDetails.RepoType
 	}
 
 	if cmd.Flags().Changed(cmdFlagKeyPrivateKey) {

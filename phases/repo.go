@@ -9,6 +9,14 @@ import (
 	"github.com/bitrise-io/go-utils/log"
 )
 
+type repoDetails struct {
+	URL      string
+	Provider string
+	Owner    string
+	Slug     string
+	RepoType string
+}
+
 type urlParts struct {
 	host  string
 	owner string
@@ -65,7 +73,7 @@ func getProvider(cloneURL string) (string, error) {
 // Repo returns repository details extracted from the working
 // directory. If the Project visibility was set to public, the
 // https clone url will be used.
-func Repo(isPublic bool) (string, string, string, string, string, error) {
+func Repo(isPublic bool) (repoDetails, error) {
 	log.Infof("SCANNING WORKDIR FOR GIT REPO")
 	log.Infof("=============================")
 
@@ -73,15 +81,15 @@ func Repo(isPublic bool) (string, string, string, string, string, error) {
 	out, err := cmd.RunAndReturnTrimmedCombinedOutput()
 	if err != nil {
 		if errorutil.IsExitStatusError(err) {
-			return "", "", "", "", "", fmt.Errorf("get repo origin url: %s", out)
+			return repoDetails{}, fmt.Errorf("get repo origin url: %s", out)
 		} else {
-			return "", "", "", "", "", fmt.Errorf("get repo origin url: %s", err)
+			return repoDetails{}, fmt.Errorf("get repo origin url: %s", err)
 		}
 	}
 
 	provider, err := getProvider(out)
 	if err != nil {
-		return "", "", "", "", "", err
+		return repoDetails{}, err
 	}
 	repoType := "git"
 
@@ -100,5 +108,11 @@ func Repo(isPublic bool) (string, string, string, string, string, error) {
 	log.Donef("- slug: %s", parts.slug)
 	log.Donef("- repo type: %s", repoType)
 
-	return url, provider, parts.owner, parts.slug, repoType, nil
+	return repoDetails{
+		url,
+		provider,
+		parts.owner,
+		parts.slug,
+		repoType,
+	}, nil
 }
