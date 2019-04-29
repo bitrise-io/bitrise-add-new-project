@@ -21,7 +21,7 @@ const (
 	cmdFlagKeyStack        = "stack"
 	cmdFlagKeyAddWebhook   = "add-webhook"
 	cmdFlagKeyAutoCodesign = "auto-codesign"
-	cmdFlagKeyAPIToken = "api-token"
+	cmdFlagKeyAPIToken     = "api-token"
 )
 
 var (

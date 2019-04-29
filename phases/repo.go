@@ -9,10 +9,10 @@ import (
 	"github.com/bitrise-io/go-utils/log"
 )
 
-type urlParts struct{
-	host string
+type urlParts struct {
+	host  string
 	owner string
-	slug string
+	slug  string
 }
 
 func parseURL(cloneURL string) urlParts {
@@ -21,22 +21,22 @@ func parseURL(cloneURL string) urlParts {
 		// e.g. cloneURL=https://github.com/bitrise-io/go-utils.git
 		parts = strings.Split(parts[1], "/")
 		return urlParts{
-			host: parts[0],
+			host:  parts[0],
 			owner: parts[1],
-			slug: parts[2],
+			slug:  parts[2],
 		}
 	} else {
 		// e.g. cloneURL=git@github.com:bitrise-io/go-utils.git
 		afterAt := strings.SplitAfter(parts[0], "git@")[1]
 		parts = strings.Split(afterAt, ":")
 		host := parts[0]
-		
+
 		afterHost := strings.SplitAfter(afterAt, ":")[1]
 		parts = strings.Split(afterHost, "/")
 		return urlParts{
-			host: host,
+			host:  host,
 			owner: parts[0],
-			slug: strings.TrimSuffix(parts[1], ".git"),
+			slug:  strings.TrimSuffix(parts[1], ".git"),
 		}
 	}
 }

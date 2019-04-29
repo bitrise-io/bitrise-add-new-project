@@ -4,20 +4,20 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"os"
 	"strconv"
 	"strings"
-	"net/http"
 
 	"github.com/bitrise-io/go-utils/log"
 )
 
-type organizationData struct{
+type organizationData struct {
 	Name string
 	Slug string
 }
 
-func isValid(choice int, limit int ) bool {
+func isValid(choice int, limit int) bool {
 	return choice >= 1 && choice <= limit
 }
 
@@ -29,7 +29,7 @@ func Account(apiToken string) (string, error) {
 		return "", err
 	}
 
-	req.Header.Set("Authorization", "token " + apiToken)
+	req.Header.Set("Authorization", "token "+apiToken)
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return "", err
@@ -39,57 +39,57 @@ func Account(apiToken string) (string, error) {
 		return "", fmt.Errorf("fetch orgs: %s", res.Status)
 	}
 
-	m := struct{
+	m := struct {
 		Data []organizationData
 	}{}
 	if err := json.NewDecoder(res.Body).Decode(&m); err != nil {
 		return "", err
 	}
-	
+
 	req, err = http.NewRequest(http.MethodGet, "https://api.bitrise.io/v0.1/me", nil)
 	if err != nil {
 		return "", err
 	}
-	
-	req.Header.Set("Authorization", "token " + apiToken)
+
+	req.Header.Set("Authorization", "token "+apiToken)
 	res, err = http.DefaultClient.Do(req)
 	if err != nil {
 		return "", err
 	}
-	
+
 	if res.StatusCode != 200 {
 		return "", fmt.Errorf("fetch user: %s", res.Status)
 	}
-	
-	u := struct{
-		Data struct{
+
+	u := struct {
+		Data struct {
 			Username string
 		}
 	}{}
 	if err := json.NewDecoder(res.Body).Decode(&u); err != nil {
 		return "", err
 	}
-	
+
 	options := []organizationData{organizationData{Name: u.Data.Username}}
 	options = append(options, m.Data...)
-	
+
 	log.Infof("ACCOUNT OPTIONS")
 	log.Infof("===============")
 	for i, opt := range options {
-		log.Printf("%d) %s", i + 1, opt.Name)
+		log.Printf("%d) %s", i+1, opt.Name)
 	}
 
 	var choice int
 	for !isValid(choice, len(options)) {
 		log.Warnf("CHOOSE ACCOUNT: ")
-		
+
 		reader := bufio.NewReader(os.Stdin)
 		input, err := reader.ReadString('\n')
 		if err != nil {
 			log.Warnf("error reading choice from stdin: %s", err)
 			continue
 		}
-		
+
 		choice, err = strconv.Atoi(strings.TrimSpace(input))
 		if err != nil {
 			log.Warnf("error reading choice from stdin: %s", err)
@@ -101,6 +101,6 @@ func Account(apiToken string) (string, error) {
 			break
 		}
 	}
-	
-	return options[choice - 1].Slug, nil
+
+	return options[choice-1].Slug, nil
 }

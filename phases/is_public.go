@@ -9,8 +9,8 @@ import (
 	"github.com/bitrise-io/go-utils/log"
 )
 
-type visibilityOption struct{
-	Name string
+type visibilityOption struct {
+	Name     string
 	IsPublic bool
 }
 
@@ -25,7 +25,7 @@ func IsPublic() (bool, error) {
 	log.Infof("SET THE PRIVACY OF THE APP")
 	log.Infof("==========================")
 	for i, opt := range options {
-		log.Printf("%d) %s", i + 1, opt.Name)
+		log.Printf("%d) %s", i+1, opt.Name)
 	}
 
 	var choice int
@@ -38,7 +38,7 @@ func IsPublic() (bool, error) {
 			log.Warnf("error reading choice from stdin: %s", err)
 			continue
 		}
-		
+
 		choice, err = strconv.Atoi(strings.TrimSpace(input))
 		if err != nil {
 			log.Warnf("error reading choice from stdin: %s", err)
@@ -51,5 +51,5 @@ func IsPublic() (bool, error) {
 		}
 	}
 
-	return options[choice - 1].IsPublic, nil
+	return options[choice-1].IsPublic, nil
 }
