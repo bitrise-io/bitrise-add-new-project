@@ -9,7 +9,10 @@ import (
 	"github.com/bitrise-io/go-utils/log"
 )
 
-type repoDetails struct {
+// RepoDetails encapsulates data needed to perform
+// repo registration related requests through the
+// Bitrise API
+type RepoDetails struct {
 	URL      string
 	Provider string
 	Owner    string
@@ -33,20 +36,21 @@ func parseURL(cloneURL string) urlParts {
 			owner: parts[1],
 			slug:  parts[2],
 		}
-	} else {
-		// e.g. cloneURL=git@github.com:bitrise-io/go-utils.git
-		afterAt := strings.SplitAfter(parts[0], "git@")[1]
-		parts = strings.Split(afterAt, ":")
-		host := parts[0]
-
-		afterHost := strings.SplitAfter(afterAt, ":")[1]
-		parts = strings.Split(afterHost, "/")
-		return urlParts{
-			host:  host,
-			owner: parts[0],
-			slug:  strings.TrimSuffix(parts[1], ".git"),
-		}
 	}
+
+	// e.g. cloneURL=git@github.com:bitrise-io/go-utils.git
+	afterAt := strings.SplitAfter(parts[0], "git@")[1]
+	parts = strings.Split(afterAt, ":")
+	host := parts[0]
+
+	afterHost := strings.SplitAfter(afterAt, ":")[1]
+	parts = strings.Split(afterHost, "/")
+	return urlParts{
+		host:  host,
+		owner: parts[0],
+		slug:  strings.TrimSuffix(parts[1], ".git"),
+	}
+	
 }
 
 func buildURL(parts urlParts, protocol string) (cloneURL string) {
@@ -73,7 +77,7 @@ func getProvider(cloneURL string) (string) {
 // Repo returns repository details extracted from the working
 // directory. If the Project visibility was set to public, the
 // https clone url will be used.
-func Repo(isPublic bool) (repoDetails, error) {
+func Repo(isPublic bool) (RepoDetails, error) {
 	log.Infof("SCANNING WORKDIR FOR GIT REPO")
 	log.Infof("=============================")
 
@@ -82,10 +86,10 @@ func Repo(isPublic bool) (repoDetails, error) {
 	out, err := cmd.RunAndReturnTrimmedCombinedOutput()
 	if err != nil {
 		if errorutil.IsExitStatusError(err) {
-			return repoDetails{}, fmt.Errorf("get repo origin url: %s", out)
-		} else {
-			return repoDetails{}, fmt.Errorf("get repo origin url: %s", err)
+			return RepoDetails{}, fmt.Errorf("get repo origin url: %s", out)
 		}
+
+		return RepoDetails{}, fmt.Errorf("get repo origin url: %s", err)
 	}
 
 	provider := getProvider(out)
@@ -106,7 +110,7 @@ func Repo(isPublic bool) (repoDetails, error) {
 	log.Donef("- slug: %s", parts.slug)
 	log.Donef("- repo type: %s", repoType)
 
-	return repoDetails{
+	return RepoDetails{
 		url,
 		provider,
 		parts.owner,
