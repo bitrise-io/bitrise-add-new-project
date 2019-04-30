@@ -70,8 +70,7 @@ func Account(apiToken string) (string, error) {
 		return "", err
 	}
 
-	options := []organizationData{organizationData{Name: u.Data.Username}}
-	options = append(options, m.Data...)
+	options := append([]organizationData{organizationData{Name: u.Data.Username}}, m.Data...)
 
 	log.Infof("ACCOUNT OPTIONS")
 	log.Infof("===============")
@@ -79,8 +78,7 @@ func Account(apiToken string) (string, error) {
 		log.Printf("%d) %s", i+1, opt.Name)
 	}
 
-	var choice int
-	for !isValid(choice, len(options)) {
+	for {
 		log.Warnf("CHOOSE ACCOUNT: ")
 
 		reader := bufio.NewReader(os.Stdin)
@@ -90,17 +88,15 @@ func Account(apiToken string) (string, error) {
 			continue
 		}
 
-		choice, err = strconv.Atoi(strings.TrimSpace(input))
+		choice, err := strconv.Atoi(strings.TrimSpace(input))
 		if err != nil {
 			log.Warnf("error reading choice from stdin: %s", err)
-			continue
 		} else if !isValid(choice, len(options)) {
 			log.Warnf("invalid choice")
-			continue
 		} else {
-			break
+			return options[choice-1].Slug, nil
 		}
 	}
 
-	return options[choice-1].Slug, nil
+	return "", fmt.Errorf("invalid execution branch: unknown error")
 }
