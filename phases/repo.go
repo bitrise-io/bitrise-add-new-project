@@ -59,15 +59,15 @@ func buildURL(parts urlParts, protocol string) (cloneURL string) {
 	return
 }
 
-func getProvider(cloneURL string) (string, error) {
+func getProvider(cloneURL string) (string) {
 	if strings.Contains(cloneURL, "github.com") {
-		return "github", nil
+		return "github"
 	} else if strings.Contains(cloneURL, "gitlab.com") {
-		return "gitlab", nil
+		return "gitlab"
 	} else if strings.Contains(cloneURL, "bitbucket.org") {
-		return "bitbucket", nil
+		return "bitbucket"
 	}
-	return "", fmt.Errorf("version control provider not supported")
+	return "other"
 }
 
 // Repo returns repository details extracted from the working
@@ -78,6 +78,7 @@ func Repo(isPublic bool) (repoDetails, error) {
 	log.Infof("=============================")
 
 	cmd := command.New("git", "remote", "get-url", "origin")
+	log.Donef("$ %s", cmd.PrintableCommandArgs())
 	out, err := cmd.RunAndReturnTrimmedCombinedOutput()
 	if err != nil {
 		if errorutil.IsExitStatusError(err) {
@@ -87,10 +88,7 @@ func Repo(isPublic bool) (repoDetails, error) {
 		}
 	}
 
-	provider, err := getProvider(out)
-	if err != nil {
-		return repoDetails{}, err
-	}
+	provider := getProvider(out)
 	repoType := "git"
 
 	parts := parseURL(out)

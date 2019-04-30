@@ -2,6 +2,7 @@ package phases
 
 import (
 	"bufio"
+	"fmt"
 	"os"
 	"strconv"
 	"strings"
@@ -44,12 +45,12 @@ func IsPublic() (bool, error) {
 			log.Warnf("error reading choice from stdin: %s", err)
 			continue
 		} else if !isValid(choice, len(options)) {
-			log.Warnf("invalid choice")
+			log.Errorf("invalid choice")
 			continue
-		} else {
-			break
 		}
+
+		return options[choice-1].IsPublic, nil
 	}
 
-	return options[choice-1].IsPublic, nil
+	return false, fmt.Errorf("invalid execution branch: unknown error")
 }
