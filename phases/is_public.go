@@ -12,7 +12,7 @@ import (
 
 const (
 	optPrivate = "Private"
-	optPublic = "Public"
+	optPublic  = "Public"
 )
 
 // IsPublic returns the whether the Bitrise project

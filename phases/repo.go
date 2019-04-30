@@ -50,7 +50,7 @@ func parseURL(cloneURL string) urlParts {
 		owner: parts[0],
 		slug:  strings.TrimSuffix(parts[1], ".git"),
 	}
-	
+
 }
 
 func buildURL(parts urlParts, protocol string) (cloneURL string) {
@@ -63,7 +63,7 @@ func buildURL(parts urlParts, protocol string) (cloneURL string) {
 	return
 }
 
-func getProvider(cloneURL string) (string) {
+func getProvider(cloneURL string) string {
 	if strings.Contains(cloneURL, "github.com") {
 		return "github"
 	} else if strings.Contains(cloneURL, "gitlab.com") {
