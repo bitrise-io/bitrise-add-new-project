@@ -12,10 +12,7 @@ import (
 	"github.com/bitrise-io/go-utils/log"
 )
 
-type organizationData struct {
-	Name string
-	Slug string
-}
+type organizationData map[string]interface{}
 
 func isValid(choice int, limit int) bool {
 	return choice >= 1 && choice <= limit
@@ -70,12 +67,12 @@ func Account(apiToken string) (string, error) {
 		return "", err
 	}
 
-	options := append([]organizationData{organizationData{Name: u.Data.Username}}, m.Data...)
+	options := append([]organizationData{organizationData{"name": u.Data.Username}}, m.Data...)
 
 	log.Infof("ACCOUNT OPTIONS")
 	log.Infof("===============")
 	for i, opt := range options {
-		log.Printf("%d) %s", i+1, opt.Name)
+		log.Printf("%d) %s", i+1, opt["name"])
 	}
 
 	for {
@@ -84,17 +81,17 @@ func Account(apiToken string) (string, error) {
 		reader := bufio.NewReader(os.Stdin)
 		input, err := reader.ReadString('\n')
 		if err != nil {
-			log.Warnf("error reading choice from stdin: %s", err)
+			log.Errorf("error reading choice from stdin: %s", err)
 			continue
 		}
 
 		choice, err := strconv.Atoi(strings.TrimSpace(input))
 		if err != nil {
-			log.Warnf("error reading choice from stdin: %s", err)
+			log.Errorf("error reading choice from stdin: %s", err)
 		} else if !isValid(choice, len(options)) {
-			log.Warnf("invalid choice")
+			log.Errorf("invalid choice")
 		} else {
-			return options[choice-1].Slug, nil
+			return options[choice-1]["slug"].(string), nil
 		}
 	}
 
