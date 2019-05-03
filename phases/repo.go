@@ -53,14 +53,11 @@ func parseURL(cloneURL string) urlParts {
 
 }
 
-func buildURL(parts urlParts, protocol string) (cloneURL string) {
-	switch protocol {
-	case "https":
-		cloneURL = fmt.Sprintf("https://%s/%s/%s.git", parts.host, parts.owner, parts.slug)
-	case "ssh":
-		cloneURL = fmt.Sprintf("git@%s:%s/%s.git", parts.host, parts.owner, parts.slug)
+func buildURL(parts urlParts, ssh bool) string {
+	if ssh {
+		return fmt.Sprintf("git@%s:%s/%s.git", parts.host, parts.owner, parts.slug)
 	}
-	return
+	return fmt.Sprintf("https://%s/%s/%s.git", parts.host, parts.owner, parts.slug)
 }
 
 func getProvider(cloneURL string) string {
@@ -98,9 +95,9 @@ func Repo(isPublic bool) (RepoDetails, error) {
 	parts := parseURL(out)
 	var url string
 	if isPublic {
-		url = buildURL(parts, "https")
+		url = buildURL(parts, false)
 	} else {
-		url = buildURL(parts, "ssh")
+		url = buildURL(parts, true)
 	}
 
 	log.Donef("REPOSITORY SCANNED. DETAILS:")
