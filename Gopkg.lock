@@ -3,23 +3,27 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:cabe9ec8289704e71e45138c18ad90275bce25a8d61145c4130b55d9d9a6d6dc"
   name = "github.com/Sirupsen/logrus"
   packages = ["."]
-  pruneopts = "UT"
   revision = "9b3cdde74fbe9443d704467498a7dcb61a79de9b"
 
 [[projects]]
-  digest = "1:c26c6f48d8add3ddfe9b3abf7b5d8fe2eb8f3d59f3e31e59f4488a23663e8b6b"
   name = "github.com/bitrise-io/bitrise"
-  packages = ["configs"]
-  pruneopts = "UT"
+  packages = [
+    "configs",
+    "models"
+  ]
   revision = "a7523d99944aaf56c644dec41f374f746db9a453"
   version = "1.29.0"
 
 [[projects]]
+  name = "github.com/bitrise-io/envman"
+  packages = ["models"]
+  revision = "dce389aa0508c35e26577e66970433e9e6750c14"
+  version = "2.2.2"
+
+[[projects]]
   branch = "master"
-  digest = "1:71b695fff9b882d8a8bf2085bfb93c52c3ba06eade680d21d0008d2930495b6d"
   name = "github.com/bitrise-io/go-utils"
   packages = [
     "colorstring",
@@ -27,61 +31,69 @@
     "errorutil",
     "fileutil",
     "log",
+    "parseutil",
     "pathutil",
+    "pointers"
   ]
-  pruneopts = "UT"
   revision = "2a09aab8380d7842750328aebd5671bcccea89c8"
 
 [[projects]]
-  digest = "1:870d441fe217b8e689d7949fef6e43efbc787e50f200cb1e70dbca9204a1d6be"
+  name = "github.com/bitrise-io/stepman"
+  packages = ["models"]
+  revision = "8cd3398fab6c211eef53502b65ec7ad5510f556a"
+  version = "0.11.4"
+
+[[projects]]
+  name = "github.com/go-yaml/yaml"
+  packages = ["."]
+  revision = "51d6538a90f86fe93ac480b35f37b2be17fef232"
+  version = "v2.2.2"
+
+[[projects]]
   name = "github.com/inconshreveable/mousetrap"
   packages = ["."]
-  pruneopts = "UT"
   revision = "76626ae9c91c4f2a10f34cad8ce83ea42c93bb75"
   version = "v1.0"
 
 [[projects]]
-  digest = "1:31e761d97c76151dde79e9d28964a812c46efc5baee4085b86f68f0c654450de"
   name = "github.com/konsorten/go-windows-terminal-sequences"
   packages = ["."]
-  pruneopts = "UT"
   revision = "f55edac94c9bbba5d6182a4be46d86a2c9b5b50e"
   version = "v1.0.2"
 
 [[projects]]
-  digest = "1:645cabccbb4fa8aab25a956cbcbdf6a6845ca736b2c64e197ca7cbb9d210b939"
+  name = "github.com/pkg/errors"
+  packages = ["."]
+  revision = "ba968bfe8b2f7e042a574c888954fccecfa385b4"
+  version = "v0.8.1"
+
+[[projects]]
+  name = "github.com/ryanuber/go-glob"
+  packages = ["."]
+  revision = "51a8f68e6c24dc43f1e371749c89a267de4ebc53"
+  version = "v1.0.0"
+
+[[projects]]
   name = "github.com/spf13/cobra"
   packages = ["."]
-  pruneopts = "UT"
   revision = "ef82de70bb3f60c65fb8eebacbb2d122ef517385"
   version = "v0.0.3"
 
 [[projects]]
-  digest = "1:c1b1102241e7f645bc8e0c22ae352e8f0dc6484b6cb4d132fa9f24174e0119e2"
   name = "github.com/spf13/pflag"
   packages = ["."]
-  pruneopts = "UT"
   revision = "298182f68c66c05229eb03ac171abe6e309ee79a"
   version = "v1.0.3"
 
 [[projects]]
   branch = "master"
-  digest = "1:28d862f4f9bf2d1976d1d320481bff661b7565eb876d4df2a981f79e7f40e4cd"
   name = "golang.org/x/sys"
   packages = ["unix"]
-  pruneopts = "UT"
-  revision = "12500544f89f9420afe9529ba8940bf72d294972"
+  revision = "9f0b1ff7b46a4014ddb5d4bdb6602a43b882cb27"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  input-imports = [
-    "github.com/bitrise-io/bitrise/configs",
-    "github.com/bitrise-io/go-utils/command",
-    "github.com/bitrise-io/go-utils/errorutil",
-    "github.com/bitrise-io/go-utils/log",
-    "github.com/bitrise-io/go-utils/pathutil",
-    "github.com/spf13/cobra",
-  ]
+  inputs-digest = "a7ff6c37cd5490eebc149c5c0a3cb75e72105a4787eb5349ce87b524f7e8cd43"
   solver-name = "gps-cdcl"
   solver-version = 1
