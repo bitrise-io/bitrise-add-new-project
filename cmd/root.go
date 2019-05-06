@@ -187,7 +187,8 @@ func run(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	if err := phases.Register(*progress); err != nil {
+	dummyToken := "asdfasdfasdfasdf"
+	if err := phases.Register(*progress, dummyToken); err != nil {
 		if err := progress.Store(); err != nil {
 			fmt.Println("failed to store progress, error:", err)
 		}
