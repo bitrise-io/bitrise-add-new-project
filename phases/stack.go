@@ -8,15 +8,44 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+var defaultStacks map[string]string = map[string]string{
+	"xamarin":      "osx-vs4mac-stable",
+	"cordova":      "osx-vs4mac-stable",
+	"react-native": "osx-vs4mac-stable",
+	"ionic":        "osx-vs4mac-stable",
+	"flutter":      "osx-vs4mac-stable",
+	"android":      "linux-docker-android",
+	"macos":        "osx-xcode-10.0",
+	"ios":          "osx-xcode-10.0",
+	"other":        "",
+}
+
+var optionsStacks = []string{
+	"linux-docker-android-lts",
+	"linux-docker-android",
+	"osx-vs4mac-beta",
+	"osx-vs4mac-previous-stable",
+	"osx-vs4mac-stable",
+	"osx-xamarin-stable",
+	"osx-xcode-10.0.x",
+	"osx-xcode-10.1.x",
+	"osx-xcode-10.2.x",
+	"osx-xcode-8.3.x",
+	"osx-xcode-9.2.x",
+	"osx-xcode-9.4.x",
+	"osx-xcode-edge",
+}
+
 // Stack ...
 func Stack(bitriseYMLPath string) (string, error) {
+
+	var stack string
 
 	(&option{
 		title:        "Choose stack selection mode",
 		valueOptions: []string{"auto", "manual"},
 		action: func(answer string) *option {
-			switch answer {
-			case "auto":
+			if answer == "auto" {
 
 				data, err := ioutil.ReadFile("bitrise.yml")
 				if err != nil {
@@ -30,23 +59,33 @@ func Stack(bitriseYMLPath string) (string, error) {
 					return nil
 				}
 
-				if m.ProjectType == "" {
-					log.Warnf("Could not identify default stack: %s contains no project_type property. Falling back to manual stack selection.", bitriseYMLPath)
-					projectType := "other"
-					log.Printf(projectType)
+				projectType := m.ProjectType
+				if projectType == "" {
+					projectType = "other"
+				}
+
+				if stack = defaultStacks[projectType]; stack != "" {
 					return nil
 				}
 
-				projectType := m.ProjectType
+				log.Warnf("Could not identify default stack for project type (%s). Falling back to manual stack selection.", projectType)
+				answer = "manual"
+			}
 
-				log.Printf(projectType)
-
-			case "manual":
-				log.Printf("manual run selected")
+			if answer == "manual" {
+				(&option{
+					title:        "Available stacks",
+					valueOptions: optionsStacks,
+					action: func(answer string) *option {
+						stack = answer
+						return nil
+					},
+				}).run()
 			}
 
 			return nil
 		}}).run()
 
-	return "", nil
+	log.Successf(stack)
+	return stack, nil
 }
