@@ -142,7 +142,7 @@ func executePhases(cmd cobra.Command, progress *phases.Progress) error {
 		progress.Stack = &cmdFlagStack
 	}
 	if progress.Stack == nil {
-		stack, err := phases.Stack()
+		stack, err := phases.Stack(*progress.BitriseYML)
 		if err != nil {
 			return err
 		}
