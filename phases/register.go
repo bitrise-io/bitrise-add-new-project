@@ -75,7 +75,8 @@ func finishAppRegistration() error {
 	return nil
 }
 
-// Register ...
+// Register sends the data to the Bitrise servers, effectively creating the
+// application.
 func Register(progress Progress, apiToken string) error {
 
 	appSlug, err := startAppRegistration()
