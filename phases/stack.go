@@ -1,6 +1,7 @@
 package phases
 
 import (
+	"fmt"
 	"io/ioutil"
 
 	"github.com/bitrise-io/bitrise/models"
@@ -39,53 +40,59 @@ var optionsStacks = []string{
 // Stack ...
 func Stack(bitriseYMLPath string) (string, error) {
 
+	data, err := ioutil.ReadFile("bitrise.yml")
+	if err != nil {
+		log.Errorf("read bitrise yml: %s", err)
+		return "", nil
+	}
+
+	var m models.BitriseDataModel
+	if err := yaml.Unmarshal(data, &m); err != nil {
+		log.Errorf("unmarshal bitrise yml: %s", err)
+		return "", nil
+	}
+
+	projectType := m.ProjectType
+	if projectType == "" {
+		projectType = "other"
+	}
+
 	var stack string
-
-	(&option{
-		title:        "Choose stack selection mode",
-		valueOptions: []string{"auto", "manual"},
+	var manualStackSelection option = option{
+		title:        "Please choose from the available stacks",
+		valueOptions: optionsStacks,
 		action: func(answer string) *option {
-			if answer == "auto" {
-
-				data, err := ioutil.ReadFile("bitrise.yml")
-				if err != nil {
-					log.Errorf("read bitrise yml: %s", err)
-					return nil
-				}
-
-				var m models.BitriseDataModel
-				if err := yaml.Unmarshal(data, &m); err != nil {
-					log.Errorf("unmarshal bitrise yml: %s", err)
-					return nil
-				}
-
-				projectType := m.ProjectType
-				if projectType == "" {
-					projectType = "other"
-				}
-
-				if stack = defaultStacks[projectType]; stack != "" {
-					return nil
-				}
-
-				log.Warnf("Could not identify default stack for project type (%s). Falling back to manual stack selection.", projectType)
-				answer = "manual"
-			}
-
-			if answer == "manual" {
-				(&option{
-					title:        "Available stacks",
-					valueOptions: optionsStacks,
-					action: func(answer string) *option {
-						stack = answer
-						return nil
-					},
-				}).run()
-			}
-
+			stack = answer
 			return nil
-		}}).run()
+		},
+	}
 
-	log.Successf(stack)
+	if stack = defaultStacks[projectType]; stack != "" {
+		systemReportURL := fmt.Sprintf("https://github.com/bitrise-io/bitrise.io/blob/master/system_reports/%s.log", stack)
+		log.Printf("An %d project has been detected based on the provided bitrise.yml (%s)", stack, bitriseYMLPath)
+		log.Printf("The default stack for your project type is %s. You can check the preinstalled tools at %s", stack, systemReportURL)
+
+		const (
+			optionYes = "Yes"
+			optionNo = "No, I will select the stack manually"
+		)
+		(&option{
+			title: "Do you wish to keep this stack?",
+			valueOptions: []string{optionYes, optionNo},
+			action: func(answer string) *option {
+				if answer == optionNo {
+					log.Printf("Bitrise stack infos: https://github.com/bitrise-io/bitrise.io/tree/master/system_reports")
+					(&manualStackSelection).run()
+				}
+
+				return nil
+			},
+		}).run()
+		return stack, nil
+	}
+
+	log.Warnf("Could not identify default stack for project. Falling back to manual stack selection.")
+	(&manualStackSelection).run()
+
 	return stack, nil
 }
