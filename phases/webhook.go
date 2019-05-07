@@ -2,7 +2,7 @@ package phases
 
 import "github.com/bitrise-io/go-utils/log"
 
-// AddWebhook ...
+// AddWebhook phase interrogates the user whether to create a webhook or not.
 func AddWebhook() (bool, error) {
 	var registerWebhook bool
 
