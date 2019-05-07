@@ -10,11 +10,16 @@ func AddWebhook() (bool, error) {
 	log.Printf("To have Bitrise automatically start a build every time you push code into your repository you can set up a webhook at your code hosting service which will automatically trigger a build on Bitrise with the code you push to your repository.")
 	log.Printf("We can automatically register a Webhook for you if you have administrator rights for this repository.")
 
+	const (
+		optionYes = "yes"
+		optionNo  = "no"
+	)
+
 	(&option{
 		title:        "Would you like us to register a webhok fro you?",
-		valueOptions: []string{"yes", "no"},
+		valueOptions: []string{optionYes, optionNo},
 		action: func(answer string) *option {
-			if answer == "yes" {
+			if answer == optionYes {
 				registerWebhook = true
 			}
 			return nil
