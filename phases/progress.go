@@ -11,6 +11,11 @@ type Progress struct {
 	Account      *string `json:"account,omitempty"`
 	Public       *bool   `json:"public,omitempty"`
 	Repo         *string `json:"repo,omitempty"`
+	RepoURL      *string `json:"repo_url,omitempty`
+	RepoProvider *string `json:"repo_provider,omitempty`
+	RepoOwner    *string `json:"repo_owner,omitempty`
+	RepoSlug     *string `json:"repo_slug,omitempty`
+	RepoType     *string `json:"repo_type,omitempty`
 	PrivateKey   *string `json:"private_key,omitempty"`
 	BitriseYML   *string `json:"bitrise_yml,omitempty"`
 	Stack        *string `json:"stack,omitempty"`

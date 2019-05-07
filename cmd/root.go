@@ -21,9 +21,11 @@ const (
 	cmdFlagKeyStack        = "stack"
 	cmdFlagKeyAddWebhook   = "add-webhook"
 	cmdFlagKeyAutoCodesign = "auto-codesign"
+	cmdFlagKeyAPIToken     = "api-token"
 )
 
 var (
+	cmdFlagAPIToken     string
 	cmdFlagAccount      string
 	cmdFlagPublic       bool
 	cmdFlagRepo         string
@@ -72,6 +74,7 @@ func init() {
 	rootCmd.Flags().StringVar(&cmdFlagStack, cmdFlagKeyStack, "", "The stack to run the builds on")
 	rootCmd.Flags().BoolVar(&cmdFlagAddWebhook, cmdFlagKeyAddWebhook, false, "To register a webhook for the git provider")
 	rootCmd.Flags().BoolVar(&cmdFlagAutoCodesign, cmdFlagKeyAutoCodesign, false, "Upload codesign files for iOS project")
+	rootCmd.Flags().StringVar(&cmdFlagAPIToken, cmdFlagKeyAPIToken, "", "Your Bitrise personal access token")
 }
 
 func executePhases(cmd cobra.Command, progress *phases.Progress) error {
@@ -79,7 +82,7 @@ func executePhases(cmd cobra.Command, progress *phases.Progress) error {
 		progress.Account = &cmdFlagAccount
 	}
 	if progress.Account == nil {
-		account, err := phases.Account()
+		account, err := phases.Account(cmdFlagAPIToken)
 		if err != nil {
 			return err
 		}
@@ -101,11 +104,16 @@ func executePhases(cmd cobra.Command, progress *phases.Progress) error {
 		progress.Repo = &cmdFlagRepo
 	}
 	if progress.Repo == nil {
-		repo, err := phases.Repo()
+		repoDetails, err := phases.Repo(*progress.Public)
 		if err != nil {
 			return err
 		}
-		progress.Repo = &repo
+
+		progress.RepoURL = &repoDetails.URL
+		progress.RepoProvider = &repoDetails.Provider
+		progress.RepoOwner = &repoDetails.Owner
+		progress.RepoSlug = &repoDetails.Slug
+		progress.RepoType = &repoDetails.RepoType
 	}
 
 	if cmd.Flags().Changed(cmdFlagKeyPrivateKey) {
