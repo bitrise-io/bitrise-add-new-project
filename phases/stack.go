@@ -9,7 +9,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-var defaultStacks map[string]string = map[string]string{
+var defaultStacks = map[string]string{
 	"xamarin":      "osx-vs4mac-stable",
 	"cordova":      "osx-vs4mac-stable",
 	"react-native": "osx-vs4mac-stable",
@@ -58,7 +58,7 @@ func Stack(bitriseYMLPath string) (string, error) {
 	}
 
 	var stack string
-	var manualStackSelection option = option{
+	var manualStackSelection = option{
 		title:        "Please choose from the available stacks",
 		valueOptions: optionsStacks,
 		action: func(answer string) *option {
@@ -74,10 +74,10 @@ func Stack(bitriseYMLPath string) (string, error) {
 
 		const (
 			optionYes = "Yes"
-			optionNo = "No, I will select the stack manually"
+			optionNo  = "No, I will select the stack manually"
 		)
 		(&option{
-			title: "Do you wish to keep this stack?",
+			title:        "Do you wish to keep this stack?",
 			valueOptions: []string{optionYes, optionNo},
 			action: func(answer string) *option {
 				if answer == optionNo {
