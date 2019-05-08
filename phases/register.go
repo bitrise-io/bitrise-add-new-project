@@ -42,7 +42,10 @@ func registerWebhook(appSlug string, apiToken string) error {
 		reader := bufio.NewReader(os.Stdin)
 
 		for {
-			_, _ = reader.ReadString('\n')
+			if _, err = reader.ReadString('\n'); err != nil {
+				log.Errorf("Error reading user input")
+				continue
+			}
 			if err := registerWebhook(appSlug, apiToken); err != nil {
 				log.Errorf("Error registering webhook: %s", err)
 				log.Warnf("Please fix your configuration and hit enter to try again!")
