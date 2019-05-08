@@ -31,7 +31,7 @@ func registerWebhook(appSlug string, apiToken string) error {
 	request.Header.Add("Authorization", "token "+apiToken)
 	resp, err := http.DefaultClient.Do(request)
 	if err != nil {
-		fmt.Errorf("send POST %s request: %s", url, err)
+		return fmt.Errorf("send POST %s request: %s", url, err)
 	}
 
 	if resp.StatusCode == 400 {
