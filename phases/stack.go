@@ -42,14 +42,12 @@ func Stack(bitriseYMLPath string) (string, error) {
 
 	data, err := ioutil.ReadFile(bitriseYMLPath)
 	if err != nil {
-		log.Errorf("read bitrise yml: %s", err)
-		return "", nil
+		return "", fmt.Errorf("read bytrise yml (%s): %s", bitriseYMLPath, err)
 	}
 
 	var m models.BitriseDataModel
 	if err := yaml.Unmarshal(data, &m); err != nil {
-		log.Errorf("unmarshal bitrise yml: %s", err)
-		return "", nil
+		return "", fmt.Errorf("unmarshal bitrise yml (%s): %s", bitriseYMLPath, err)
 	}
 
 	projectType := m.ProjectType
