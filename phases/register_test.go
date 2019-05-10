@@ -3,10 +3,12 @@ package phases
 import (
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 )
 
 func TestRegisterWebhook(t *testing.T) {
+	// happy path
 	testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		res.WriteHeader(200)
 		res.Write([]byte(`{"message":"ok"}`))
@@ -23,16 +25,24 @@ func TestRegisterWebhook(t *testing.T) {
 		t.Fatalf("err should be nil instead of %s", err)
 	}
 
-	// testServer400 := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-	// 	res.WriteHeader(400)
-	// }))
-	// defer func() { testServer400.Close() }()
+	// retriable error case
+	os.Stdin.WriteString("\n")
 
-	// baseURL = testServer400.URL
 
-	// err = registerWebhook(appSlug, apiToken)
+	testServer400 := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		res.WriteHeader(400)
+	}))
+	defer func() { testServer400.Close() }()
 
-	// if err == nil {
-	// 	t.Fatalf("err should object instead of nil")
-	// }
+	baseURL = testServer400.URL
+
+	err = registerWebhook(appSlug, apiToken)
+
+	if err == nil {
+		t.Fatalf("err should object instead of nil")
+	}
+
+	if webhookAttemptCount != webhookAttemptMax {
+		t.Fatalf("exit before webhook max attempts reached")
+	}
 }
