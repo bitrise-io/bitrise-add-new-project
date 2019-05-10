@@ -45,4 +45,22 @@ func TestRegisterWebhook(t *testing.T) {
 	if webhookAttemptCount != webhookAttemptMax {
 		t.Fatalf("exit before webhook max attempts reached")
 	}
+
+	// fatal error
+	testServer500 := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		res.WriteHeader(500)
+	}))
+	defer func() { testServer500.Close() }()
+
+	baseURL = testServer500.URL
+
+	err = registerWebhook(appSlug, apiToken)
+
+	if err == nil {
+		t.Fatalf("err should object instead of nil")
+	}
+
+	if webhookAttemptCount != 0 {
+		t.Fatalf("multiple attemps detected")
+	}
 }
