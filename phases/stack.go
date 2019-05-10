@@ -40,7 +40,7 @@ var optionsStacks = []string{
 // Stack ...
 func Stack(bitriseYMLPath string) (string, error) {
 
-	data, err := ioutil.ReadFile("bitrise.yml")
+	data, err := ioutil.ReadFile(bitriseYMLPath)
 	if err != nil {
 		log.Errorf("read bitrise yml: %s", err)
 		return "", nil
