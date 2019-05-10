@@ -11,7 +11,7 @@ import (
 	"github.com/bitrise-io/go-utils/log"
 )
 
-const baseURL = "https://app.bitrise.io"
+var baseURL = "https://app.bitrise.io"
 
 func startAppRegistration() (string, error) {
 	return "", nil
