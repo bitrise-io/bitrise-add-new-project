@@ -13,6 +13,11 @@ import (
 
 var baseURL = "https://app.bitrise.io"
 
+var (
+	webhookAttemptCount int
+	webhookAttemptMax = 3
+)
+
 func startAppRegistration() (string, error) {
 	return "", nil
 }
@@ -22,6 +27,7 @@ func registerSSHKey() error {
 }
 
 func registerWebhook(appSlug string, apiToken string) error {
+	webhookAttemptCount = 0
 	url := fmt.Sprintf("%s/app/%s/register-webhook.json", baseURL, appSlug)
 	request, err := http.NewRequest(http.MethodPost, url, nil)
 	if err != nil {
@@ -47,8 +53,12 @@ func registerWebhook(appSlug string, apiToken string) error {
 		reader := bufio.NewReader(os.Stdin)
 
 		for {
+			if webhookAttemptCount == webhookAttemptMax {
+				return fmt.Errorf("maximum number of retries reached")
+			}
 			if _, err = reader.ReadString('\n'); err != nil {
 				log.Errorf("Error reading user input")
+				webhookAttemptCount++
 				continue
 			}
 			if err := registerWebhook(appSlug, apiToken); err != nil {
