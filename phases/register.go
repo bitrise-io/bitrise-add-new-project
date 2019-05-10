@@ -92,7 +92,7 @@ func Register(progress Progress, apiToken string) error {
 	}
 
 	if *progress.AddWebhook {
-		if err := registerWebhook(appSlug, "cI0ye2Y4tkSpwdhb-GdB-rl_rax6WdzR45KnpU3PeVZO70-52eS8kpbkSCaS-o4DsOe6i2L8QtnNhsq8IzNGfg"); err != nil {
+		if err := registerWebhook(appSlug, apiToken); err != nil {
 			return err
 		}
 	}
