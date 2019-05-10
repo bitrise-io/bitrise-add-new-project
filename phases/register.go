@@ -33,6 +33,11 @@ func registerWebhook(appSlug string, apiToken string) error {
 	if err != nil {
 		return fmt.Errorf("send POST %s request: %s", url, err)
 	}
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			log.Errorf("Failed to close response body, error: %s", err)
+		}
+	}()
 
 	if resp.StatusCode == 400 {
 		log.Errorf("Error registering webhook")
