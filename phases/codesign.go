@@ -17,9 +17,7 @@ import (
 
 // CodesignResult ...
 type CodesignResult struct {
-	AndroidCodesign                                      bool
 	KeystorePath, KeystorePassword, Alias, AliasPassword string
-	IOSCodesign                                          bool
 	ProfilePaths, CertificatePaths                       []string
 }
 
@@ -47,13 +45,13 @@ func getPlatform(projectType string) string {
 
 // AutoCodesign ...
 func AutoCodesign(bitriseYMLPath string) (CodesignResult, error) {
-	bitriseYMLFile, err := os.Open(bitriseYMLPath)
+	bitriseYMLContent, err := ioutil.ReadFile(bitriseYMLPath)
 	if err != nil {
 		return CodesignResult{}, fmt.Errorf("failed to open "+bitriseYMLPath+", error: %s", err)
 	}
 
 	var bitriseYML models.BitriseDataModel
-	if err := yaml.NewDecoder(bitriseYMLFile).Decode(&bitriseYML); err != nil {
+	if err := yaml.Unmarshal(bitriseYMLContent, &bitriseYML); err != nil {
 		return CodesignResult{}, fmt.Errorf("failed to parse "+bitriseYMLPath+", error: %s", err)
 	}
 
@@ -97,8 +95,6 @@ func AutoCodesign(bitriseYMLPath string) (CodesignResult, error) {
 						err = fmt.Errorf("failed to run command: %s, error: %s", cmd.PrintableCommandArgs(), err)
 					}
 
-					result.IOSCodesign = true
-
 					var files []os.FileInfo
 					files, err = ioutil.ReadDir(codesignExportsDir)
 					if err != nil {
@@ -116,8 +112,6 @@ func AutoCodesign(bitriseYMLPath string) (CodesignResult, error) {
 				}
 
 				if platform == platformAndroid || platform == platformBoth {
-					result.AndroidCodesign = true
-
 					(&option{
 						title: "Enter keystore path",
 						action: func(answer string) *option {
