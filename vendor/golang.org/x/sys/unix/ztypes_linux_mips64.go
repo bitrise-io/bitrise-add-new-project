@@ -2307,7 +2307,6 @@ type CryptoReportKPP struct {
 type CryptoReportAcomp struct {
 	Type [64]int8
 }
-<<<<<<< HEAD
 
 const (
 	BPF_REG_0                           = 0x0
@@ -2460,5 +2459,3 @@ const (
 	BPF_FD_TYPE_UPROBE                  = 0x4
 	BPF_FD_TYPE_URETPROBE               = 0x5
 )
-=======
->>>>>>> 0ab4e0541a9ebe5bdf6f0cd1716743d9ac8fee78

@@ -62,6 +62,12 @@
   version = "v1.0.2"
 
 [[projects]]
+  name = "github.com/pkg/errors"
+  packages = ["."]
+  revision = "ba968bfe8b2f7e042a574c888954fccecfa385b4"
+  version = "v0.8.1"
+
+[[projects]]
   name = "github.com/ryanuber/go-glob"
   packages = ["."]
   revision = "51a8f68e6c24dc43f1e371749c89a267de4ebc53"
@@ -83,7 +89,7 @@
   branch = "master"
   name = "golang.org/x/crypto"
   packages = ["ssh/terminal"]
-  revision = "cbcb750295291b33242907a04be40e80801d0cfc"
+  revision = "22d7a77e9e5f409e934ed268692e56707cd169e5"
 
 [[projects]]
   branch = "master"
@@ -97,6 +103,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "d6472e91b4e51ecd2cd55defbfe996b1a512bfc71ad110a8d2f91d3a7f3a2019"
+  inputs-digest = "1c6f076018b5c6b5015da4fe736f84cb907255ae2eae6745076d8cdff18a907d"
   solver-name = "gps-cdcl"
   solver-version = 1
