@@ -77,31 +77,30 @@ func Stack(bitriseYMLPath string) (string, error) {
 	if stack == "" {
 		log.Warnf("Could not identify default stack for project. Falling back to manual stack selection.")
 		(&manualStackSelection).run()
-	
+
 		return stack, nil
 	}
 
-		systemReportURL := fmt.Sprintf("https://github.com/bitrise-io/bitrise.io/blob/master/system_reports/%s.log", stack)
-		log.Printf("An %d project has been detected based on the provided bitrise.yml (%s)", stack, bitriseYMLPath)
-		log.Printf("The default stack for your project type is %s. You can check the preinstalled tools at %s", stack, systemReportURL)
+	systemReportURL := fmt.Sprintf("https://github.com/bitrise-io/bitrise.io/blob/master/system_reports/%s.log", stack)
+	log.Printf("An %d project has been detected based on the provided bitrise.yml (%s)", stack, bitriseYMLPath)
+	log.Printf("The default stack for your project type is %s. You can check the preinstalled tools at %s", stack, systemReportURL)
 
-		const (
-			optionYes = "Yes"
-			optionNo  = "No, I will select the stack manually"
-		)
-		(&option{
-			title:        "Do you wish to keep this stack?",
-			valueOptions: []string{optionYes, optionNo},
-			action: func(answer string) *option {
-				if answer == optionNo {
-					log.Printf("Bitrise stack infos: https://github.com/bitrise-io/bitrise.io/tree/master/system_reports")
-					(&manualStackSelection).run()
-				}
+	const (
+		optionYes = "Yes"
+		optionNo  = "No, I will select the stack manually"
+	)
+	(&option{
+		title:        "Do you wish to keep this stack?",
+		valueOptions: []string{optionYes, optionNo},
+		action: func(answer string) *option {
+			if answer == optionNo {
+				log.Printf("Bitrise stack infos: https://github.com/bitrise-io/bitrise.io/tree/master/system_reports")
+				(&manualStackSelection).run()
+			}
 
-				return nil
-			},
-		}).run()
-		return stack, nil
-
+			return nil
+		},
+	}).run()
+	return stack, nil
 
 }

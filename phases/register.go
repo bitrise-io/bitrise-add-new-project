@@ -15,7 +15,7 @@ var baseURL = "https://app.bitrise.io"
 
 var (
 	webhookAttemptCount int
-	webhookAttemptMax = 3
+	webhookAttemptMax   = 3
 )
 
 func startAppRegistration() (string, error) {
@@ -75,17 +75,17 @@ func registerWebhook(appSlug string, apiToken string) error {
 		return nil
 	}
 
-		data, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			return fmt.Errorf("read create webhook response: %s", err)
-		}
-		var m map[string]string
+	data, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("read create webhook response: %s", err)
+	}
+	var m map[string]string
 
-		if err := json.Unmarshal(data, &m); err != nil {
-			return fmt.Errorf("unmarshal create webhook response: %s", err)
-		}
+	if err := json.Unmarshal(data, &m); err != nil {
+		return fmt.Errorf("unmarshal create webhook response: %s", err)
+	}
 
-		return fmt.Errorf("server error registering webhook: %s %s", resp.Status, m["error_msg"])
+	return fmt.Errorf("server error registering webhook: %s %s", resp.Status, m["error_msg"])
 
 }
 
