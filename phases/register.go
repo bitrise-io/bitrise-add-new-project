@@ -81,7 +81,6 @@ func registerWebhook(appSlug string, apiToken string) error {
 			return fmt.Errorf("unmarshal create webhook response: %s", err)
 		}
 
-		log.Errorf("Error registering webhook: %s %s", resp.Status, m["error_msg"])
 		return fmt.Errorf("server error registering webhook: %s %s", resp.Status, m["error_msg"])
 	}
 
