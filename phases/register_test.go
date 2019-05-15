@@ -28,7 +28,6 @@ func TestRegisterWebhook(t *testing.T) {
 	// retriable error case
 	os.Stdin.WriteString("\n")
 
-
 	testServer400 := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		res.WriteHeader(400)
 	}))
