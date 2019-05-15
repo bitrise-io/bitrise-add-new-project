@@ -56,7 +56,8 @@ func getDefaultStack(bitriseYMLPath string) (string, error) {
 	return defaultStacks[projectType], nil
 }
 
-// Stack ...
+// Stack returns the selected stack for the project or an error
+// if something went wrong during stack autodetection.
 func Stack(bitriseYMLPath string) (string, error) {
 
 	var stack, err = getDefaultStack(bitriseYMLPath)
