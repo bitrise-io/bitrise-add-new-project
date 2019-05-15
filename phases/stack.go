@@ -37,9 +37,7 @@ var optionsStacks = []string{
 	"osx-xcode-edge",
 }
 
-// Stack ...
-func Stack(bitriseYMLPath string) (string, error) {
-
+func getDefaultStack(bitriseYMLPath string) (string, error) {
 	data, err := ioutil.ReadFile(bitriseYMLPath)
 	if err != nil {
 		return "", fmt.Errorf("read bytrise yml (%s): %s", bitriseYMLPath, err)
@@ -55,7 +53,17 @@ func Stack(bitriseYMLPath string) (string, error) {
 		projectType = "other"
 	}
 
-	var stack string
+	return defaultStacks[projectType], nil
+}
+
+// Stack ...
+func Stack(bitriseYMLPath string) (string, error) {
+
+	var stack, err = getDefaultStack(bitriseYMLPath)
+	if err != nil {
+		return "", fmt.Errorf("get default stack: %s", err)
+	}
+
 	var manualStackSelection = option{
 		title:        "Please choose from the available stacks",
 		valueOptions: optionsStacks,
@@ -65,7 +73,7 @@ func Stack(bitriseYMLPath string) (string, error) {
 		},
 	}
 
-	if stack = defaultStacks[projectType]; stack != "" {
+	if stack != "" {
 		systemReportURL := fmt.Sprintf("https://github.com/bitrise-io/bitrise.io/blob/master/system_reports/%s.log", stack)
 		log.Printf("An %d project has been detected based on the provided bitrise.yml (%s)", stack, bitriseYMLPath)
 		log.Printf("The default stack for your project type is %s. You can check the preinstalled tools at %s", stack, systemReportURL)
