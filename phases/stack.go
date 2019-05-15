@@ -74,7 +74,13 @@ func Stack(bitriseYMLPath string) (string, error) {
 		},
 	}
 
-	if stack != "" {
+	if stack == "" {
+		log.Warnf("Could not identify default stack for project. Falling back to manual stack selection.")
+		(&manualStackSelection).run()
+	
+		return stack, nil
+	}
+
 		systemReportURL := fmt.Sprintf("https://github.com/bitrise-io/bitrise.io/blob/master/system_reports/%s.log", stack)
 		log.Printf("An %d project has been detected based on the provided bitrise.yml (%s)", stack, bitriseYMLPath)
 		log.Printf("The default stack for your project type is %s. You can check the preinstalled tools at %s", stack, systemReportURL)
@@ -96,10 +102,6 @@ func Stack(bitriseYMLPath string) (string, error) {
 			},
 		}).run()
 		return stack, nil
-	}
 
-	log.Warnf("Could not identify default stack for project. Falling back to manual stack selection.")
-	(&manualStackSelection).run()
 
-	return stack, nil
 }
