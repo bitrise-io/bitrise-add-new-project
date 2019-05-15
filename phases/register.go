@@ -70,7 +70,11 @@ func registerWebhook(appSlug string, apiToken string) error {
 		}
 	}
 
-	if resp.StatusCode != http.StatusOK {
+	if resp.StatusCode == http.StatusOK {
+		log.Successf("Webhook registered")
+		return nil
+	}
+
 		data, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
 			return fmt.Errorf("read create webhook response: %s", err)
@@ -82,10 +86,7 @@ func registerWebhook(appSlug string, apiToken string) error {
 		}
 
 		return fmt.Errorf("server error registering webhook: %s %s", resp.Status, m["error_msg"])
-	}
 
-	log.Successf("Webhook registered")
-	return nil
 }
 
 func finishAppRegistration() error {
