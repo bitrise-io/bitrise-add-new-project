@@ -5,7 +5,7 @@
   branch = "master"
   name = "github.com/Sirupsen/logrus"
   packages = ["."]
-  revision = "9b3cdde74fbe9443d704467498a7dcb61a79de9b"
+  revision = "f0375eb5b588893ff556c71dee32d98e57a9b777"
 
 [[projects]]
   name = "github.com/bitrise-io/bitrise"
@@ -35,7 +35,7 @@
     "pathutil",
     "pointers"
   ]
-  revision = "2a09aab8380d7842750328aebd5671bcccea89c8"
+  revision = "8898129615c9e407fc6b0e60ea882f2b18ec4dc2"
 
 [[projects]]
   name = "github.com/bitrise-io/stepman"
@@ -87,13 +87,22 @@
 
 [[projects]]
   branch = "master"
+  name = "golang.org/x/crypto"
+  packages = ["ssh/terminal"]
+  revision = "22d7a77e9e5f409e934ed268692e56707cd169e5"
+
+[[projects]]
+  branch = "master"
   name = "golang.org/x/sys"
-  packages = ["unix"]
-  revision = "9f0b1ff7b46a4014ddb5d4bdb6602a43b882cb27"
+  packages = [
+    "unix",
+    "windows"
+  ]
+  revision = "a5b02f93d862f065920dd6a40dddc66b60d0dec4"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "a7ff6c37cd5490eebc149c5c0a3cb75e72105a4787eb5349ce87b524f7e8cd43"
+  inputs-digest = "1c6f076018b5c6b5015da4fe736f84cb907255ae2eae6745076d8cdff18a907d"
   solver-name = "gps-cdcl"
   solver-version = 1

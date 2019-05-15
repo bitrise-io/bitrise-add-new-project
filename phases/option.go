@@ -6,18 +6,21 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"syscall"
 
 	"github.com/bitrise-io/go-utils/log"
+	"golang.org/x/crypto/ssh/terminal"
 )
 
 type option struct {
 	title        string
 	valueOptions []string
 	action       func(string) *option
+	secret       bool
 }
 
 func (o *option) run() {
-	answer := ask(o.title, o.valueOptions...)
+	answer := ask(o.title, o.secret, o.valueOptions...)
 	if o.action != nil {
 		if nextOption := o.action(answer); nextOption != nil {
 			nextOption.run()
@@ -25,7 +28,7 @@ func (o *option) run() {
 	}
 }
 
-func ask(title string, options ...string) string {
+func ask(title string, secret bool, options ...string) string {
 	if len(options) == 1 {
 		return options[0]
 	}
@@ -35,7 +38,18 @@ func ask(title string, options ...string) string {
 	if len(options) == 0 {
 		fmt.Print(" ")
 		for {
-			input, err := bufio.NewReader(os.Stdin).ReadString('\n')
+			var (
+				input string
+				err   error
+			)
+			if !secret {
+				input, err = bufio.NewReader(os.Stdin).ReadString('\n')
+			} else {
+				var inputBytes []byte
+				inputBytes, err = terminal.ReadPassword(int(syscall.Stdin))
+				input = string(inputBytes)
+				fmt.Println()
+			}
 			if err != nil {
 				log.Errorf("Error: failed to read input value")
 				continue

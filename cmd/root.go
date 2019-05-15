@@ -164,11 +164,12 @@ func executePhases(cmd cobra.Command, progress *phases.Progress) error {
 		progress.AutoCodesign = &cmdFlagAutoCodesign
 	}
 	if progress.AutoCodesign == nil {
-		codesign, err := phases.AutoCodesign()
+		codesign, err := phases.AutoCodesign(*progress.BitriseYML)
 		if err != nil {
 			return err
 		}
-		progress.AutoCodesign = &codesign
+		_ = codesign
+		progress.AutoCodesign = nil
 	}
 
 	return nil
