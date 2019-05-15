@@ -11,7 +11,9 @@ func TestRegisterWebhook(t *testing.T) {
 	// happy path
 	testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		res.WriteHeader(200)
-		res.Write([]byte(`{"message":"ok"}`))
+		if _, err := res.Write([]byte(`{"message":"ok"}`)); err != nil {
+			t.Fatalf("write fake response: %s", err)
+		}
 	}))
 	defer func() { testServer.Close() }()
 
@@ -26,7 +28,13 @@ func TestRegisterWebhook(t *testing.T) {
 	}
 
 	// retriable error case
-	os.Stdin.WriteString("\n")
+	if os.Stdin, err = os.Create("testfile"); err != nil {
+		t.Fatalf("reset stdin to readable file: %s", err)
+
+	}
+	if _, err := os.Stdin.WriteString("\n"); err != nil {
+		t.Fatalf("write newline to stdin: %s", err)
+	}
 
 	testServer400 := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		res.WriteHeader(400)
