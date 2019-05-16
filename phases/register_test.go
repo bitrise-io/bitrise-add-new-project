@@ -11,7 +11,7 @@ func TestRegisterWebhook(t *testing.T) {
 	testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		res.WriteHeader(200)
 		if _, err := res.Write([]byte(`{"message":"ok"}`)); err != nil {
-			t.Fatalf("write fake response: %s", err)
+			t.Fatalf("could not write fake response: %s", err)
 		}
 	}))
 	defer func() { testServer.Close() }()
@@ -21,7 +21,7 @@ func TestRegisterWebhook(t *testing.T) {
 	apiToken := "dummy token"
 
 	if err := registerWebhook(appSlug, apiToken); err != nil {
-		t.Fatalf("err should be nil instead of %s", err)
+		t.Fatalf("expected: nil, got: error (%s)", err)
 	}
 
 	// fatal error
@@ -35,10 +35,10 @@ func TestRegisterWebhook(t *testing.T) {
 	err = registerWebhook(appSlug, apiToken)
 
 	if err == nil {
-		t.Fatalf("err should object instead of nil")
+		t.Fatalf("expected: error, got: nil")
 	}
 
 	if webhookAttemptCount != 0 {
-		t.Fatalf("multiple attemps detected")
+		t.Fatalf("expected: %s attempts, got: %s", 1, webhookAttemptCount+1)
 	}
 }
