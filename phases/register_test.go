@@ -21,9 +21,7 @@ func TestRegisterWebhook(t *testing.T) {
 	appSlug := "dummy app slug"
 	apiToken := "dummy token"
 
-	err := registerWebhook(appSlug, apiToken)
-
-	if err != nil {
+	if err := registerWebhook(appSlug, apiToken); err != nil {
 		t.Fatalf("err should be nil instead of %s", err)
 	}
 
