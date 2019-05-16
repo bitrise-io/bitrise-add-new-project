@@ -47,7 +47,7 @@ func registerWebhook(appSlug string, apiToken string) error {
 
 	if resp.StatusCode == http.StatusBadRequest {
 		log.Errorf("Error registering webhook")
-		log.Warnf("Make sure you have the required access rights to the repository and that you enabled git provider integration jfor your Bitrise account!")
+		log.Warnf("Make sure you have the required access rights to the repository and that you enabled git provider integration for your Bitrise account!")
 		log.Warnf("Please fix your configuration and hit enter to try again!")
 
 		reader := bufio.NewReader(os.Stdin)
