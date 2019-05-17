@@ -82,6 +82,14 @@ func BitriseYML() (string, string, error) {
 								return nil
 							}
 							if newBranch == branch {
+								// currentDir, err := filepath.Abs(".")
+								// if err != nil {
+								// 	return err
+								// }
+								// workflow, err := scanAndAskForProjectDetails(currentDir)
+								// if err != nil {
+								// 	return err
+								// }
 								cmd := command.New("bitrise", ":init")
 								if err = cmd.SetStderr(os.Stderr).SetStdin(os.Stdin).SetStdout(os.Stdout).Run(); err != nil {
 									err = fmt.Errorf("failed to run command: %s, error: %s", cmd.PrintableCommandArgs(), err)
