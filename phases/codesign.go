@@ -12,7 +12,6 @@ import (
 	"github.com/bitrise-io/bitrise/models"
 	"github.com/bitrise-io/go-utils/command"
 	"github.com/bitrise-io/go-utils/log"
-	"github.com/go-yaml/yaml"
 )
 
 // CodesignResult ...
@@ -44,17 +43,7 @@ func getPlatform(projectType string) string {
 }
 
 // AutoCodesign ...
-func AutoCodesign(bitriseYMLPath string) (CodesignResult, error) {
-	bitriseYMLContent, err := ioutil.ReadFile(bitriseYMLPath)
-	if err != nil {
-		return CodesignResult{}, fmt.Errorf("failed to open "+bitriseYMLPath+", error: %s", err)
-	}
-
-	var bitriseYML models.BitriseDataModel
-	if err := yaml.Unmarshal(bitriseYMLContent, &bitriseYML); err != nil {
-		return CodesignResult{}, fmt.Errorf("failed to parse "+bitriseYMLPath+", error: %s", err)
-	}
-
+func AutoCodesign(bitriseYML models.BitriseDataModel) (CodesignResult, error) {
 	platform := getPlatform(bitriseYML.ProjectType)
 	if platform == "" {
 		log.Warnf("No project type set or unknown platform found.")
@@ -65,7 +54,7 @@ func AutoCodesign(bitriseYMLPath string) (CodesignResult, error) {
 	fmt.Println()
 
 	var result CodesignResult
-
+	var err error
 	const (
 		exportTitle = "Do you want to export and upload codesigning files?"
 		exportYes   = "Yes"

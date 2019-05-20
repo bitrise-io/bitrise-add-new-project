@@ -1,5 +1,7 @@
 package phases
 
+import "github.com/bitrise-io/bitrise/models"
+
 // Progress ...
 type Progress struct {
 	Account      *string
@@ -11,7 +13,7 @@ type Progress struct {
 	RepoSlug     *string
 	RepoType     *string
 	PrivateKey   *string
-	BitriseYML   *string
+	BitriseYML   *models.BitriseDataModel
 	Stack        *string
 	AddWebhook   *bool
 	AutoCodesign *bool

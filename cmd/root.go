@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/bitrise-io/bitrise-add-new-project/phases"
 	"github.com/spf13/cobra"
@@ -103,10 +104,20 @@ func executePhases(cmd cobra.Command, progress *phases.Progress) error {
 	}
 
 	if cmd.Flags().Changed(cmdFlagKeyBitriseYML) {
-		progress.BitriseYML = &cmdFlagBitriseYML
+		DSL, found, err := phases.ReadExistingDSLFile(cmdFlagKeyBitriseYML)
+		if err != nil {
+			return fmt.Errorf("failed to read bitrise.yml, error: %s", err)
+		} else if !found {
+			return fmt.Errorf("bitrise.yml file (%s) not found, error: %s", cmdFlagBitriseYML, err)
+		}
+		progress.BitriseYML = &DSL
 	}
 	if progress.BitriseYML == nil {
-		yml, _, err := phases.BitriseYML()
+		currentDir, err := filepath.Abs(".")
+		if err != nil {
+			return fmt.Errorf("failed to get current directory, error: %s", err)
+		}
+		yml, _, err := phases.BitriseYML(currentDir)
 		if err != nil {
 			return err
 		}
