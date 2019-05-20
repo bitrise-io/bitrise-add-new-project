@@ -48,7 +48,7 @@ func getProjectInfo(bitriseYMLPath string) (string, string, error) {
 	}
 
 	if m.ProjectType == "" {
-		return "", "other", nil 
+		return "", "other", nil
 	}
 
 	return defaultStacks[m.ProjectType], m.ProjectType, nil

@@ -44,7 +44,7 @@ func performRegisterWebhookRequest(appSlug string, apiToken string) (*http.Respo
 			log.Warnf("Could not POST to %s: %s -- will retry", url, err)
 			return err
 		}
-		return nil	
+		return nil
 	}); err != nil {
 		log.Warnf("Retry limit reached for sending create webhook request")
 		return nil, fmt.Errorf("send POST %s request: %s", url, err)
@@ -68,7 +68,6 @@ func registerWebhook(appSlug string, apiToken string) error {
 		log.Errorf("Error registering webhook")
 		log.Warnf("Make sure you have the required access rights to the repository and that you enabled git provider integration for your Bitrise account!")
 		log.Warnf("Please fix your configuration and hit enter to try again!")
-
 
 		if _, err = reader.ReadString('\n'); err != nil {
 			log.Errorf("Error reading user input")
