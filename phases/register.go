@@ -28,12 +28,11 @@ func registerSSHKey() error {
 	return nil
 }
 
-func registerWebhook(appSlug string, apiToken string) error {
-	webhookAttemptCount = 0
+func performRegisterWebhookRequest(appSlug string, apiToken string) (*http.Response, error) {
 	url := fmt.Sprintf("%s/app/%s/register-webhook.json", baseURL, appSlug)
 	request, err := http.NewRequest(http.MethodPost, url, nil)
 	if err != nil {
-		return fmt.Errorf("create POST %s request: %s", url, err)
+		return nil, fmt.Errorf("create POST %s request: %s", url, err)
 	}
 
 	request.Header.Add("Authorization", "token "+apiToken)
@@ -48,7 +47,15 @@ func registerWebhook(appSlug string, apiToken string) error {
 		return nil	
 	}); err != nil {
 		log.Warnf("Retry limit reached for sending create webhook request")
-		return fmt.Errorf("send POST %s request: %s", url, err)
+		return nil, fmt.Errorf("send POST %s request: %s", url, err)
+	}
+	return resp, nil
+}
+
+func registerWebhook(appSlug string, apiToken string) error {
+	resp, err := performRegisterWebhookRequest(appSlug, apiToken)
+	if err != nil {
+		return err
 	}
 	defer func() {
 		if err := resp.Body.Close(); err != nil {
@@ -56,34 +63,27 @@ func registerWebhook(appSlug string, apiToken string) error {
 		}
 	}()
 
-	if resp.StatusCode == http.StatusOK {
-		log.Successf("Webhook registered")
-		return nil
-	}
-
-	if resp.StatusCode == http.StatusBadRequest {
+	reader := bufio.NewReader(os.Stdin)
+	for resp.StatusCode == http.StatusBadRequest {
 		log.Errorf("Error registering webhook")
 		log.Warnf("Make sure you have the required access rights to the repository and that you enabled git provider integration for your Bitrise account!")
 		log.Warnf("Please fix your configuration and hit enter to try again!")
 
-		reader := bufio.NewReader(os.Stdin)
 
-		for {
-			if webhookAttemptCount == webhookAttemptMax {
-				return fmt.Errorf("maximum number of retries reached")
-			}
-			if _, err = reader.ReadString('\n'); err != nil {
-				log.Errorf("Error reading user input")
-				webhookAttemptCount++
-				continue
-			}
-			if err := registerWebhook(appSlug, apiToken); err != nil {
-				log.Errorf("Error registering webhook: %s", err)
-				log.Warnf("Please fix your configuration and hit enter to try again!")
-				continue
-			}
-			return nil
+		if _, err = reader.ReadString('\n'); err != nil {
+			log.Errorf("Error reading user input")
+			continue
 		}
+
+		resp, err = performRegisterWebhookRequest(appSlug, apiToken)
+		if err != nil {
+			return err
+		}
+	}
+
+	if resp.StatusCode == http.StatusOK {
+		log.Successf("Webhook registered")
+		return nil
 	}
 
 	data, err := ioutil.ReadAll(resp.Body)

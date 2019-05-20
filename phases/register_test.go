@@ -37,8 +37,4 @@ func TestRegisterWebhook(t *testing.T) {
 	if err == nil {
 		t.Fatalf("expected: error, got: nil")
 	}
-
-	if webhookAttemptCount != 0 {
-		t.Fatalf("expected: %d attempts, got: %d", 1, webhookAttemptCount+1)
-	}
 }
