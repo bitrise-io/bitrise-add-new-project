@@ -45,6 +45,11 @@ func registerWebhook(appSlug string, apiToken string) error {
 		}
 	}()
 
+	if resp.StatusCode == http.StatusOK {
+		log.Successf("Webhook registered")
+		return nil
+	}
+
 	if resp.StatusCode == http.StatusBadRequest {
 		log.Errorf("Error registering webhook")
 		log.Warnf("Make sure you have the required access rights to the repository and that you enabled git provider integration for your Bitrise account!")
@@ -68,11 +73,6 @@ func registerWebhook(appSlug string, apiToken string) error {
 			}
 			return nil
 		}
-	}
-
-	if resp.StatusCode == http.StatusOK {
-		log.Successf("Webhook registered")
-		return nil
 	}
 
 	data, err := ioutil.ReadAll(resp.Body)
