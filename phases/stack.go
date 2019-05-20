@@ -44,7 +44,7 @@ func getProjectInfo(bitriseYMLPath string) (string, string, error) {
 
 	var m models.BitriseDataModel
 	if err := yaml.Unmarshal(data, &m); err != nil {
-		return "", "", fmt.Errorf("unmarshal bitrise yml (%s): %s", bitriseYMLPath, err)
+		return "", "", fmt.Errorf("unmarshal bitrise yml at %s (%s): %s", bitriseYMLPath, string(data), err)
 	}
 
 	if m.ProjectType == "" {
