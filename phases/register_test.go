@@ -32,13 +32,13 @@ func TestRegisterWebhook(t *testing.T) {
 
 	baseURL = testServer500.URL
 
-	err = registerWebhook(appSlug, apiToken)
+	err := registerWebhook(appSlug, apiToken)
 
 	if err == nil {
 		t.Fatalf("expected: error, got: nil")
 	}
 
 	if webhookAttemptCount != 0 {
-		t.Fatalf("expected: %s attempts, got: %s", 1, webhookAttemptCount+1)
+		t.Fatalf("expected: %d attempts, got: %d", 1, webhookAttemptCount+1)
 	}
 }
