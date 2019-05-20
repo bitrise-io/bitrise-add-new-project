@@ -18,7 +18,6 @@ var defaultStacks = map[string]string{
 	"android":      "linux-docker-android",
 	"macos":        "osx-xcode-10.0",
 	"ios":          "osx-xcode-10.0",
-	"other":        "",
 }
 
 var optionsStacks = []string{
@@ -48,12 +47,11 @@ func getProjectInfo(bitriseYMLPath string) (string, string, error) {
 		return "", "", fmt.Errorf("unmarshal bitrise yml (%s): %s", bitriseYMLPath, err)
 	}
 
-	projectType := m.ProjectType
-	if projectType == "" {
-		projectType = "other"
+	if m.ProjectType == "" {
+		return "", "other", nil 
 	}
 
-	return defaultStacks[projectType], projectType, nil
+	return defaultStacks[m.ProjectType], m.ProjectType, nil
 }
 
 // Stack returns the selected stack for the project or an error
