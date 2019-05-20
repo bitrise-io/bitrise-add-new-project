@@ -7,8 +7,10 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/bitrise-io/go-utils/log"
+	"github.com/bitrise-io/go-utils/retry"
 )
 
 var baseURL = "https://app.bitrise.io"
@@ -35,8 +37,17 @@ func registerWebhook(appSlug string, apiToken string) error {
 	}
 
 	request.Header.Add("Authorization", "token "+apiToken)
-	resp, err := http.DefaultClient.Do(request)
-	if err != nil {
+
+	var resp *http.Response
+	if err := retry.Times(3).Wait(5 * time.Second).Try(func(attempt uint) error {
+		resp, err = http.DefaultClient.Do(request)
+		if err != nil {
+			log.Warnf("Could not POST to %s: %s -- will retry", url, err)
+			return err
+		}
+		return nil	
+	}); err != nil {
+		log.Warnf("Retry limit reached for sending create webhook request")
 		return fmt.Errorf("send POST %s request: %s", url, err)
 	}
 	defer func() {
