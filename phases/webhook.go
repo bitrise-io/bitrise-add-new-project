@@ -16,7 +16,7 @@ func AddWebhook() (bool, error) {
 	)
 
 	(&option{
-		title:        "Would you like us to register a webhok fro you?",
+		title:        "Would you like us to register a webhook for you?",
 		valueOptions: []string{optionYes, optionNo},
 		action: func(answer string) *option {
 			if answer == optionYes {
