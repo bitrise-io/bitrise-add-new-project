@@ -82,7 +82,7 @@ func registerWebhook(appSlug string, apiToken string) error {
 	var m map[string]string
 
 	if err := json.Unmarshal(data, &m); err != nil {
-		return fmt.Errorf("unmarshal create webhook response: %s", err)
+		return fmt.Errorf("unmarshal create webhook response (%s): %s", string(data), err)
 	}
 
 	return fmt.Errorf("server error registering webhook: %s %s", resp.Status, m["error_msg"])
