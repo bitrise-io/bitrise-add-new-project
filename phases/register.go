@@ -15,11 +15,6 @@ import (
 
 var baseURL = "https://app.bitrise.io"
 
-var (
-	webhookAttemptCount int
-	webhookAttemptMax   = 3
-)
-
 func startAppRegistration() (string, error) {
 	return "", nil
 }
