@@ -30,7 +30,7 @@ func currentBranch() (string, error) {
 	return strings.TrimPrefix(out, "refs/heads/"), nil
 }
 
-func checkBranch(inputReader io.Reader, currentBranch func() (string, error)) error {
+func checkBranch(inputReader io.Reader) error {
 	var branch string
 	for {
 		var err error
@@ -152,7 +152,7 @@ func getDSL(searchDir string, inputReader io.Reader) (models.BitriseDataModel, e
 		return DSL, nil
 	}
 
-	err = checkBranch(inputReader, currentBranch)
+	err = checkBranch(inputReader)
 	if err != nil {
 		return models.BitriseDataModel{}, fmt.Errorf("failed to check repository branch: %s", err)
 	}
