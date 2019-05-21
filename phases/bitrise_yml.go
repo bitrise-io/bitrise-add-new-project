@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/bitrise-io/go-utils/pathutil"
+
 	"github.com/bitrise-io/bitrise-init/scanner"
 	"github.com/bitrise-io/bitrise/models"
 	"github.com/bitrise-io/go-utils/command"
@@ -64,26 +66,13 @@ func openFile(filePath string) (io.Reader, error) {
 	return nil, nil
 }
 
-func parseDSLFile(input io.Reader) (models.BitriseDataModel, error) {
+// ParseDSLFile parses a bitrise.yml and returns a data model
+func ParseDSLFile(input io.Reader) (models.BitriseDataModel, error) {
 	var decodedDSL models.BitriseDataModel
 	if err := yaml.NewDecoder(input).Decode(&decodedDSL); err != nil {
 		return models.BitriseDataModel{}, fmt.Errorf("failed to parse bitrise.yml, error: %s", err)
 	}
 	return decodedDSL, nil
-}
-
-// OpenAndParseDSLFile reads and parse a given bitrise.yml from a path
-func OpenAndParseDSLFile(filePath string) (models.BitriseDataModel, bool, error) {
-	DSLFile, err := openFile(filePath)
-	if err != nil {
-		return models.BitriseDataModel{}, false, err
-	} else if DSLFile == nil {
-		log.Infof("No bitrise.yml file found in the current working directory.")
-		return models.BitriseDataModel{}, false, nil
-	}
-
-	DSL, err := parseDSLFile(DSLFile)
-	return DSL, true, err
 }
 
 func selectDSLFile(inputReader io.Reader) (models.BitriseDataModel, bool, error) {
@@ -96,20 +85,22 @@ func selectDSLFile(inputReader io.Reader) (models.BitriseDataModel, bool, error)
 			return models.BitriseDataModel{}, true, nil
 		}
 
-		path, err := goinp.AskForPathFromReader("Enter the path of your bitrise.yml file (you can also drag & drop the file here)", inputReader)
+		filePath, err := goinp.AskForPathFromReader("Enter the path of your bitrise.yml file (you can also drag & drop the file here)", inputReader)
 		if err != nil {
 			log.Errorf("%s", err)
 			return models.BitriseDataModel{}, false, err
 		}
 
-		DSLFile, err := openFile(path)
+		DSLFile, err := os.Open(filePath)
 		if err != nil {
-			return models.BitriseDataModel{}, false, err
-		} else if DSLFile == nil {
-			log.Warnf("File (%s) does not exist.", path)
+			if !os.IsNotExist(err) {
+				return models.BitriseDataModel{}, false, fmt.Errorf("failed to open file (%s), error: %s", filePath, err)
+			}
+			log.Warnf("File (%s) does not exist.", filePath)
 			continue
 		}
-		decodedDSL, err := parseDSLFile(DSLFile)
+
+		decodedDSL, err := ParseDSLFile(DSLFile)
 		if err != nil {
 			log.Warnf("Failed to parse bitrise.yml, error: %s", err)
 			continue
@@ -138,10 +129,19 @@ func selectWorkflow(buildDSL models.BitriseDataModel, inputReader io.Reader) (st
 
 func getDSL(searchDir string, inputReader io.Reader) (models.BitriseDataModel, error) {
 	potentialDSLFilePath := filepath.Join(searchDir, bitriseYMLName)
-	DSL, found, err := OpenAndParseDSLFile(potentialDSLFilePath)
-	if err != nil {
-		return models.BitriseDataModel{}, fmt.Errorf("failed to read existing bitrise.yml, error: %s", err)
-	} else if found {
+
+	if exist, err := pathutil.IsPathExists(potentialDSLFilePath); err != nil {
+		return models.BitriseDataModel{}, fmt.Errorf("failed to check if file (%s) exists, error: %s", potentialDSLFilePath, err)
+	} else if exist {
+		log.Infof("Found bitrise.yml in current directory.")
+		file, err := os.Open(potentialDSLFilePath)
+		if err != nil && !os.IsNotExist(err) {
+			return models.BitriseDataModel{}, fmt.Errorf("failed to open file (%s), error: %s", potentialDSLFilePath, err)
+		}
+		DSL, err := ParseDSLFile(file)
+		if err != nil {
+			return models.BitriseDataModel{}, fmt.Errorf("failed to parse bitrise.yml, error: %s", err)
+		}
 		return DSL, nil
 	}
 
