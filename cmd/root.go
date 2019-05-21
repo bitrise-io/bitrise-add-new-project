@@ -104,7 +104,7 @@ func executePhases(cmd cobra.Command, progress *phases.Progress) error {
 	}
 
 	if cmd.Flags().Changed(cmdFlagKeyBitriseYML) {
-		DSL, found, err := phases.ReadExistingDSLFile(cmdFlagKeyBitriseYML)
+		DSL, found, err := phases.ParseDSLFile(cmdFlagKeyBitriseYML)
 		if err != nil {
 			return fmt.Errorf("failed to read bitrise.yml, error: %s", err)
 		} else if !found {
