@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/bitrise-core/bitrise-init/models"
-	"github.com/bitrise-core/bitrise-init/scanners"
+	"github.com/bitrise-io/bitrise-init/models"
+	"github.com/bitrise-io/bitrise-init/scanners"
 	"github.com/bitrise-io/go-utils/colorstring"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
@@ -39,6 +39,7 @@ type scannerOutput struct {
 	// set if scanResultStatus is scanResultDetected
 	options          models.OptionNode
 	configs          models.BitriseConfigMap
+	icons            models.Icons
 	excludedScanners []string
 }
 
@@ -116,6 +117,7 @@ func Config(searchDir string) models.ScanResultModel {
 	scannerToErrors := map[string]models.Errors{}
 	scannerToOptions := map[string]models.OptionNode{}
 	scannerToConfigMap := map[string]models.BitriseConfigMap{}
+	icons := models.Icons{}
 	for scanner, scannerOutput := range scannerToOutput {
 		// Currently the tests except an empty warning list if no warnings
 		// are created in the not detect case.
@@ -131,12 +133,14 @@ func Config(searchDir string) models.ScanResultModel {
 			scannerToOptions[scanner] = scannerOutput.options
 			scannerToConfigMap[scanner] = scannerOutput.configs
 		}
+		icons = append(icons, scannerOutput.icons...)
 	}
 	return models.ScanResultModel{
 		ScannerToOptionRoot:       scannerToOptions,
 		ScannerToBitriseConfigMap: scannerToConfigMap,
 		ScannerToWarnings:         scannerToWarnings,
 		ScannerToErrors:           scannerToErrors,
+		Icons:                     icons,
 	}
 }
 
@@ -181,7 +185,7 @@ func runScanner(detector scanners.ScannerInterface, searchDir string) scannerOut
 		}
 	}
 
-	options, projectWarnings, err := detector.Options()
+	options, projectWarnings, icons, err := detector.Options()
 	detectorWarnings = append(detectorWarnings, projectWarnings...)
 
 	if err != nil {
@@ -217,6 +221,7 @@ func runScanner(detector scanners.ScannerInterface, searchDir string) scannerOut
 		errors:           detectorErrors,
 		options:          options,
 		configs:          configs,
+		icons:            icons,
 		excludedScanners: scannerExcludedScanners,
 	}
 }

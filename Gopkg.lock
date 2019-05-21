@@ -2,41 +2,45 @@
 
 
 [[projects]]
-  digest = "1:2cec266f80900315138c059c8f5789cc6f2956fde1acdb96869a34c3f6883ead"
-  name = "github.com/bitrise-core/bitrise-init"
+  digest = "1:bd8bc15ce3a9929e2777651cbc271fca5561c0d5f42187edb4720e638d24662d"
+  name = "github.com/beevik/etree"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "8aee6516be3b1163bb6450c35c50e4969e3a3aa8"
+  version = "v1.1.0"
+
+[[projects]]
+  digest = "1:59664077e5eba703425d438e1c9d6f4aeaaf485814cedcae5d9c05cd093f0664"
+  name = "github.com/bitrise-io/bitrise"
+  packages = ["models"]
+  pruneopts = "UT"
+  revision = "a7523d99944aaf56c644dec41f374f746db9a453"
+  version = "1.29.0"
+
+[[projects]]
+  branch = "master"
+  digest = "1:f1965b8cda6ed9d551b3bd5bf22e28bf0d0672cc63832d9e8d314ef97050b7a0"
+  name = "github.com/bitrise-io/bitrise-init"
   packages = [
     "models",
+    "output",
+    "scanner",
     "scanners",
     "scanners/android",
     "scanners/cordova",
     "scanners/fastlane",
+    "scanners/flutter",
     "scanners/ionic",
     "scanners/ios",
     "scanners/macos",
     "scanners/reactnative",
     "scanners/xamarin",
     "steps",
+    "toolscanner",
     "utility",
   ]
   pruneopts = "UT"
-  revision = "d94f96d8a33e6c9bb7b2316b8782e4dd71998efd"
-  version = "1.6.0"
-
-[[projects]]
-  digest = "1:f006631e21e1ebecc5bd025f272197c6d1ee0102bc46006cf2e527b57be5e884"
-  name = "github.com/bitrise-io/bitrise"
-  packages = ["models"]
-  pruneopts = "UT"
-  revision = "d517b4ec062349d3b475a1928a804bfa284e86d9"
-  version = "1.30.0"
-
-[[projects]]
-  digest = "1:59c58be7a5fd4bdb0752651ff22188584f773c1e7aeedc1b8236e277cf7c57cd"
-  name = "github.com/bitrise-io/bitrise-init"
-  packages = ["scanner"]
-  pruneopts = "UT"
-  revision = "d2ea1b27c9c491e1f41ab3106e99e100296cceb0"
-  version = "1.8.0"
+  revision = "1e39bdac80b8db8e4fcf0bac16f27369df08fc15"
 
 [[projects]]
   branch = "master"
@@ -67,9 +71,12 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:cd99f11561902ea5fb600e79c5dda03fa715d325a67c39fa7704ca137e467753"
+  digest = "1:3060b1a20d5eccc02b4dcf61127258fb3ca0070b3386d4326907417164a9bcdd"
   name = "github.com/bitrise-io/go-xcode"
-  packages = ["plistutil"]
+  packages = [
+    "plistutil",
+    "xcodeproj",
+  ]
   pruneopts = "UT"
   revision = "a49d262bd2151997b9b18f882654eae3aab31a9d"
 
@@ -91,11 +98,17 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:e0fcb058757b8801210d05b0ec6ccf1881c0d36b27a4ada40bffa6d580acc8f1"
-  name = "github.com/bitrise-tools/go-xcode"
-  packages = ["xcodeproj"]
+  digest = "1:d30f24e344dc73c47a2e18a658fe46cc22b18a756b0fed3e8056c2fd4669a125"
+  name = "github.com/bitrise-io/xcode-project"
+  packages = [
+    "serialized",
+    "xcodebuild",
+    "xcodeproj",
+    "xcscheme",
+    "xcworkspace",
+  ]
   pruneopts = "UT"
-  revision = "a49d262bd2151997b9b18f882654eae3aab31a9d"
+  revision = "5929ad85d89233b3296d2d795e068a656db7fb25"
 
 [[projects]]
   digest = "1:4d2e5a73dc1500038e504a8d78b986630e3626dc027bc030ba5c75da257cdb96"
@@ -163,6 +176,21 @@
   ]
   pruneopts = "UT"
   revision = "c432e742b0af385916e013f6a34e9e73d139cf82"
+
+[[projects]]
+  digest = "1:1093f2eb4b344996604f7d8b29a16c5b22ab9e1b25652140d3fede39f640d5cd"
+  name = "golang.org/x/text"
+  packages = [
+    "internal/gen",
+    "internal/triegen",
+    "internal/ucd",
+    "transform",
+    "unicode/cldr",
+    "unicode/norm",
+  ]
+  pruneopts = "UT"
+  revision = "342b2e1fbaa52c93f31447ad2c6abc048c63e475"
+  version = "v0.3.2"
 
 [[projects]]
   digest = "1:4d2e5a73dc1500038e504a8d78b986630e3626dc027bc030ba5c75da257cdb96"
