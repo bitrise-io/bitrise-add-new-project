@@ -1,36 +1,28 @@
 package bitrise
 
 import (
+	"fmt"
 	"net/http"
-
-	"github.com/bitrise-io/bitrise-add-new-project/httputil"
 )
 
 // RegisterSSHKeyParams ...
 type RegisterSSHKeyParams struct {
-	PrivateKey string `json:"auth_ssh_private_key,omitempty"`
-	PublicKey  string `json:"auth_ssh_public_key,omitempty"`
-	IsRegister bool   `json:"is_register_key_into_provider_service,omitempty"`
+	AuthSSHPrivateKey                string `json:"auth_ssh_private_key,omitempty"`
+	AuthSSHPublicKey                 string `json:"auth_ssh_public_key,omitempty"`
+	IsRegisterKeyIntoProviderService bool   `json:"is_register_key_into_provider_service,omitempty"`
+}
+
+// RegisterSSHKeyURL ...
+func RegisterSSHKeyURL(appSlug string) string {
+	return fmt.Sprintf("apps/%s/register-ssh-key", appSlug)
 }
 
 // RegisterSSHKey ...
-func (c *Client) RegisterSSHKey(appSlug, privateKey, publicKey string, isRegister bool) (*http.Response, error) {
-	p := RegisterSSHKeyParams{
-		PrivateKey: privateKey,
-		PublicKey:  publicKey,
-		IsRegister: isRegister,
-	}
-
-	req, err := c.newRequest(http.MethodPost, appSlug+"/register-ssh-key", p)
+func (c *Client) RegisterSSHKey(appSlug string, params RegisterSSHKeyParams) error {
+	req, err := c.newRequest(http.MethodPost, RegisterSSHKeyURL(appSlug), params)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	resp, err := c.do(req, nil)
-	httputil.PrintResponse(resp)
-	if err != nil {
-		return nil, err
-	}
-
-	return resp, nil
+	return c.do(req, nil)
 }

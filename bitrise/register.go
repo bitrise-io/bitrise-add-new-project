@@ -2,9 +2,10 @@ package bitrise
 
 import (
 	"net/http"
-
-	"github.com/bitrise-io/bitrise-add-new-project/httputil"
 )
+
+// RegisterURL ...
+const RegisterURL = "apps/register"
 
 // RegisterParams ...
 type RegisterParams struct {
@@ -16,27 +17,21 @@ type RegisterParams struct {
 	Type        string `json:"type,omitempty"`
 }
 
+// RegisterResponse ...
+type RegisterResponse struct {
+	Status string `json:"status,omitempty"`
+	Slug   string `json:"slug,omitempty"`
+}
+
 // Register ...
-func (c *Client) Register(owner, repoSlug string, public bool, provider, repoURL, repoType string) (*http.Response, error) {
-	p := RegisterParams{
-		IsPublic:    public,
-		GitOwner:    owner,
-		GitRepoSlug: repoSlug,
-		Provider:    provider,
-		RepoURL:     repoURL,
-		Type:        repoType,
-	}
-
-	req, err := c.newRequest(http.MethodPost, "register", p)
+func (c *Client) Register(params RegisterParams) (string, error) {
+	req, err := c.newRequest(http.MethodPost, RegisterURL, params)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
-
-	resp, err := c.do(req, nil)
-	httputil.PrintResponse(resp)
-	if err != nil {
-		return nil, err
+	var resp RegisterResponse
+	if err := c.do(req, &resp); err != nil {
+		return "", err
 	}
-
-	return resp, nil
+	return resp.Slug, nil
 }

@@ -1,23 +1,21 @@
 package bitrise
 
 import (
+	"fmt"
 	"net/http"
-
-	"github.com/bitrise-io/bitrise-add-new-project/httputil"
 )
 
+// RegisterWebhookURL ...
+func RegisterWebhookURL(appSlug string) string {
+	return fmt.Sprintf("apps/%s/register-webhook", appSlug)
+}
+
 // RegisterWebhook ...
-func (c *Client) RegisterWebhook(appSlug string) (*http.Response, error) {
-	req, err := c.newRequest(http.MethodPost, appSlug+"/register-webhook", nil)
+func (c *Client) RegisterWebhook(appSlug string) error {
+	req, err := c.newRequest(http.MethodPost, RegisterWebhookURL(appSlug), nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	resp, err := c.do(req, nil)
-	httputil.PrintResponse(resp)
-	if err != nil {
-		return nil, err
-	}
-
-	return resp, nil
+	return c.do(req, nil)
 }

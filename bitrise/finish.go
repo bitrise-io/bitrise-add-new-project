@@ -1,9 +1,8 @@
 package bitrise
 
 import (
+	"fmt"
 	"net/http"
-
-	"github.com/bitrise-io/bitrise-add-new-project/httputil"
 )
 
 // RegisterFinishParams ...
@@ -16,27 +15,26 @@ type RegisterFinishParams struct {
 	StackID          string            `json:"stack_id,omitempty"`
 }
 
+// RegisterFinishResponse ...
+type RegisterFinishResponse struct {
+	Status string `json:"status,omitempty"`
+	Slug   string `json:"slug,omitempty"`
+}
+
+// RegisterFinishURL ...
+func RegisterFinishURL(appSlug string) string {
+	return fmt.Sprintf("apps/%s/finish", appSlug)
+}
+
 // RegisterFinish ...
-func (c *Client) RegisterFinish(appSlug, bitriseYML string, envs map[string]string, mode, organizationSlug, projectType, stackID string) (*http.Response, error) {
-	p := RegisterFinishParams{
-		Config:           bitriseYML,
-		Envs:             envs,
-		Mode:             mode,
-		OrganizationSlug: organizationSlug,
-		ProjectType:      projectType,
-		StackID:          stackID,
-	}
-
-	req, err := c.newRequest(http.MethodPost, appSlug+"/finish", p)
+func (c *Client) RegisterFinish(appSlug string, params RegisterFinishParams) (string, error) {
+	req, err := c.newRequest(http.MethodPost, RegisterFinishURL(appSlug), params)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
-
-	resp, err := c.do(req, nil)
-	httputil.PrintResponse(resp)
-	if err != nil {
-		return nil, err
+	var resp RegisterFinishResponse
+	if err := c.do(req, &resp); err != nil {
+		return "", err
 	}
-
-	return resp, nil
+	return resp.Slug, nil
 }

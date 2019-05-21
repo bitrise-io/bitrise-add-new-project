@@ -1,28 +1,58 @@
 package phases
 
 import (
-	"bufio"
-	"encoding/json"
-	"fmt"
-	"io/ioutil"
-	"net/http"
-	"os"
-	"time"
-
+	"github.com/bitrise-io/bitrise-add-new-project/bitrise"
 	"github.com/bitrise-io/go-utils/log"
-	"github.com/bitrise-io/go-utils/retry"
+	"github.com/bitrise-io/xcode-project/pretty"
 )
 
-var baseURL = "https://app.bitrise.io"
-
-func startAppRegistration() (string, error) {
-	return "", nil
+func toRegistrationParams(progress Progress) (params bitrise.CreateProjectParams, err error) {
+	params.Repository = bitrise.RegisterParams{
+		GitOwner:    *progress.RepoOwner,
+		GitRepoSlug: *progress.RepoSlug,
+		IsPublic:    *progress.Public,
+		Provider:    *progress.RepoProvider,
+		RepoURL:     *progress.RepoURL,
+		Type:        *progress.RepoType,
+	}
+	params.RegisterWebhook = *progress.AddWebhook
+	params.SSHKey = bitrise.RegisterSSHKeyParams{
+		AuthSSHPrivateKey:                *progress.PrivateKey,
+		AuthSSHPublicKey:                 "",
+		IsRegisterKeyIntoProviderService: true,
+	}
+	params.Project = bitrise.RegisterFinishParams{
+		Config:           *progress.BitriseYML,
+		Envs:             nil,
+		Mode:             "manual",
+		OrganizationSlug: *progress.Account,
+		ProjectType:      "",
+		StackID:          *progress.Stack,
+	}
+	return
 }
 
-func registerSSHKey() error {
+// Register ...
+func Register(token string, progress Progress) error {
+	log.Infof("Register")
+
+	params, err := toRegistrationParams(progress)
+	if err != nil {
+		return err
+	}
+
+	log.Printf("Provided params: %s", pretty.Object(params))
+
+	slug, err := bitrise.CreateProject(token, params)
+	if err != nil {
+		return err
+	}
+
+	log.Donef("Project created: https://app.bitrise.io/app/%s", slug)
 	return nil
 }
 
+/*
 func performRegisterWebhookRequest(appSlug string, apiToken string) (*http.Response, error) {
 	url := fmt.Sprintf("%s/app/%s/register-webhook.json", baseURL, appSlug)
 	request, err := http.NewRequest(http.MethodPost, url, nil)
@@ -91,34 +121,5 @@ func registerWebhook(appSlug string, apiToken string) error {
 	}
 
 	return fmt.Errorf("server error registering webhook: %s %s", resp.Status, m["error_msg"])
-
 }
-
-func finishAppRegistration() error {
-	return nil
-}
-
-// Register sends the data to the Bitrise servers, effectively creating the
-// application.
-func Register(progress Progress, apiToken string) error {
-
-	appSlug, err := startAppRegistration()
-	if err != nil {
-		return err
-	}
-
-	if err := registerSSHKey(); err != nil {
-		return err
-	}
-
-	if progress.AddWebhook {
-		if err := registerWebhook(appSlug, apiToken); err != nil {
-			return err
-		}
-	}
-
-	if err := finishAppRegistration(); err != nil {
-		return err
-	}
-	return nil
-}
+*/
