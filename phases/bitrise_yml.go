@@ -108,9 +108,19 @@ func selectWorkflow(buildDSL models.BitriseDataModel, inputReader io.Reader) (st
 		return "", fmt.Errorf("no workflows found in bitrise.yml")
 	}
 
+	const defaultWorkflowName = "primary"
+	if _, contains := buildDSL.Workflows[defaultWorkflowName]; contains {
+		return defaultWorkflowName, nil
+	}
+
 	var workflows []string
 	for workflow := range buildDSL.Workflows {
 		workflows = append(workflows, workflow)
+	}
+
+	if len(workflows) == 1 {
+		log.Infof("Selecting workflow: %s", workflows[0])
+		return workflows[0], nil
 	}
 
 	workflow, err := goinp.SelectFromStringsFromReaderWithDefault("Select workflow to run in the first build:", 1, workflows, inputReader)
