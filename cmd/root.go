@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/bitrise-io/bitrise-add-new-project/phases"
+	"github.com/bitrise-io/go-utils/log"
 	"github.com/spf13/cobra"
 )
 
@@ -108,6 +109,11 @@ func executePhases(cmd cobra.Command, progress *phases.Progress) error {
 		if err != nil {
 			return fmt.Errorf("failed to open bitrise.yml, error: %s", err)
 		}
+		defer func() {
+			if err := DSLFile.Close(); err != nil {
+				log.Warnf("failed to close file, error: %s", err)
+			}
+		}()
 		DSL, err := phases.ParseDSLFile(DSLFile)
 		if err != nil {
 			return fmt.Errorf("failed to parse bitrise.yml, error: %s", err)
