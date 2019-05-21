@@ -1,7 +1,16 @@
 package main
 
-import "github.com/bitrise-io/bitrise-add-new-project/cmd"
+import (
+	"log"
+
+	"github.com/bitrise-io/bitrise-add-new-project/phases"
+)
 
 func main() {
-	cmd.Execute()
+	DSL, workflow, err := phases.BitriseYML(".")
+	log.Printf("%+v \n %s \n %s", DSL, workflow, err)
+	if err != nil {
+		panic(err)
+	}
+	// cmd.Execute()
 }

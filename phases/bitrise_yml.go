@@ -55,17 +55,6 @@ func checkBranch(inputReader io.Reader) error {
 	return nil
 }
 
-func openFile(filePath string) (io.Reader, error) {
-	file, err := os.Open(filePath)
-	if err != nil {
-		if !os.IsNotExist(err) {
-			return nil, fmt.Errorf("failed to open file (%s), error: %s", filePath, err)
-		}
-		return file, nil
-	}
-	return nil, nil
-}
-
 // ParseDSLFile parses a bitrise.yml and returns a data model
 func ParseDSLFile(input io.Reader) (models.BitriseDataModel, error) {
 	var decodedDSL models.BitriseDataModel
@@ -92,6 +81,11 @@ func selectDSLFile(inputReader io.Reader) (models.BitriseDataModel, bool, error)
 		}
 
 		DSLFile, err := os.Open(filePath)
+		defer func() {
+			if err := DSLFile.Close(); err != nil {
+				log.Warnf("failed to close file, error: %s", err)
+			}
+		}()
 		if err != nil {
 			if !os.IsNotExist(err) {
 				return models.BitriseDataModel{}, false, fmt.Errorf("failed to open file (%s), error: %s", filePath, err)
@@ -135,6 +129,11 @@ func getDSL(searchDir string, inputReader io.Reader) (models.BitriseDataModel, e
 	} else if exist {
 		log.Infof("Found bitrise.yml in current directory.")
 		file, err := os.Open(potentialDSLFilePath)
+		defer func() {
+			if err := file.Close(); err != nil {
+				log.Warnf("failed to close file, error: %s", err)
+			}
+		}()
 		if err != nil && !os.IsNotExist(err) {
 			return models.BitriseDataModel{}, fmt.Errorf("failed to open file (%s), error: %s", potentialDSLFilePath, err)
 		}
