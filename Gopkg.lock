@@ -123,6 +123,12 @@
 
 [[projects]]
   branch = "master"
+  name = "golang.org/x/crypto"
+  packages = ["ssh/terminal"]
+  revision = "22d7a77e9e5f409e934ed268692e56707cd169e5"
+
+[[projects]]
+  branch = "master"
   name = "golang.org/x/sys"
   packages = [
     "unix",
@@ -133,17 +139,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  input-imports = [
-    "github.com/bitrise-io/bitrise/configs",
-    "github.com/bitrise-io/bitrise/models",
-    "github.com/bitrise-io/go-utils/command",
-    "github.com/bitrise-io/go-utils/log",
-    "github.com/bitrise-io/go-utils/pathutil",
-    "github.com/bitrise-io/go-utils/retry",
-    "github.com/go-yaml/yaml",
-    "github.com/pkg/errors",
-    "github.com/spf13/cobra",
-    "gopkg.in/yaml.v2",
-  ]
+  inputs-digest = "1c6f076018b5c6b5015da4fe736f84cb907255ae2eae6745076d8cdff18a907d"
   solver-name = "gps-cdcl"
   solver-version = 1
