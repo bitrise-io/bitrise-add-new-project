@@ -6,8 +6,7 @@
   digest = "1:cabe9ec8289704e71e45138c18ad90275bce25a8d61145c4130b55d9d9a6d6dc"
   name = "github.com/Sirupsen/logrus"
   packages = ["."]
-  pruneopts = "UT"
-  revision = "9b3cdde74fbe9443d704467498a7dcb61a79de9b"
+  revision = "f0375eb5b588893ff556c71dee32d98e57a9b777"
 
 [[projects]]
   digest = "1:5efa4731cdcbc8d0550281db03b8e3fae62f696316a41fe8ee598c27d917be97"
@@ -42,8 +41,7 @@
     "pathutil",
     "pointers",
   ]
-  pruneopts = "UT"
-  revision = "2a09aab8380d7842750328aebd5671bcccea89c8"
+  revision = "8898129615c9e407fc6b0e60ea882f2b18ec4dc2"
 
 [[projects]]
   branch = "master"
@@ -111,11 +109,18 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:157e5158a7f29d6633eed502880463aa43de3c36d451c7051591efd12f455ac8"
+  name = "golang.org/x/crypto"
+  packages = ["ssh/terminal"]
+  revision = "22d7a77e9e5f409e934ed268692e56707cd169e5"
+
+[[projects]]
+  branch = "master"
   name = "golang.org/x/sys"
-  packages = ["unix"]
-  pruneopts = "UT"
-  revision = "9f0b1ff7b46a4014ddb5d4bdb6602a43b882cb27"
+  packages = [
+    "unix",
+    "windows"
+  ]
+  revision = "a5b02f93d862f065920dd6a40dddc66b60d0dec4"
 
 [[projects]]
   digest = "1:4d2e5a73dc1500038e504a8d78b986630e3626dc027bc030ba5c75da257cdb96"
@@ -128,16 +133,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  input-imports = [
-    "github.com/bitrise-io/bitrise/configs",
-    "github.com/bitrise-io/bitrise/models",
-    "github.com/bitrise-io/go-utils/command",
-    "github.com/bitrise-io/go-utils/log",
-    "github.com/bitrise-io/go-utils/pathutil",
-    "github.com/go-yaml/yaml",
-    "github.com/pkg/errors",
-    "github.com/spf13/cobra",
-    "gopkg.in/yaml.v2",
-  ]
+  inputs-digest = "1c6f076018b5c6b5015da4fe736f84cb907255ae2eae6745076d8cdff18a907d"
   solver-name = "gps-cdcl"
   solver-version = 1
