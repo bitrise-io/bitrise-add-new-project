@@ -6,7 +6,8 @@
   digest = "1:9ffd8274c90a47cb2bdf4f469722a95027ee0dce146571d86211f08f7d8e2547"
   name = "github.com/Sirupsen/logrus"
   packages = ["."]
-  revision = "f0375eb5b588893ff556c71dee32d98e57a9b777"
+  pruneopts = "UT"
+  revision = "2a22dbedbad1fd454910cd1f44f210ef90c28464"
 
 [[projects]]
   digest = "1:d9c1a21dd0f06b916fee35d2ae084a9c5f7018432820df564f1186b9f3ce6e32"
@@ -42,6 +43,7 @@
     "pointers",
     "retry",
   ]
+  pruneopts = "UT"
   revision = "8898129615c9e407fc6b0e60ea882f2b18ec4dc2"
 
 [[projects]]
@@ -109,6 +111,25 @@
   version = "v1.0.3"
 
 [[projects]]
+  branch = "master"
+  digest = "1:bbe51412d9915d64ffaa96b51d409e070665efc5194fcf145c4a27d4133107a4"
+  name = "golang.org/x/crypto"
+  packages = ["ssh/terminal"]
+  pruneopts = "UT"
+  revision = "22d7a77e9e5f409e934ed268692e56707cd169e5"
+
+[[projects]]
+  branch = "master"
+  digest = "1:76a8f15384d51164875fe295559d2e5a8180d67312bb040d0509b5b1114c0267"
+  name = "golang.org/x/sys"
+  packages = [
+    "unix",
+    "windows",
+  ]
+  pruneopts = "UT"
+  revision = "8097e1b27ff5e40620836729a9584e91b094b062"
+
+[[projects]]
   digest = "1:4d2e5a73dc1500038e504a8d78b986630e3626dc027bc030ba5c75da257cdb96"
   name = "gopkg.in/yaml.v2"
   packages = ["."]
@@ -116,29 +137,22 @@
   revision = "51d6538a90f86fe93ac480b35f37b2be17fef232"
   version = "v2.2.2"
 
-[[projects]]
-  name = "golang.org/x/crypto"
-  packages = ["ssh/terminal"]
-  revision = "22d7a77e9e5f409e934ed268692e56707cd169e5"
-
-[[projects]]
-  branch = "master"
-  name = "golang.org/x/crypto"
-  packages = ["ssh/terminal"]
-  revision = "22d7a77e9e5f409e934ed268692e56707cd169e5"
-
-[[projects]]
-  branch = "master"
-  name = "golang.org/x/sys"
-  packages = [
-    "unix",
-    "windows"
-  ]
-  revision = "a5b02f93d862f065920dd6a40dddc66b60d0dec4"
-
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "1c6f076018b5c6b5015da4fe736f84cb907255ae2eae6745076d8cdff18a907d"
+  input-imports = [
+    "github.com/bitrise-io/bitrise/configs",
+    "github.com/bitrise-io/bitrise/models",
+    "github.com/bitrise-io/go-utils/command",
+    "github.com/bitrise-io/go-utils/errorutil",
+    "github.com/bitrise-io/go-utils/log",
+    "github.com/bitrise-io/go-utils/pathutil",
+    "github.com/bitrise-io/go-utils/retry",
+    "github.com/go-yaml/yaml",
+    "github.com/pkg/errors",
+    "github.com/spf13/cobra",
+    "golang.org/x/crypto/ssh/terminal",
+    "gopkg.in/yaml.v2",
+  ]
   solver-name = "gps-cdcl"
   solver-version = 1
