@@ -6,8 +6,7 @@
   digest = "1:9ffd8274c90a47cb2bdf4f469722a95027ee0dce146571d86211f08f7d8e2547"
   name = "github.com/Sirupsen/logrus"
   packages = ["."]
-  pruneopts = "UT"
-  revision = "2a22dbedbad1fd454910cd1f44f210ef90c28464"
+  revision = "f0375eb5b588893ff556c71dee32d98e57a9b777"
 
 [[projects]]
   digest = "1:d9c1a21dd0f06b916fee35d2ae084a9c5f7018432820df564f1186b9f3ce6e32"
@@ -43,7 +42,6 @@
     "pointers",
     "retry",
   ]
-  pruneopts = "UT"
   revision = "8898129615c9e407fc6b0e60ea882f2b18ec4dc2"
 
 [[projects]]
@@ -111,20 +109,26 @@
   version = "v1.0.3"
 
 [[projects]]
-  branch = "master"
-  digest = "1:6ed9319f79a63e30779042ef237f81770df4091866e43f84a643257384b0aefc"
-  name = "golang.org/x/sys"
-  packages = ["unix"]
-  pruneopts = "UT"
-  revision = "8097e1b27ff5e40620836729a9584e91b094b062"
-
-[[projects]]
   digest = "1:4d2e5a73dc1500038e504a8d78b986630e3626dc027bc030ba5c75da257cdb96"
   name = "gopkg.in/yaml.v2"
   packages = ["."]
   pruneopts = "UT"
   revision = "51d6538a90f86fe93ac480b35f37b2be17fef232"
   version = "v2.2.2"
+
+[[projects]]
+  name = "golang.org/x/crypto"
+  packages = ["ssh/terminal"]
+  revision = "22d7a77e9e5f409e934ed268692e56707cd169e5"
+
+[[projects]]
+  branch = "master"
+  name = "golang.org/x/sys"
+  packages = [
+    "unix",
+    "windows"
+  ]
+  revision = "a5b02f93d862f065920dd6a40dddc66b60d0dec4"
 
 [solve-meta]
   analyzer-name = "dep"
