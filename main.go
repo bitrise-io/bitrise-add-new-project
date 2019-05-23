@@ -1,10 +1,7 @@
 package main
 
-import (
-	"github.com/bitrise-io/bitrise-add-new-project/phases"
-)
+import "github.com/bitrise-io/bitrise-add-new-project/cmd"
 
 func main() {
-	phases.BitriseYML("..")
-	// cmd.Execute()
+	cmd.Execute()
 }
