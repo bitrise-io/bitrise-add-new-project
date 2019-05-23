@@ -8,12 +8,11 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/bitrise-io/go-utils/pathutil"
-
 	"github.com/bitrise-io/bitrise-init/scanner"
 	"github.com/bitrise-io/bitrise/models"
 	"github.com/bitrise-io/go-utils/command"
 	"github.com/bitrise-io/go-utils/log"
+	"github.com/bitrise-io/go-utils/pathutil"
 	"github.com/bitrise-io/goinp/goinp"
 	"github.com/go-yaml/yaml"
 	"github.com/pkg/errors"
@@ -55,16 +54,16 @@ func checkBranch(inputReader io.Reader) error {
 	return nil
 }
 
-// ParseDSLFile parses a bitrise.yml and returns a data model
-func ParseDSLFile(input io.Reader) (models.BitriseDataModel, error) {
-	var decodedDSL models.BitriseDataModel
-	if err := yaml.NewDecoder(input).Decode(&decodedDSL); err != nil {
+// ParseBitriseYMLFile parses a bitrise.yml and returns a data model
+func ParseBitriseYMLFile(input io.Reader) (models.BitriseDataModel, error) {
+	var decodedBitriseYML models.BitriseDataModel
+	if err := yaml.NewDecoder(input).Decode(&decodedBitriseYML); err != nil {
 		return models.BitriseDataModel{}, fmt.Errorf("failed to parse bitrise.yml, error: %s", err)
 	}
-	return decodedDSL, nil
+	return decodedBitriseYML, nil
 }
 
-func selectDSLFile(inputReader io.Reader) (models.BitriseDataModel, bool, error) {
+func selectBitriseYMLFile(inputReader io.Reader) (models.BitriseDataModel, bool, error) {
 	for {
 		inputPathManually, err := goinp.AskForBoolFromReaderWithDefaultValue("Input bitrise.yml path manually? (Will generate otherwise.)", false, inputReader)
 		if err != nil {
@@ -80,9 +79,9 @@ func selectDSLFile(inputReader io.Reader) (models.BitriseDataModel, bool, error)
 			return models.BitriseDataModel{}, false, err
 		}
 
-		DSLFile, err := os.Open(filePath)
+		BitriseYMLFile, err := os.Open(filePath)
 		defer func() {
-			if err := DSLFile.Close(); err != nil {
+			if err := BitriseYMLFile.Close(); err != nil {
 				log.Warnf("failed to close file, error: %s", err)
 			}
 		}()
@@ -94,27 +93,27 @@ func selectDSLFile(inputReader io.Reader) (models.BitriseDataModel, bool, error)
 			continue
 		}
 
-		decodedDSL, err := ParseDSLFile(DSLFile)
+		decodedBitriseYML, err := ParseBitriseYMLFile(BitriseYMLFile)
 		if err != nil {
 			log.Warnf("Failed to parse bitrise.yml, error: %s", err)
 			continue
 		}
-		return decodedDSL, false, nil
+		return decodedBitriseYML, false, nil
 	}
 }
 
-func selectWorkflow(buildDSL models.BitriseDataModel, inputReader io.Reader) (string, error) {
-	if len(buildDSL.Workflows) == 0 {
+func selectWorkflow(buildBitriseYML models.BitriseDataModel, inputReader io.Reader) (string, error) {
+	if len(buildBitriseYML.Workflows) == 0 {
 		return "", fmt.Errorf("no workflows found in bitrise.yml")
 	}
 
 	const defaultWorkflowName = "primary"
-	if _, contains := buildDSL.Workflows[defaultWorkflowName]; contains {
+	if _, contains := buildBitriseYML.Workflows[defaultWorkflowName]; contains {
 		return defaultWorkflowName, nil
 	}
 
 	var workflows []string
-	for workflow := range buildDSL.Workflows {
+	for workflow := range buildBitriseYML.Workflows {
 		workflows = append(workflows, workflow)
 	}
 
@@ -131,34 +130,34 @@ func selectWorkflow(buildDSL models.BitriseDataModel, inputReader io.Reader) (st
 	return workflow, nil
 }
 
-func getDSL(searchDir string, inputReader io.Reader) (models.BitriseDataModel, error) {
-	potentialDSLFilePath := filepath.Join(searchDir, bitriseYMLName)
+func getBitriseYML(searchDir string, inputReader io.Reader) (models.BitriseDataModel, error) {
+	potentialBitriseYMLFilePath := filepath.Join(searchDir, bitriseYMLName)
 
-	if exist, err := pathutil.IsPathExists(potentialDSLFilePath); err != nil {
-		return models.BitriseDataModel{}, fmt.Errorf("failed to check if file (%s) exists, error: %s", potentialDSLFilePath, err)
+	if exist, err := pathutil.IsPathExists(potentialBitriseYMLFilePath); err != nil {
+		return models.BitriseDataModel{}, fmt.Errorf("failed to check if file (%s) exists, error: %s", potentialBitriseYMLFilePath, err)
 	} else if exist {
 		log.Infof("Found bitrise.yml in current directory.")
-		file, err := os.Open(potentialDSLFilePath)
+		file, err := os.Open(potentialBitriseYMLFilePath)
 		defer func() {
 			if err := file.Close(); err != nil {
 				log.Warnf("failed to close file, error: %s", err)
 			}
 		}()
 		if err != nil && !os.IsNotExist(err) {
-			return models.BitriseDataModel{}, fmt.Errorf("failed to open file (%s), error: %s", potentialDSLFilePath, err)
+			return models.BitriseDataModel{}, fmt.Errorf("failed to open file (%s), error: %s", potentialBitriseYMLFilePath, err)
 		}
-		DSL, err := ParseDSLFile(file)
+		bitriseYML, err := ParseBitriseYMLFile(file)
 		if err != nil {
 			return models.BitriseDataModel{}, fmt.Errorf("failed to parse bitrise.yml, error: %s", err)
 		}
-		return DSL, nil
+		return bitriseYML, nil
 	}
 
-	DSL, cancelled, err := selectDSLFile(inputReader)
+	bitriseYML, cancelled, err := selectBitriseYMLFile(inputReader)
 	if err != nil {
 		return models.BitriseDataModel{}, fmt.Errorf("failed to select bitrise.yml, error: %s", err)
 	} else if !cancelled {
-		return DSL, nil
+		return bitriseYML, nil
 	}
 
 	err = checkBranch(inputReader)
@@ -168,32 +167,32 @@ func getDSL(searchDir string, inputReader io.Reader) (models.BitriseDataModel, e
 
 	scanResult, found := scanner.GenerateScanResult(searchDir)
 	if !found {
-		log.Infof("Projects not found in repository. Configure project manually.")
+		log.Infof("Projects not found in repository. BitriseYMLure project manually.")
 		scanResult, err = scanner.ManualConfig()
 		if err != nil {
-			return models.BitriseDataModel{}, fmt.Errorf("failed to get manual configurations, error: %s", err)
+			return models.BitriseDataModel{}, fmt.Errorf("failed to get manual bitriseYMLurations, error: %s", err)
 		}
 	} else {
 		log.Infof("Projects found in repository.")
 	}
-	DSL, err = scanner.AskForConfig(scanResult)
+	bitriseYML, err = scanner.AskForConfig(scanResult)
 	if err != nil {
 		log.Errorf("%s", err)
-		return models.BitriseDataModel{}, fmt.Errorf("failed to get exact configuration from scanner result, error: %s", err)
+		return models.BitriseDataModel{}, fmt.Errorf("failed to get exact bitriseYMLuration from scanner result, error: %s", err)
 	}
-	return DSL, nil
+	return bitriseYML, nil
 }
 
 // BitriseYML ...
 func BitriseYML(searchDir string) (models.BitriseDataModel, string, error) {
-	DSL, err := getDSL(searchDir, os.Stdin)
+	bitriseYML, err := getBitriseYML(searchDir, os.Stdin)
 	if err != nil {
 		return models.BitriseDataModel{}, "", err
 	}
 
-	workflow, err := selectWorkflow(DSL, os.Stdin)
+	workflow, err := selectWorkflow(bitriseYML, os.Stdin)
 	if err != nil {
 		return models.BitriseDataModel{}, "", fmt.Errorf("failed to select workflow, error: %s", err)
 	}
-	return DSL, workflow, nil
+	return bitriseYML, workflow, nil
 }

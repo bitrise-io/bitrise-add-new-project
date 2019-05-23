@@ -105,20 +105,20 @@ func executePhases(cmd cobra.Command, progress *phases.Progress) error {
 	}
 
 	if cmd.Flags().Changed(cmdFlagKeyBitriseYML) {
-		DSLFile, err := os.Open(cmdFlagKeyBitriseYML)
+		bitriseYMLFile, err := os.Open(cmdFlagKeyBitriseYML)
 		if err != nil {
 			return fmt.Errorf("failed to open bitrise.yml, error: %s", err)
 		}
 		defer func() {
-			if err := DSLFile.Close(); err != nil {
+			if err := bitriseYMLFile.Close(); err != nil {
 				log.Warnf("failed to close file, error: %s", err)
 			}
 		}()
-		DSL, err := phases.ParseDSLFile(DSLFile)
+		bitriseYML, err := phases.ParseBitriseYMLFile(bitriseYMLFile)
 		if err != nil {
 			return fmt.Errorf("failed to parse bitrise.yml, error: %s", err)
 		}
-		progress.BitriseYML = &DSL
+		progress.BitriseYML = &bitriseYML
 	}
 	if progress.BitriseYML == nil {
 		currentDir, err := filepath.Abs(".")
