@@ -1,14 +1,21 @@
 package phases
 
 import (
+	"bufio"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"os"
+	"path/filepath"
 	"strings"
 
+	"github.com/bitrise-io/bitrise-init/scanner"
+	"github.com/bitrise-io/bitrise/bitrise"
 	"github.com/bitrise-io/bitrise/models"
 	"github.com/bitrise-io/go-utils/command"
 	"github.com/bitrise-io/go-utils/log"
-	"github.com/go-yaml/yaml"
+	"github.com/bitrise-io/go-utils/pathutil"
+	"github.com/bitrise-io/goinp/goinp"
 	"github.com/pkg/errors"
 )
 
@@ -23,115 +30,181 @@ func currentBranch() (string, error) {
 	return strings.TrimPrefix(out, "refs/heads/"), nil
 }
 
-// BitriseYML ...
-func BitriseYML() (string, string, error) {
-	log.Infof("Setup " + bitriseYMLName)
-	fmt.Println()
-
-	var (
-		err                           error
-		bitriseYMLPath, firstWorkflow string
-	)
-
-	bitriseYMLFile, openErr := os.Open(bitriseYMLName)
-	if openErr != nil && !os.IsNotExist(openErr) {
-		return "", "", fmt.Errorf("failed to open "+bitriseYMLName+", error: %s", openErr)
-	}
-
-	if bitriseYMLFile == nil {
-		log.Warnf("No " + bitriseYMLName + " found in the current working directory.")
-		fmt.Println()
-		const (
-			methodTitle     = "Select method to have a " + bitriseYMLName + ""
-			methodInputPath = "Input path manually"
-			methodScan      = "Generate one by scanning my project"
-		)
-		(&option{
-			title:        methodTitle,
-			valueOptions: []string{methodInputPath, methodScan},
-			action: func(answer string) *option {
-				const (
-					inputTitle = "Enter the path of your " + bitriseYMLName + " file (you can also drag & drop the file here)"
-				)
-				switch answer {
-				case methodInputPath:
-					return &option{
-						title: inputTitle,
-						action: func(answer string) *option {
-							bitriseYMLPath = answer
-							return nil
-						}}
-				case methodScan:
-					branch, branchReadErr := currentBranch()
-					if branchReadErr != nil {
-						err = branchReadErr
-						return nil
-					}
-
-					log.Warnf("The current branch is: %s. Do you want to run the scanner for this branch?", branch)
-					log.Warnf("At this point you can checkout a different branch if you want to.")
-					fmt.Println()
-
-					var scanOption *option
-					scanOption = &option{
-						title: "Hit enter if you have done the checkout or want to use this branch",
-						action: func(answer string) *option {
-							newBranch, branchReadErr := currentBranch()
-							if branchReadErr != nil {
-								err = branchReadErr
-								return nil
-							}
-							if newBranch == branch {
-								cmd := command.New("bitrise", ":init")
-								if err = cmd.SetStderr(os.Stderr).SetStdin(os.Stdin).SetStdout(os.Stdout).Run(); err != nil {
-									err = fmt.Errorf("failed to run command: %s, error: %s", cmd.PrintableCommandArgs(), err)
-									return nil
-								}
-								fmt.Println()
-								bitriseYMLPath = bitriseYMLName
-								return nil
-							}
-
-							branch = newBranch
-
-							log.Warnf("Checked out a different branch: %s. Do you want to run the scanner for this branch?", branch)
-							log.Warnf("At this point you can still checkout a different branch if you want to.")
-							fmt.Println()
-
-							return scanOption
-						}}
-					return scanOption
-				}
-				return nil
-			}}).run()
-	} else {
-		bitriseYMLPath = bitriseYMLName
-	}
-
-	if bitriseYMLFile == nil {
-		bitriseYMLFile, openErr = os.Open(bitriseYMLPath)
-		if openErr != nil {
-			return "", "", fmt.Errorf("failed to open "+bitriseYMLPath+", error: %s", openErr)
+func checkBranch(inputReader io.Reader) error {
+	var branch string
+	for {
+		var err error
+		if branch, err = currentBranch(); err != nil {
+			return fmt.Errorf("failed to get current branch, error: %s", err)
 		}
+		msg := fmt.Sprintf("The current branch is: %s. Do you want to run the scanner for this branch?", branch)
+		useCurrentBranch, err := goinp.AskForBoolFromReaderWithDefaultValue(msg, true, inputReader)
+		if err != nil {
+			return err
+		}
+		if !useCurrentBranch {
+			log.Printf("Checkout a different branch then press Enter.")
+			if _, err := bufio.NewReader(inputReader).ReadString('\n'); err != nil {
+				return fmt.Errorf("failed to read line from input, error: %s", err)
+			}
+			continue
+		}
+		break
+	}
+	return nil
+}
+
+// ParseBitriseYMLFile parses a bitrise.yml and returns a data model
+func ParseBitriseYMLFile(inputReader io.Reader) (models.BitriseDataModel, []string, error) {
+	content, err := ioutil.ReadAll(inputReader)
+	if err != nil {
+		return models.BitriseDataModel{}, nil, err
+	}
+	decodedBitriseYML, warnings, err := bitrise.ConfigModelFromYAMLBytes(content)
+	if err != nil {
+		return models.BitriseDataModel{}, nil, fmt.Errorf("Configuration is not valid: %s", err)
+	}
+	return decodedBitriseYML, warnings, nil
+}
+
+func selectBitriseYMLFile(inputReader io.Reader) (models.BitriseDataModel, bool, error) {
+	for {
+		const msgInput = "Do you have a bitrise.yml you want to register for your new Bitrise project (if not our scanner will generate one for you)?"
+		inputPathManually, err := goinp.AskForBoolFromReaderWithDefaultValue(msgInput, false, inputReader)
+		if err != nil {
+			return models.BitriseDataModel{}, false, err
+		} else if !inputPathManually {
+			return models.BitriseDataModel{}, true, nil
+		}
+
+		const msgBitriseYml = "Enter the path of your bitrise.yml file (you can also drag & drop the file here)"
+		filePath, err := goinp.AskForPathFromReader(msgBitriseYml, inputReader)
+		if err != nil {
+			return models.BitriseDataModel{}, false, err
+		}
+
+		bitriseYMLFile, err := os.Open(filePath)
+		defer func() {
+			if err := bitriseYMLFile.Close(); err != nil {
+				log.Warnf("failed to close file, error: %s", err)
+			}
+		}()
+		if err != nil {
+			if !os.IsNotExist(err) {
+				return models.BitriseDataModel{}, false, fmt.Errorf("failed to open file (%s), error: %s", filePath, err)
+			}
+			log.Warnf("File (%s) does not exist.", filePath)
+			continue
+		}
+
+		decodedBitriseYML, warnings, err := ParseBitriseYMLFile(bitriseYMLFile)
+		if err != nil {
+			log.Warnf("Failed to parse bitrise.yml, error: %s", err)
+			continue
+		} else if warnings != nil {
+			log.Warnf("Parsed bitrise.yml, with warnings:")
+			for _, warning := range warnings {
+				log.Warnf(warning)
+			}
+		}
+		return decodedBitriseYML, false, nil
+	}
+}
+
+func selectWorkflow(buildBitriseYML models.BitriseDataModel, inputReader io.Reader) (string, error) {
+	if len(buildBitriseYML.Workflows) == 0 {
+		return "", fmt.Errorf("no workflows found in bitrise.yml")
 	}
 
-	var bitriseYML models.BitriseDataModel
-	if parseErr := yaml.NewDecoder(bitriseYMLFile).Decode(&bitriseYML); parseErr != nil {
-		return "", "", fmt.Errorf("failed to parse "+bitriseYMLPath+", error: %s", parseErr)
+	const defaultWorkflowName = "primary"
+	if _, contains := buildBitriseYML.Workflows[defaultWorkflowName]; contains {
+		return defaultWorkflowName, nil
 	}
 
 	var workflows []string
-	for workflow := range bitriseYML.Workflows {
+	for workflow := range buildBitriseYML.Workflows {
 		workflows = append(workflows, workflow)
 	}
 
-	(&option{
-		title:        "Which workflow do you want to run in the first build?",
-		valueOptions: workflows,
-		action: func(answer string) *option {
-			firstWorkflow = answer
-			return nil
-		}}).run()
+	if len(workflows) == 1 {
+		log.Infof("Selecting workflow: %s", workflows[0])
+		return workflows[0], nil
+	}
 
-	return bitriseYMLPath, firstWorkflow, err
+	workflow, err := goinp.SelectFromStringsFromReaderWithDefault("Select workflow to run in the first build:", 1, workflows, inputReader)
+	if err != nil {
+		return "", err
+	}
+	return workflow, nil
+}
+
+func getBitriseYML(searchDir string, inputReader io.Reader) (models.BitriseDataModel, error) {
+	potentialBitriseYMLFilePath := filepath.Join(searchDir, bitriseYMLName)
+
+	if exist, err := pathutil.IsPathExists(potentialBitriseYMLFilePath); err != nil {
+		return models.BitriseDataModel{}, fmt.Errorf("failed to check if file (%s) exists, error: %s", potentialBitriseYMLFilePath, err)
+	} else if exist {
+		log.Infof("Found bitrise.yml in current directory.")
+		file, err := os.Open(potentialBitriseYMLFilePath)
+		defer func() {
+			if err := file.Close(); err != nil {
+				log.Warnf("failed to close file, error: %s", err)
+			}
+		}()
+		if err != nil && !os.IsNotExist(err) {
+			return models.BitriseDataModel{}, fmt.Errorf("failed to open file (%s), error: %s", potentialBitriseYMLFilePath, err)
+		}
+		bitriseYML, warnings, err := ParseBitriseYMLFile(file)
+		if err != nil {
+			return models.BitriseDataModel{}, fmt.Errorf("failed to parse bitrise.yml, error: %s", err)
+		} else if warnings != nil {
+			log.Warnf("Parsed bitrise.yml, with warnings:")
+			for _, warning := range warnings {
+				log.Warnf(warning)
+			}
+		}
+		return bitriseYML, nil
+	}
+
+	bitriseYML, cancelled, err := selectBitriseYMLFile(inputReader)
+	if err != nil {
+		return models.BitriseDataModel{}, fmt.Errorf("failed to select bitrise.yml, error: %s", err)
+	} else if !cancelled {
+		return bitriseYML, nil
+	}
+
+	err = checkBranch(inputReader)
+	if err != nil {
+		return models.BitriseDataModel{}, fmt.Errorf("failed to check repository branch: %s", err)
+	}
+
+	scanResult, found := scanner.GenerateScanResult(searchDir)
+	if !found {
+		log.Infof("Projects not found in repository. Select manual configuration.")
+		scanResult, err = scanner.ManualConfig()
+		if err != nil {
+			return models.BitriseDataModel{}, fmt.Errorf("failed to get manual configurations, error: %s", err)
+		}
+	} else {
+		log.Infof("Projects found in repository.")
+	}
+	bitriseYML, err = scanner.AskForConfig(scanResult)
+	if err != nil {
+		return models.BitriseDataModel{}, fmt.Errorf("failed to get exact configuration from scanner result, error: %s", err)
+	}
+	return bitriseYML, nil
+}
+
+// BitriseYML ...
+func BitriseYML(searchDir string) (models.BitriseDataModel, string, error) {
+	bitriseYML, err := getBitriseYML(searchDir, os.Stdin)
+	if err != nil {
+		return models.BitriseDataModel{}, "", err
+	}
+
+	workflow, err := selectWorkflow(bitriseYML, os.Stdin)
+	if err != nil {
+		return models.BitriseDataModel{}, "", fmt.Errorf("failed to select workflow, error: %s", err)
+	}
+	return bitriseYML, workflow, nil
 }

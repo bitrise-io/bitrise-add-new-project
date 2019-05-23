@@ -1,14 +1,12 @@
 package cmd
 
 import (
-	"crypto/sha1"
 	"fmt"
 	"os"
 	"path/filepath"
 
 	"github.com/bitrise-io/bitrise-add-new-project/phases"
-	"github.com/bitrise-io/bitrise/configs"
-	"github.com/bitrise-io/go-utils/pathutil"
+	"github.com/bitrise-io/go-utils/log"
 	"github.com/spf13/cobra"
 )
 
@@ -43,27 +41,6 @@ var (
 	You can quit the process at any phase and continue from where you left off later.`,
 	}
 )
-
-func progressFilePath() (string, error) {
-	bitriseToolsDirPth := configs.GetBitriseToolsDirPath()
-	toolRootDirPth := filepath.Join(bitriseToolsDirPth, "bitrise-add-new-project")
-
-	if err := pathutil.EnsureDirExist(toolRootDirPth); err != nil {
-		return "", err
-	}
-
-	currentWorkingDir, err := os.Getwd()
-	if err != nil {
-		return "", err
-	}
-
-	hasher := sha1.New()
-	if _, err := hasher.Write([]byte(currentWorkingDir)); err != nil {
-		return "", err
-	}
-
-	return filepath.Join(toolRootDirPth, fmt.Sprintf("%x", hasher.Sum(nil))+"-progress.json"), nil
-}
 
 func init() {
 	rootCmd.Flags().StringVar(&cmdFlagAccount, cmdFlagKeyAccount, "", "Name of Bitrise account to use")
@@ -128,10 +105,32 @@ func executePhases(cmd cobra.Command, progress *phases.Progress) error {
 	}
 
 	if cmd.Flags().Changed(cmdFlagKeyBitriseYML) {
-		progress.BitriseYML = &cmdFlagBitriseYML
+		bitriseYMLFile, err := os.Open(cmdFlagKeyBitriseYML)
+		if err != nil {
+			return fmt.Errorf("failed to open bitrise.yml, error: %s", err)
+		}
+		defer func() {
+			if err := bitriseYMLFile.Close(); err != nil {
+				log.Warnf("failed to close file, error: %s", err)
+			}
+		}()
+		bitriseYML, warnings, err := phases.ParseBitriseYMLFile(bitriseYMLFile)
+		if err != nil {
+			return fmt.Errorf("failed to parse bitrise.yml, error: %s", err)
+		} else if warnings != nil {
+			log.Warnf("Parsed bitrise.yml, with warnings:")
+			for _, warning := range warnings {
+				log.Warnf(warning)
+			}
+		}
+		progress.BitriseYML = &bitriseYML
 	}
 	if progress.BitriseYML == nil {
-		yml, _, err := phases.BitriseYML()
+		currentDir, err := filepath.Abs(".")
+		if err != nil {
+			return fmt.Errorf("failed to get current directory, error: %s", err)
+		}
+		yml, _, err := phases.BitriseYML(currentDir)
 		if err != nil {
 			return err
 		}
@@ -176,36 +175,14 @@ func executePhases(cmd cobra.Command, progress *phases.Progress) error {
 }
 
 func run(cmd *cobra.Command, args []string) {
-	pth, err := progressFilePath()
-	if err != nil {
-		fmt.Println("failed to get progress file path, error:", err)
-		os.Exit(1)
-	}
-
-	progress, err := phases.LoadProgress(pth)
-	if err != nil {
-		fmt.Println("failed to load progress, error:", err)
-		os.Exit(1)
-	}
-
+	progress := &phases.Progress{}
 	if err := executePhases(*cmd, progress); err != nil {
-		if err := progress.Store(); err != nil {
-			fmt.Println("failed to store progress, error:", err)
-		}
 		fmt.Println("failed to execute phases, error:", err)
 		os.Exit(1)
 	}
 
 	if err := phases.Register(*progress, cmdFlagAPIToken); err != nil {
-		if err := progress.Store(); err != nil {
-			fmt.Println("failed to store progress, error:", err)
-		}
 		fmt.Println("failed to add Bitrise app, error:", err)
-		os.Exit(1)
-	}
-
-	if err := progress.Destroy(); err != nil {
-		fmt.Println("failed to destroy progress, error:", err)
 		os.Exit(1)
 	}
 }

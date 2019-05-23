@@ -2,11 +2,9 @@ package phases
 
 import (
 	"fmt"
-	"io/ioutil"
 
 	"github.com/bitrise-io/bitrise/models"
 	"github.com/bitrise-io/go-utils/log"
-	"gopkg.in/yaml.v2"
 )
 
 var defaultStacks = map[string]string{
@@ -36,29 +34,18 @@ var optionsStacks = []string{
 	"osx-xcode-edge",
 }
 
-func getProjectInfo(bitriseYMLPath string) (string, string, error) {
-	data, err := ioutil.ReadFile(bitriseYMLPath)
-	if err != nil {
-		return "", "", fmt.Errorf("read bytrise yml (%s): %s", bitriseYMLPath, err)
-	}
-
-	var m models.BitriseDataModel
-	if err := yaml.Unmarshal(data, &m); err != nil {
-		return "", "", fmt.Errorf("unmarshal bitrise yml at %s (%s): %s", bitriseYMLPath, string(data), err)
-	}
-
-	if m.ProjectType == "" {
+func getProjectInfo(bitriseYML models.BitriseDataModel) (string, string, error) {
+	if bitriseYML.ProjectType == "" {
 		return "", "other", nil
 	}
 
-	return defaultStacks[m.ProjectType], m.ProjectType, nil
+	return defaultStacks[bitriseYML.ProjectType], bitriseYML.ProjectType, nil
 }
 
 // Stack returns the selected stack for the project or an error
 // if something went wrong during stack autodetection.
-func Stack(bitriseYMLPath string) (string, error) {
-
-	var stack, projType, err = getProjectInfo(bitriseYMLPath)
+func Stack(bitriseYML models.BitriseDataModel) (string, error) {
+	var stack, projType, err = getProjectInfo(bitriseYML)
 	if err != nil {
 		return "", fmt.Errorf("get default stack: %s", err)
 	}
@@ -80,7 +67,7 @@ func Stack(bitriseYMLPath string) (string, error) {
 	}
 
 	systemReportURL := fmt.Sprintf("https://github.com/bitrise-io/bitrise.io/blob/master/system_reports/%s.log", stack)
-	log.Printf("An %s project has been detected based on the provided bitrise.yml (%s)", projType, bitriseYMLPath)
+	log.Printf("An %s project has been detected based on the provided bitrise.yml", projType)
 	log.Printf("The default stack for your project type is %s. You can check the preinstalled tools at %s", stack, systemReportURL)
 
 	const (
