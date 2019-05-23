@@ -4,9 +4,17 @@ import (
 	"github.com/bitrise-io/bitrise-add-new-project/bitrise"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/xcode-project/pretty"
+	"gopkg.in/yaml.v2"
 )
 
-func toRegistrationParams(progress Progress) (params bitrise.CreateProjectParams, err error) {
+func toRegistrationParams(progress Progress) (*bitrise.CreateProjectParams, error) {
+	bitriseYML, err := yaml.Marshal(*progress.BitriseYML)
+	if err != nil {
+		return nil, err
+	}
+	str := string(bitriseYML)
+
+	params := bitrise.CreateProjectParams{}
 	params.Repository = bitrise.RegisterParams{
 		GitOwner:    *progress.RepoOwner,
 		GitRepoSlug: *progress.RepoSlug,
@@ -22,14 +30,14 @@ func toRegistrationParams(progress Progress) (params bitrise.CreateProjectParams
 		IsRegisterKeyIntoProviderService: true,
 	}
 	params.Project = bitrise.RegisterFinishParams{
-		Config:           *progress.BitriseYML,
+		Config:           str,
 		Envs:             nil,
 		Mode:             "manual",
 		OrganizationSlug: *progress.Account,
 		ProjectType:      "",
 		StackID:          *progress.Stack,
 	}
-	return
+	return &params, nil
 }
 
 // Register ...
@@ -43,7 +51,7 @@ func Register(token string, progress Progress) error {
 
 	log.Printf("Provided params: %s", pretty.Object(params))
 
-	slug, err := bitrise.CreateProject(token, params)
+	slug, err := bitrise.CreateProject(token, *params)
 	if err != nil {
 		return err
 	}
