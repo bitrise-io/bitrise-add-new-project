@@ -4,18 +4,19 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/bitrise-io/bitrise-init/scanner"
+	"github.com/bitrise-io/bitrise/bitrise"
 	"github.com/bitrise-io/bitrise/models"
 	"github.com/bitrise-io/go-utils/command"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
 	"github.com/bitrise-io/goinp/goinp"
 	"github.com/pkg/errors"
-	"gopkg.in/yaml.v2"
 )
 
 const bitriseYMLName = "bitrise.yml"
@@ -39,7 +40,6 @@ func checkBranch(inputReader io.Reader) error {
 		msg := fmt.Sprintf("The current branch is: %s. Do you want to run the scanner for this branch?", branch)
 		useCurrentBranch, err := goinp.AskForBoolFromReaderWithDefaultValue(msg, true, inputReader)
 		if err != nil {
-			log.Errorf("%s", err)
 			return err
 		}
 		if !useCurrentBranch {
@@ -55,27 +55,31 @@ func checkBranch(inputReader io.Reader) error {
 }
 
 // ParseBitriseYMLFile parses a bitrise.yml and returns a data model
-func ParseBitriseYMLFile(input io.Reader) (models.BitriseDataModel, error) {
-	var decodedBitriseYML models.BitriseDataModel
-	if err := yaml.NewDecoder(input).Decode(&decodedBitriseYML); err != nil {
-		return models.BitriseDataModel{}, fmt.Errorf("failed to parse bitrise.yml, error: %s", err)
+func ParseBitriseYMLFile(inputReader io.Reader) (models.BitriseDataModel, []string, error) {
+	content, err := ioutil.ReadAll(inputReader)
+	if err != nil {
+		return models.BitriseDataModel{}, nil, err
 	}
-	return decodedBitriseYML, nil
+	decodedBitriseYML, warnings, err := bitrise.ConfigModelFromYAMLBytes(content)
+	if err != nil {
+		return models.BitriseDataModel{}, nil, fmt.Errorf("Configuration is not valid: %s", err)
+	}
+	return decodedBitriseYML, warnings, nil
 }
 
 func selectBitriseYMLFile(inputReader io.Reader) (models.BitriseDataModel, bool, error) {
 	for {
-		inputPathManually, err := goinp.AskForBoolFromReaderWithDefaultValue("Input bitrise.yml path manually? (Will generate otherwise.)", false, inputReader)
+		const msgInput = "Do you have a bitrise.yml you want to register for your new Bitrise project (if not our scanner will generate one for you)?"
+		inputPathManually, err := goinp.AskForBoolFromReaderWithDefaultValue(msgInput, false, inputReader)
 		if err != nil {
-			log.Errorf("%s", err)
 			return models.BitriseDataModel{}, false, err
 		} else if !inputPathManually {
 			return models.BitriseDataModel{}, true, nil
 		}
 
-		filePath, err := goinp.AskForPathFromReader("Enter the path of your bitrise.yml file (you can also drag & drop the file here)", inputReader)
+		const msgBitriseYml = "Enter the path of your bitrise.yml file (you can also drag & drop the file here)"
+		filePath, err := goinp.AskForPathFromReader(msgBitriseYml, inputReader)
 		if err != nil {
-			log.Errorf("%s", err)
 			return models.BitriseDataModel{}, false, err
 		}
 
@@ -93,7 +97,7 @@ func selectBitriseYMLFile(inputReader io.Reader) (models.BitriseDataModel, bool,
 			continue
 		}
 
-		decodedBitriseYML, err := ParseBitriseYMLFile(BitriseYMLFile)
+		decodedBitriseYML, _, err := ParseBitriseYMLFile(BitriseYMLFile)
 		if err != nil {
 			log.Warnf("Failed to parse bitrise.yml, error: %s", err)
 			continue
@@ -124,7 +128,6 @@ func selectWorkflow(buildBitriseYML models.BitriseDataModel, inputReader io.Read
 
 	workflow, err := goinp.SelectFromStringsFromReaderWithDefault("Select workflow to run in the first build:", 1, workflows, inputReader)
 	if err != nil {
-		log.Errorf("%s", err)
 		return "", err
 	}
 	return workflow, nil
@@ -146,7 +149,7 @@ func getBitriseYML(searchDir string, inputReader io.Reader) (models.BitriseDataM
 		if err != nil && !os.IsNotExist(err) {
 			return models.BitriseDataModel{}, fmt.Errorf("failed to open file (%s), error: %s", potentialBitriseYMLFilePath, err)
 		}
-		bitriseYML, err := ParseBitriseYMLFile(file)
+		bitriseYML, _, err := ParseBitriseYMLFile(file)
 		if err != nil {
 			return models.BitriseDataModel{}, fmt.Errorf("failed to parse bitrise.yml, error: %s", err)
 		}
@@ -167,18 +170,17 @@ func getBitriseYML(searchDir string, inputReader io.Reader) (models.BitriseDataM
 
 	scanResult, found := scanner.GenerateScanResult(searchDir)
 	if !found {
-		log.Infof("Projects not found in repository. BitriseYMLure project manually.")
+		log.Infof("Projects not found in repository. Select manual configuration.")
 		scanResult, err = scanner.ManualConfig()
 		if err != nil {
-			return models.BitriseDataModel{}, fmt.Errorf("failed to get manual bitriseYMLurations, error: %s", err)
+			return models.BitriseDataModel{}, fmt.Errorf("failed to get manual configurations, error: %s", err)
 		}
 	} else {
 		log.Infof("Projects found in repository.")
 	}
 	bitriseYML, err = scanner.AskForConfig(scanResult)
 	if err != nil {
-		log.Errorf("%s", err)
-		return models.BitriseDataModel{}, fmt.Errorf("failed to get exact bitriseYMLuration from scanner result, error: %s", err)
+		return models.BitriseDataModel{}, fmt.Errorf("failed to get exact configuration from scanner result, error: %s", err)
 	}
 	return bitriseYML, nil
 }
