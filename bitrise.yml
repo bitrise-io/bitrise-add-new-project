@@ -8,3 +8,14 @@ workflows:
     - golint:
     - errcheck:
     - go-test:
+
+  dep-update:
+    steps:
+    - script:
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -ex
+            go get -u -v github.com/golang/dep/cmd/dep
+            dep ensure -v
+            dep ensure -v -update

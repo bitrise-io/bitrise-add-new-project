@@ -52,7 +52,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:845bf1ddabaf03260af5ce50c494965b3905d96b0bb3814fea75f3ab392f2901"
+  digest = "1:709a7f528a8cd529b089532b9e11e964011e661e1a6eeaa878f8ffaf64211932"
   name = "github.com/bitrise-io/go-utils"
   packages = [
     "colorstring",
@@ -64,6 +64,7 @@
     "parseutil",
     "pathutil",
     "pointers",
+    "retry",
     "sliceutil",
   ]
   pruneopts = "UT"
@@ -78,7 +79,7 @@
     "xcodeproj",
   ]
   pruneopts = "UT"
-  revision = "a49d262bd2151997b9b18f882654eae3aab31a9d"
+  revision = "51984334e0fb83bf66588acf87f09c5ac624874b"
 
 [[projects]]
   branch = "master"
@@ -109,14 +110,6 @@
   ]
   pruneopts = "UT"
   revision = "5929ad85d89233b3296d2d795e068a656db7fb25"
-
-[[projects]]
-  digest = "1:4d2e5a73dc1500038e504a8d78b986630e3626dc027bc030ba5c75da257cdb96"
-  name = "github.com/go-yaml/yaml"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "51d6538a90f86fe93ac480b35f37b2be17fef232"
-  version = "v2.2.2"
 
 [[projects]]
   digest = "1:870d441fe217b8e689d7949fef6e43efbc787e50f200cb1e70dbca9204a1d6be"
@@ -168,14 +161,14 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:160e165ef13917405d1ebfde865cb9c292b8635f83655e3932662d5586d300ee"
+  digest = "1:76a8f15384d51164875fe295559d2e5a8180d67312bb040d0509b5b1114c0267"
   name = "golang.org/x/sys"
   packages = [
     "unix",
     "windows",
   ]
   pruneopts = "UT"
-  revision = "c432e742b0af385916e013f6a34e9e73d139cf82"
+  revision = "8097e1b27ff5e40620836729a9584e91b094b062"
 
 [[projects]]
   digest = "1:1093f2eb4b344996604f7d8b29a16c5b22ab9e1b25652140d3fede39f640d5cd"
@@ -218,11 +211,12 @@
     "github.com/bitrise-io/go-utils/errorutil",
     "github.com/bitrise-io/go-utils/log",
     "github.com/bitrise-io/go-utils/pathutil",
+    "github.com/bitrise-io/go-utils/retry",
     "github.com/bitrise-io/goinp/goinp",
-    "github.com/go-yaml/yaml",
     "github.com/pkg/errors",
     "github.com/spf13/cobra",
     "golang.org/x/crypto/ssh/terminal",
+    "gopkg.in/yaml.v2",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1

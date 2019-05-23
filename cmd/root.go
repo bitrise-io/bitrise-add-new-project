@@ -136,7 +136,7 @@ func executePhases(cmd cobra.Command, progress *phases.Progress) error {
 		progress.Stack = &cmdFlagStack
 	}
 	if progress.Stack == nil {
-		stack, err := phases.Stack()
+		stack, err := phases.Stack(*progress.BitriseYML)
 		if err != nil {
 			return err
 		}
@@ -176,7 +176,7 @@ func run(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	if err := phases.Register(*progress); err != nil {
+	if err := phases.Register(*progress, cmdFlagAPIToken); err != nil {
 		fmt.Println("failed to add Bitrise app, error:", err)
 		os.Exit(1)
 	}
