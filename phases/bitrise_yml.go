@@ -83,9 +83,9 @@ func selectBitriseYMLFile(inputReader io.Reader) (models.BitriseDataModel, bool,
 			return models.BitriseDataModel{}, false, err
 		}
 
-		BitriseYMLFile, err := os.Open(filePath)
+		bitriseYMLFile, err := os.Open(filePath)
 		defer func() {
-			if err := BitriseYMLFile.Close(); err != nil {
+			if err := bitriseYMLFile.Close(); err != nil {
 				log.Warnf("failed to close file, error: %s", err)
 			}
 		}()
@@ -97,10 +97,15 @@ func selectBitriseYMLFile(inputReader io.Reader) (models.BitriseDataModel, bool,
 			continue
 		}
 
-		decodedBitriseYML, _, err := ParseBitriseYMLFile(BitriseYMLFile)
+		decodedBitriseYML, warnings, err := ParseBitriseYMLFile(bitriseYMLFile)
 		if err != nil {
 			log.Warnf("Failed to parse bitrise.yml, error: %s", err)
 			continue
+		} else if warnings != nil {
+			log.Warnf("Parsed bitrise.yml, with warnings:")
+			for _, warning := range warnings {
+				log.Warnf(warning)
+			}
 		}
 		return decodedBitriseYML, false, nil
 	}
@@ -149,9 +154,14 @@ func getBitriseYML(searchDir string, inputReader io.Reader) (models.BitriseDataM
 		if err != nil && !os.IsNotExist(err) {
 			return models.BitriseDataModel{}, fmt.Errorf("failed to open file (%s), error: %s", potentialBitriseYMLFilePath, err)
 		}
-		bitriseYML, _, err := ParseBitriseYMLFile(file)
+		bitriseYML, warnings, err := ParseBitriseYMLFile(file)
 		if err != nil {
 			return models.BitriseDataModel{}, fmt.Errorf("failed to parse bitrise.yml, error: %s", err)
+		} else if warnings != nil {
+			log.Warnf("Parsed bitrise.yml, with warnings:")
+			for _, warning := range warnings {
+				log.Warnf(warning)
+			}
 		}
 		return bitriseYML, nil
 	}

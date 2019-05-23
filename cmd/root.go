@@ -114,9 +114,14 @@ func executePhases(cmd cobra.Command, progress *phases.Progress) error {
 				log.Warnf("failed to close file, error: %s", err)
 			}
 		}()
-		bitriseYML, _, err := phases.ParseBitriseYMLFile(bitriseYMLFile)
+		bitriseYML, warnings, err := phases.ParseBitriseYMLFile(bitriseYMLFile)
 		if err != nil {
 			return fmt.Errorf("failed to parse bitrise.yml, error: %s", err)
+		} else if warnings != nil {
+			log.Warnf("Parsed bitrise.yml, with warnings:")
+			for _, warning := range warnings {
+				log.Warnf(warning)
+			}
 		}
 		progress.BitriseYML = &bitriseYML
 	}
