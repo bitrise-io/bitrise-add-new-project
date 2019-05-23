@@ -3,6 +3,18 @@
   branch = "master"
   name = "github.com/bitrise-io/bitrise-init"
 
+# The version currently dependent on by bitrise-init
+[[constraint]]
+  version = "1.29.0"
+  name = "github.com/bitrise-io/bitrise"
+
+# Could not introduce github.com/bitrise-io/bitrise-init@master,
+# as it has a dependency on gopkg.in/yaml.v2 with constraint ^2.2.2,
+# which has no overlap with existing constraint v2 from github.com/bitrise-io/bitrise@1.29.0
+[[override]]
+  version = "^2.2.2"
+  name = "gopkg.in/yaml.v2"
+
 [[constraint]]
   branch = "master"
   name = "github.com/bitrise-io/go-utils"
@@ -23,11 +35,6 @@
   branch = "master"
   name = "golang.org/x/crypto"
 
-[[constraint]]
-  name = "gopkg.in/yaml.v2"
-  version = "2.2.2"
-
 [prune]
   go-tests = true
   unused-packages = true
-

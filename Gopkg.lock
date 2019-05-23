@@ -2,6 +2,14 @@
 
 
 [[projects]]
+  branch = "master"
+  digest = "1:9ffd8274c90a47cb2bdf4f469722a95027ee0dce146571d86211f08f7d8e2547"
+  name = "github.com/Sirupsen/logrus"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "2a22dbedbad1fd454910cd1f44f210ef90c28464"
+
+[[projects]]
   digest = "1:bd8bc15ce3a9929e2777651cbc271fca5561c0d5f42187edb4720e638d24662d"
   name = "github.com/beevik/etree"
   packages = ["."]
@@ -10,9 +18,20 @@
   version = "v1.1.0"
 
 [[projects]]
-  digest = "1:59664077e5eba703425d438e1c9d6f4aeaaf485814cedcae5d9c05cd093f0664"
+  digest = "1:7f16d0c48ea1244c77df4367588d9ee36e900e0c1f05d79162d26b75032325e0"
   name = "github.com/bitrise-io/bitrise"
-  packages = ["models"]
+  packages = [
+    "bitrise",
+    "configs",
+    "models",
+    "plugins",
+    "toolkits",
+    "tools",
+    "tools/filterwriter",
+    "tools/timeoutcmd",
+    "utils",
+    "version",
+  ]
   pruneopts = "UT"
   revision = "a7523d99944aaf56c644dec41f374f746db9a453"
   version = "1.29.0"
@@ -52,11 +71,12 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:709a7f528a8cd529b089532b9e11e964011e661e1a6eeaa878f8ffaf64211932"
+  digest = "1:431a0646f16733e8892da3b0ca31ba5db766e110b9cce13cdf61af33d8cae824"
   name = "github.com/bitrise-io/go-utils"
   packages = [
     "colorstring",
     "command",
+    "command/git",
     "command/rubyscript",
     "errorutil",
     "fileutil",
@@ -64,8 +84,11 @@
     "parseutil",
     "pathutil",
     "pointers",
+    "progress",
     "retry",
     "sliceutil",
+    "stringutil",
+    "versions",
   ]
   pruneopts = "UT"
   revision = "8898129615c9e407fc6b0e60ea882f2b18ec4dc2"
@@ -91,6 +114,14 @@
 
 [[projects]]
   branch = "master"
+  digest = "1:d57ff96212b8429c896b7a75b0557499998cc663fb2e7179035e39e519aaf3a9"
+  name = "github.com/bitrise-io/gows"
+  packages = ["gows"]
+  pruneopts = "UT"
+  revision = "005d8a8baa6e3c6c76527554bb292061ef7d3af0"
+
+[[projects]]
+  branch = "master"
   digest = "1:a31f5ffeb3ba940633762768571321abb47b57bc48c0551fc0e3d7aff3564770"
   name = "github.com/bitrise-io/stepman"
   packages = ["models"]
@@ -112,12 +143,28 @@
   revision = "5929ad85d89233b3296d2d795e068a656db7fb25"
 
 [[projects]]
+  branch = "master"
+  digest = "1:14f3dc47ce9fec6a2696a28cf21ffd5aef579584897acfdeb0190bc8cf7b1132"
+  name = "github.com/hashicorp/go-version"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "192140e6f3e645d971b134d4e35b5191adb9dfd3"
+
+[[projects]]
   digest = "1:870d441fe217b8e689d7949fef6e43efbc787e50f200cb1e70dbca9204a1d6be"
   name = "github.com/inconshreveable/mousetrap"
   packages = ["."]
   pruneopts = "UT"
   revision = "76626ae9c91c4f2a10f34cad8ce83ea42c93bb75"
   version = "v1.0"
+
+[[projects]]
+  digest = "1:31e761d97c76151dde79e9d28964a812c46efc5baee4085b86f68f0c654450de"
+  name = "github.com/konsorten/go-windows-terminal-sequences"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "f55edac94c9bbba5d6182a4be46d86a2c9b5b50e"
+  version = "v1.0.2"
 
 [[projects]]
   digest = "1:cf31692c14422fa27c83a05292eb5cbe0fb2775972e8f1f8446a71549bd8980b"
@@ -161,14 +208,14 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:76a8f15384d51164875fe295559d2e5a8180d67312bb040d0509b5b1114c0267"
+  digest = "1:087bd1835b210da9dba19b18fdc140f683fe1e1af3239226d4fcbd76da1a2e39"
   name = "golang.org/x/sys"
   packages = [
     "unix",
     "windows",
   ]
   pruneopts = "UT"
-  revision = "8097e1b27ff5e40620836729a9584e91b094b062"
+  revision = "0e01d883c5c5e3a1741118a9962f68d71b0a6ed4"
 
 [[projects]]
   digest = "1:1093f2eb4b344996604f7d8b29a16c5b22ab9e1b25652140d3fede39f640d5cd"
@@ -206,6 +253,7 @@
   analyzer-version = 1
   input-imports = [
     "github.com/bitrise-io/bitrise-init/scanner",
+    "github.com/bitrise-io/bitrise/bitrise",
     "github.com/bitrise-io/bitrise/models",
     "github.com/bitrise-io/go-utils/command",
     "github.com/bitrise-io/go-utils/errorutil",
@@ -216,7 +264,6 @@
     "github.com/pkg/errors",
     "github.com/spf13/cobra",
     "golang.org/x/crypto/ssh/terminal",
-    "gopkg.in/yaml.v2",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1
