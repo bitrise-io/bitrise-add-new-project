@@ -48,7 +48,6 @@ func PrivateKey() (string, string, bool, error) {
 		valueOptions: []string{methodAuto, methodManual},
 		action: func(answer string) *option {
 			const (
-				privateKeyPathTitle   = "Enter the path of your RSA SSH private key file (you can also drag & drop the file here)"
 				additionalAccessTitle = "Do you need to use an additional private repository?"
 				additionalAccessNo    = "No, auto-add SSH key"
 				additionalAccessYes   = "I need to"
@@ -86,13 +85,23 @@ func PrivateKey() (string, string, bool, error) {
 					},
 				}
 			case methodManual:
+				const (
+					privateKeyPathTitle = "Enter the path of your RSA SSH private key file (you can also drag & drop the file here)"
+					publicKeyPathTitle  = "Enter the path of your RSA SSH public key file (you can also drag & drop the file here)"
+				)
 				register = false
 				publicKeyPath = ""
 				return &option{
 					title: privateKeyPathTitle,
 					action: func(answer string) *option {
 						privateKeyPath = answer
-						return nil
+						return &option{
+							title: publicKeyPathTitle,
+							action: func(answer string) *option {
+								publicKeyPath = answer
+								return nil
+							},
+						}
 					},
 				}
 			}
