@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 
 	"github.com/bitrise-io/bitrise-add-new-project/phases"
-	"github.com/bitrise-io/go-utils/log"
 	"github.com/spf13/cobra"
 )
 
@@ -14,7 +13,6 @@ const (
 	cmdFlagKeyAccount      = "account"
 	cmdFlagKeyPublic       = "public"
 	cmdFlagKeyRepo         = "repo"
-	cmdFlagKeyBitriseYML   = "bitrise-yml"
 	cmdFlagKeyStack        = "stack"
 	cmdFlagKeyAddWebhook   = "add-webhook"
 	cmdFlagKeyAutoCodesign = "auto-codesign"
@@ -26,7 +24,6 @@ var (
 	cmdFlagAccount      string
 	cmdFlagPublic       bool
 	cmdFlagRepo         string
-	cmdFlagBitriseYML   string
 	cmdFlagStack        string
 	cmdFlagAddWebhook   bool
 	cmdFlagAutoCodesign bool
@@ -44,7 +41,6 @@ func init() {
 	rootCmd.Flags().StringVar(&cmdFlagAccount, cmdFlagKeyAccount, "", "Name of Bitrise account to use")
 	rootCmd.Flags().BoolVar(&cmdFlagPublic, cmdFlagKeyPublic, false, "Visibility of the Bitrise app")
 	rootCmd.Flags().StringVar(&cmdFlagRepo, cmdFlagKeyRepo, "", "Git URL for the repository to register")
-	rootCmd.Flags().StringVar(&cmdFlagBitriseYML, cmdFlagKeyBitriseYML, "", "Path to the bitrise.yml file")
 	rootCmd.Flags().StringVar(&cmdFlagStack, cmdFlagKeyStack, "", "The stack to run the builds on")
 	rootCmd.Flags().BoolVar(&cmdFlagAddWebhook, cmdFlagKeyAddWebhook, false, "To register a webhook for the git provider")
 	rootCmd.Flags().BoolVar(&cmdFlagAutoCodesign, cmdFlagKeyAutoCodesign, false, "Upload codesign files for iOS project")
@@ -98,44 +94,27 @@ func executePhases(cmd cobra.Command, progress *phases.Progress) error {
 	progress.SSHPublicKeyPth = publicKeyPth
 	progress.RegisterSSHKey = register
 
-	if cmd.Flags().Changed(cmdFlagKeyBitriseYML) {
-		bitriseYMLFile, err := os.Open(cmdFlagKeyBitriseYML)
-		if err != nil {
-			return fmt.Errorf("failed to open bitrise.yml, error: %s", err)
-		}
-		defer func() {
-			if err := bitriseYMLFile.Close(); err != nil {
-				log.Warnf("failed to close file, error: %s", err)
-			}
-		}()
-		bitriseYML, warnings, err := phases.ParseBitriseYMLFile(bitriseYMLFile)
-		if err != nil {
-			return fmt.Errorf("failed to parse bitrise.yml, error: %s", err)
-		} else if warnings != nil {
-			log.Warnf("Parsed bitrise.yml, with warnings:")
-			for _, warning := range warnings {
-				log.Warnf(warning)
-			}
-		}
-		progress.BitriseYML = &bitriseYML
+	currentDir, err := filepath.Abs(".")
+	if err != nil {
+		return fmt.Errorf("failed to get current directory, error: %s", err)
 	}
-	if progress.BitriseYML == nil {
-		currentDir, err := filepath.Abs(".")
-		if err != nil {
-			return fmt.Errorf("failed to get current directory, error: %s", err)
-		}
-		yml, _, err := phases.BitriseYML(currentDir)
-		if err != nil {
-			return err
-		}
-		progress.BitriseYML = &yml
+	bitriseYML, primaryWorkflow, err := phases.BitriseYML(currentDir)
+	if err != nil {
+		return err
 	}
+	projectType := bitriseYML.ProjectType
+	if projectType == "" {
+		projectType = "other"
+	}
+	progress.BitriseYML = bitriseYML
+	progress.PrimaryWorkflow = primaryWorkflow
+	progress.ProjectType = projectType
 
 	if cmd.Flags().Changed(cmdFlagKeyStack) {
 		progress.Stack = &cmdFlagStack
 	}
 	if progress.Stack == nil {
-		stack, err := phases.Stack(*progress.BitriseYML)
+		stack, err := phases.Stack(projectType)
 		if err != nil {
 			return err
 		}
@@ -157,7 +136,7 @@ func executePhases(cmd cobra.Command, progress *phases.Progress) error {
 		progress.AutoCodesign = &cmdFlagAutoCodesign
 	}
 	if progress.AutoCodesign == nil {
-		codesign, err := phases.AutoCodesign(*progress.BitriseYML)
+		codesign, err := phases.AutoCodesign(projectType)
 		if err != nil {
 			return err
 		}

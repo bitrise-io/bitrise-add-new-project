@@ -9,7 +9,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/bitrise-io/bitrise/models"
 	"github.com/bitrise-io/go-utils/command"
 	"github.com/bitrise-io/go-utils/log"
 )
@@ -43,14 +42,8 @@ func getPlatform(projectType string) string {
 }
 
 // AutoCodesign ...
-func AutoCodesign(bitriseYML models.BitriseDataModel) (CodesignResult, error) {
-	platform := getPlatform(bitriseYML.ProjectType)
-	if platform == "" {
-		log.Warnf("No project type set or unknown platform found.")
-		return CodesignResult{}, nil
-	}
-
-	log.Donef("Found %s based project", platform)
+func AutoCodesign(projectType string) (CodesignResult, error) {
+	log.Donef("Found %s based project", projectType)
 	fmt.Println()
 
 	var result CodesignResult
@@ -65,7 +58,7 @@ func AutoCodesign(bitriseYML models.BitriseDataModel) (CodesignResult, error) {
 		valueOptions: []string{exportYes, exportNo},
 		action: func(answer string) *option {
 			if answer == exportYes {
-				if platform == platformIOS || platform == platformBoth {
+				if projectType == platformIOS || projectType == platformBoth {
 
 					log.Infof("Exporting iOS codesigning files")
 
@@ -100,7 +93,7 @@ func AutoCodesign(bitriseYML models.BitriseDataModel) (CodesignResult, error) {
 					}
 				}
 
-				if platform == platformAndroid || platform == platformBoth {
+				if projectType == platformAndroid || projectType == platformBoth {
 					(&option{
 						title: "Enter keystore path",
 						action: func(answer string) *option {
