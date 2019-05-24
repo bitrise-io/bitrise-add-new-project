@@ -14,7 +14,6 @@ const (
 	cmdFlagKeyAccount      = "account"
 	cmdFlagKeyPublic       = "public"
 	cmdFlagKeyRepo         = "repo"
-	cmdFlagKeyPrivateKey   = "private-key"
 	cmdFlagKeyBitriseYML   = "bitrise-yml"
 	cmdFlagKeyStack        = "stack"
 	cmdFlagKeyAddWebhook   = "add-webhook"
@@ -27,7 +26,6 @@ var (
 	cmdFlagAccount      string
 	cmdFlagPublic       bool
 	cmdFlagRepo         string
-	cmdFlagPrivateKey   string
 	cmdFlagBitriseYML   string
 	cmdFlagStack        string
 	cmdFlagAddWebhook   bool
@@ -46,7 +44,6 @@ func init() {
 	rootCmd.Flags().StringVar(&cmdFlagAccount, cmdFlagKeyAccount, "", "Name of Bitrise account to use")
 	rootCmd.Flags().BoolVar(&cmdFlagPublic, cmdFlagKeyPublic, false, "Visibility of the Bitrise app")
 	rootCmd.Flags().StringVar(&cmdFlagRepo, cmdFlagKeyRepo, "", "Git URL for the repository to register")
-	rootCmd.Flags().StringVar(&cmdFlagPrivateKey, cmdFlagKeyPrivateKey, "", "Path to the private key file")
 	rootCmd.Flags().StringVar(&cmdFlagBitriseYML, cmdFlagKeyBitriseYML, "", "Path to the bitrise.yml file")
 	rootCmd.Flags().StringVar(&cmdFlagStack, cmdFlagKeyStack, "", "The stack to run the builds on")
 	rootCmd.Flags().BoolVar(&cmdFlagAddWebhook, cmdFlagKeyAddWebhook, false, "To register a webhook for the git provider")
@@ -93,16 +90,13 @@ func executePhases(cmd cobra.Command, progress *phases.Progress) error {
 		progress.RepoType = &repoDetails.RepoType
 	}
 
-	if cmd.Flags().Changed(cmdFlagKeyPrivateKey) {
-		progress.PrivateKey = &cmdFlagPrivateKey
+	publicKeyPth, privateKeyPth, register, err := phases.PrivateKey()
+	if err != nil {
+		return err
 	}
-	if progress.PrivateKey == nil {
-		_, privKey, _, err := phases.PrivateKey()
-		if err != nil {
-			return err
-		}
-		progress.PrivateKey = &privKey
-	}
+	progress.SSHPrivateKeyPth = privateKeyPth
+	progress.SSHPublicKeyPth = publicKeyPth
+	progress.RegisterSSHKey = register
 
 	if cmd.Flags().Changed(cmdFlagKeyBitriseYML) {
 		bitriseYMLFile, err := os.Open(cmdFlagKeyBitriseYML)
