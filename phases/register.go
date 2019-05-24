@@ -1,21 +1,33 @@
 package phases
 
 import (
-	"github.com/bitrise-io/bitrise-add-new-project/bitrise"
+	"fmt"
+
+	"github.com/bitrise-io/bitrise-add-new-project/bitriseio"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/xcode-project/pretty"
 	"gopkg.in/yaml.v2"
 )
 
-func toRegistrationParams(progress Progress) (*bitrise.CreateProjectParams, error) {
+// CreateProjectParams ...
+type CreateProjectParams struct {
+	Repository      bitriseio.RegisterParams
+	SSHKey          bitriseio.RegisterSSHKeyParams
+	RegisterWebhook bool
+	Project         bitriseio.RegisterFinishParams
+	BitriseYML      bitriseio.BitriseYMLParams
+	TriggerBuild    bitriseio.TriggerBuildParams
+}
+
+func toRegistrationParams(progress Progress) (*CreateProjectParams, error) {
 	bitriseYML, err := yaml.Marshal(*progress.BitriseYML)
 	if err != nil {
 		return nil, err
 	}
 	str := string(bitriseYML)
 
-	params := bitrise.CreateProjectParams{}
-	params.Repository = bitrise.RegisterParams{
+	params := CreateProjectParams{}
+	params.Repository = bitriseio.RegisterParams{
 		GitOwner:    *progress.RepoOwner,
 		GitRepoSlug: *progress.RepoSlug,
 		IsPublic:    *progress.Public,
@@ -24,12 +36,12 @@ func toRegistrationParams(progress Progress) (*bitrise.CreateProjectParams, erro
 		Type:        *progress.RepoType,
 	}
 	params.RegisterWebhook = *progress.AddWebhook
-	params.SSHKey = bitrise.RegisterSSHKeyParams{
+	params.SSHKey = bitriseio.RegisterSSHKeyParams{
 		AuthSSHPrivateKey:                *progress.PrivateKey,
 		AuthSSHPublicKey:                 "",
 		IsRegisterKeyIntoProviderService: true,
 	}
-	params.Project = bitrise.RegisterFinishParams{
+	params.Project = bitriseio.RegisterFinishParams{
 		Config:           str,
 		Envs:             nil,
 		Mode:             "manual",
@@ -51,12 +63,41 @@ func Register(token string, progress Progress) error {
 
 	log.Printf("Provided params: %s", pretty.Object(params))
 
-	slug, err := bitrise.CreateProject(token, *params)
+	client, err := bitriseio.NewClient(token)
+	if err != nil {
+		return err
+	}
+	service := client.Apps
+	slug, err := service.Register(params.Repository)
+	if err != nil {
+		return err
+	}
+	if !params.Repository.IsPublic {
+		if err := service.RegisterSSHKey(slug, params.SSHKey); err != nil {
+			return err
+		}
+	}
+	if params.RegisterWebhook {
+		if err := service.RegisterWebhook(slug); err != nil {
+			return err
+		}
+	}
+	resp, err := service.RegisterFinish(slug, params.Project)
 	if err != nil {
 		return err
 	}
 
-	log.Donef("Project created: https://app.bitrise.io/app/%s", slug)
+	fmt.Println(pretty.Object(resp))
+
+	if err := service.BitriseYML(slug, params.BitriseYML); err != nil {
+		return err
+	}
+
+	if err := service.TriggerBuild(slug, params.TriggerBuild); err != nil {
+		return err
+	}
+
+	log.Donef("Project created: https://app.bitriseio.io/app/%s", slug)
 	return nil
 }
 

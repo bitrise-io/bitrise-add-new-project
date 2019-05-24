@@ -1,4 +1,4 @@
-package bitrise
+package bitriseio
 
 import (
 	"bytes"
@@ -12,9 +12,13 @@ import (
 	"github.com/bitrise-io/go-utils/log"
 )
 
-const (
-	baseURL = "https://api.bitrise.io/v0.1/"
-)
+const apiVersion = "v0.1"
+
+var baseURL = "https://api.bitrise.io/" + apiVersion + "/"
+
+type service struct {
+	client *Client
+}
 
 // Client ...
 type Client struct {
@@ -22,6 +26,9 @@ type Client struct {
 
 	client *http.Client
 	token  string
+
+	common service // Reuse a single struct instead of allocating one for each service on the heap.
+	Apps   *AppsService
 }
 
 // NewClient ...
@@ -32,11 +39,15 @@ func NewClient(token string) (*Client, error) {
 		return nil, err
 	}
 
-	return &Client{
+	c := &Client{
 		BaseURL: baseURL,
 		client:  httpClient,
 		token:   token,
-	}, nil
+	}
+	c.common.client = c
+	c.Apps = (*AppsService)(&c.common)
+
+	return c, nil
 }
 
 // newRequest creates a new http.Request

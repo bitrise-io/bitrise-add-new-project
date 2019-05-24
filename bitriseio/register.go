@@ -1,11 +1,11 @@
-package bitrise
+package bitriseio
 
 import (
 	"net/http"
 )
 
 // RegisterURL ...
-const RegisterURL = "apps/register"
+const RegisterURL = AppsServiceURL + "register"
 
 // RegisterParams ...
 type RegisterParams struct {
@@ -24,13 +24,13 @@ type RegisterResponse struct {
 }
 
 // Register ...
-func (c *Client) Register(params RegisterParams) (string, error) {
-	req, err := c.newRequest(http.MethodPost, RegisterURL, params)
+func (s *AppsService) Register(params RegisterParams) (string, error) {
+	req, err := s.client.newRequest(http.MethodPost, RegisterURL, params)
 	if err != nil {
 		return "", err
 	}
 	var resp RegisterResponse
-	if err := c.do(req, &resp); err != nil {
+	if err := s.client.do(req, &resp); err != nil {
 		return "", err
 	}
 	return resp.Slug, nil

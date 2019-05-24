@@ -1,4 +1,4 @@
-package bitrise
+package bitriseio
 
 import (
 	"fmt"
@@ -14,15 +14,15 @@ type RegisterSSHKeyParams struct {
 
 // RegisterSSHKeyURL ...
 func RegisterSSHKeyURL(appSlug string) string {
-	return fmt.Sprintf("apps/%s/register-ssh-key", appSlug)
+	return fmt.Sprintf(AppsServiceURL+"%s/register-ssh-key", appSlug)
 }
 
 // RegisterSSHKey ...
-func (c *Client) RegisterSSHKey(appSlug string, params RegisterSSHKeyParams) error {
-	req, err := c.newRequest(http.MethodPost, RegisterSSHKeyURL(appSlug), params)
+func (s *AppsService) RegisterSSHKey(appSlug string, params RegisterSSHKeyParams) error {
+	req, err := s.client.newRequest(http.MethodPost, RegisterSSHKeyURL(appSlug), params)
 	if err != nil {
 		return err
 	}
 
-	return c.do(req, nil)
+	return s.client.do(req, nil)
 }
