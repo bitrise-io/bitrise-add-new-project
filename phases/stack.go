@@ -3,7 +3,6 @@ package phases
 import (
 	"fmt"
 
-	"github.com/bitrise-io/bitrise/models"
 	"github.com/bitrise-io/go-utils/log"
 )
 
@@ -34,22 +33,10 @@ var optionsStacks = []string{
 	"osx-xcode-edge",
 }
 
-func getProjectInfo(bitriseYML models.BitriseDataModel) (string, string, error) {
-	if bitriseYML.ProjectType == "" {
-		return "", "other", nil
-	}
-
-	return defaultStacks[bitriseYML.ProjectType], bitriseYML.ProjectType, nil
-}
-
 // Stack returns the selected stack for the project or an error
 // if something went wrong during stack autodetection.
-func Stack(bitriseYML models.BitriseDataModel) (string, error) {
-	var stack, projType, err = getProjectInfo(bitriseYML)
-	if err != nil {
-		return "", fmt.Errorf("get default stack: %s", err)
-	}
-
+func Stack(projectType string) (string, error) {
+	stack := defaultStacks[projectType]
 	var manualStackSelection = option{
 		title:        "Please choose from the available stacks",
 		valueOptions: optionsStacks,
@@ -67,7 +54,7 @@ func Stack(bitriseYML models.BitriseDataModel) (string, error) {
 	}
 
 	systemReportURL := fmt.Sprintf("https://github.com/bitrise-io/bitrise.io/blob/master/system_reports/%s.log", stack)
-	log.Printf("An %s project has been detected based on the provided bitrise.yml", projType)
+	log.Printf("An %s project has been detected based on the provided bitrise.yml", projectType)
 	log.Printf("The default stack for your project type is %s. You can check the preinstalled tools at %s", stack, systemReportURL)
 
 	const (
