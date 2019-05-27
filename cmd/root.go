@@ -10,24 +10,16 @@ import (
 )
 
 const (
-	cmdFlagKeyAccount      = "account"
-	cmdFlagKeyPublic       = "public"
-	cmdFlagKeyRepo         = "repo"
-	cmdFlagKeyStack        = "stack"
-	cmdFlagKeyAddWebhook   = "add-webhook"
-	cmdFlagKeyAutoCodesign = "auto-codesign"
-	cmdFlagKeyAPIToken     = "api-token"
+	cmdFlagKeyAccount  = "account"
+	cmdFlagKeyPublic   = "public"
+	cmdFlagKeyAPIToken = "api-token"
 )
 
 var (
-	cmdFlagAPIToken     string
-	cmdFlagAccount      string
-	cmdFlagPublic       bool
-	cmdFlagRepo         string
-	cmdFlagStack        string
-	cmdFlagAddWebhook   bool
-	cmdFlagAutoCodesign bool
-	rootCmd             = &cobra.Command{
+	cmdFlagAPIToken string
+	cmdFlagAccount  string
+	cmdFlagPublic   bool
+	rootCmd         = &cobra.Command{
 		Run:   run,
 		Use:   "bitrise-add-new-project",
 		Short: "Register a new Bitrise Project on bitrise.io",
@@ -40,52 +32,43 @@ var (
 func init() {
 	rootCmd.Flags().StringVar(&cmdFlagAccount, cmdFlagKeyAccount, "", "Name of Bitrise account to use")
 	rootCmd.Flags().BoolVar(&cmdFlagPublic, cmdFlagKeyPublic, false, "Visibility of the Bitrise app")
-	rootCmd.Flags().StringVar(&cmdFlagRepo, cmdFlagKeyRepo, "", "Git URL for the repository to register")
-	rootCmd.Flags().StringVar(&cmdFlagStack, cmdFlagKeyStack, "", "The stack to run the builds on")
-	rootCmd.Flags().BoolVar(&cmdFlagAddWebhook, cmdFlagKeyAddWebhook, false, "To register a webhook for the git provider")
-	rootCmd.Flags().BoolVar(&cmdFlagAutoCodesign, cmdFlagKeyAutoCodesign, false, "Upload codesign files for iOS project")
 	rootCmd.Flags().StringVar(&cmdFlagAPIToken, cmdFlagKeyAPIToken, "", "Your Bitrise personal access token")
 }
 
 func executePhases(cmd cobra.Command, progress *phases.Progress) error {
 	if cmd.Flags().Changed(cmdFlagKeyAccount) {
-		progress.Account = &cmdFlagAccount
-	}
-	if progress.Account == nil {
+		progress.Account = cmdFlagAccount
+	} else {
 		account, err := phases.Account(cmdFlagAPIToken)
 		if err != nil {
 			return err
 		}
-		progress.Account = &account
+		progress.Account = account
 	}
 
 	if cmd.Flags().Changed(cmdFlagKeyPublic) {
-		progress.Public = &cmdFlagPublic
-	}
-	if progress.Public == nil {
+		progress.Public = cmdFlagPublic
+	} else {
 		public, err := phases.IsPublic()
 		if err != nil {
 			return err
 		}
-		progress.Public = &public
+		progress.Public = public
 	}
 
-	if cmd.Flags().Changed(cmdFlagKeyRepo) {
-		progress.Repo = &cmdFlagRepo
-	}
-	if progress.Repo == nil {
-		repoDetails, err := phases.Repo(*progress.Public)
-		if err != nil {
-			return err
-		}
-
-		progress.RepoURL = &repoDetails.URL
-		progress.RepoProvider = &repoDetails.Provider
-		progress.RepoOwner = &repoDetails.Owner
-		progress.RepoSlug = &repoDetails.Slug
-		progress.RepoType = &repoDetails.RepoType
+	// repo
+	repoDetails, err := phases.Repo(progress.Public)
+	if err != nil {
+		return err
 	}
 
+	progress.RepoURL = repoDetails.URL
+	progress.RepoProvider = repoDetails.Provider
+	progress.RepoOwner = repoDetails.Owner
+	progress.RepoSlug = repoDetails.Slug
+	progress.RepoType = repoDetails.RepoType
+
+	// ssh key
 	publicKeyPth, privateKeyPth, register, err := phases.PrivateKey()
 	if err != nil {
 		return err
@@ -94,6 +77,7 @@ func executePhases(cmd cobra.Command, progress *phases.Progress) error {
 	progress.SSHPublicKeyPth = publicKeyPth
 	progress.RegisterSSHKey = register
 
+	// bitrise.yml
 	currentDir, err := filepath.Abs(".")
 	if err != nil {
 		return fmt.Errorf("failed to get current directory, error: %s", err)
@@ -110,38 +94,24 @@ func executePhases(cmd cobra.Command, progress *phases.Progress) error {
 	progress.PrimaryWorkflow = primaryWorkflow
 	progress.ProjectType = projectType
 
-	if cmd.Flags().Changed(cmdFlagKeyStack) {
-		progress.Stack = &cmdFlagStack
+	// stack
+	stack, err := phases.Stack(projectType)
+	if err != nil {
+		return err
 	}
-	if progress.Stack == nil {
-		stack, err := phases.Stack(projectType)
-		if err != nil {
-			return err
-		}
-		progress.Stack = &stack
-	}
+	progress.Stack = stack
 
-	if cmd.Flags().Changed(cmdFlagKeyAddWebhook) {
-		progress.AddWebhook = &cmdFlagAddWebhook
+	// webhook
+	wh, err := phases.AddWebhook()
+	if err != nil {
+		return err
 	}
-	if progress.AddWebhook == nil {
-		wh, err := phases.AddWebhook()
-		if err != nil {
-			return err
-		}
-		progress.AddWebhook = &wh
-	}
+	progress.AddWebhook = wh
 
-	if cmd.Flags().Changed(cmdFlagKeyAutoCodesign) {
-		progress.AutoCodesign = &cmdFlagAutoCodesign
-	}
-	if progress.AutoCodesign == nil {
-		codesign, err := phases.AutoCodesign(projectType)
-		if err != nil {
-			return err
-		}
-		_ = codesign
-		progress.AutoCodesign = nil
+	// codesign
+	_, err = phases.AutoCodesign(projectType)
+	if err != nil {
+		return err
 	}
 
 	return nil

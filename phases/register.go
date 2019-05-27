@@ -111,7 +111,7 @@ func Register(progress Progress, apiToken string) error {
 		return err
 	}
 
-	if *progress.AddWebhook {
+	if progress.AddWebhook {
 		if err := registerWebhook(appSlug, apiToken); err != nil {
 			return err
 		}
