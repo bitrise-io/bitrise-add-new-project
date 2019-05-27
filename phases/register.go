@@ -3,6 +3,8 @@ package phases
 import (
 	"fmt"
 
+	"github.com/bitrise-io/go-utils/fileutil"
+
 	"github.com/bitrise-io/bitrise-add-new-project/bitriseio"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/xcode-project/pretty"
@@ -20,11 +22,25 @@ type CreateProjectParams struct {
 }
 
 func toRegistrationParams(progress Progress) (*CreateProjectParams, error) {
-	bitriseYML, err := yaml.Marshal(*progress.BitriseYML)
+	bitriseYML, err := yaml.Marshal(progress.BitriseYML)
 	if err != nil {
 		return nil, err
 	}
-	str := string(bitriseYML)
+	bitriseYMLstr := string(bitriseYML)
+
+	privateKey, err := fileutil.ReadStringFromFile(progress.SSHPrivateKeyPth)
+	if err != nil {
+		return nil, err
+	}
+
+	var publicKey string
+	if progress.RegisterSSHKey {
+		var err error
+		publicKey, err = fileutil.ReadStringFromFile(progress.SSHPublicKeyPth)
+		if err != nil {
+			return nil, err
+		}
+	}
 
 	params := CreateProjectParams{}
 	params.Repository = bitriseio.RegisterParams{
@@ -37,12 +53,12 @@ func toRegistrationParams(progress Progress) (*CreateProjectParams, error) {
 	}
 	params.RegisterWebhook = *progress.AddWebhook
 	params.SSHKey = bitriseio.RegisterSSHKeyParams{
-		AuthSSHPrivateKey:                *progress.PrivateKey,
-		AuthSSHPublicKey:                 "",
-		IsRegisterKeyIntoProviderService: true,
+		AuthSSHPrivateKey:                privateKey,
+		AuthSSHPublicKey:                 publicKey,
+		IsRegisterKeyIntoProviderService: progress.RegisterSSHKey,
 	}
 	params.Project = bitriseio.RegisterFinishParams{
-		Config:           str,
+		Config:           bitriseYMLstr,
 		Envs:             nil,
 		Mode:             "manual",
 		OrganizationSlug: *progress.Account,

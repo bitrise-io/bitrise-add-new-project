@@ -209,14 +209,14 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:087bd1835b210da9dba19b18fdc140f683fe1e1af3239226d4fcbd76da1a2e39"
+  digest = "1:c79c407099598f99bada27ce2a07210a67a75b7294947ab3f981e735d9295c22"
   name = "golang.org/x/sys"
   packages = [
     "unix",
     "windows",
   ]
   pruneopts = "UT"
-  revision = "0e01d883c5c5e3a1741118a9962f68d71b0a6ed4"
+  revision = "791d8a0f4d093bd8fe272dea2cd28991154796fb"
 
 [[projects]]
   digest = "1:1093f2eb4b344996604f7d8b29a16c5b22ab9e1b25652140d3fede39f640d5cd"
@@ -258,6 +258,7 @@
     "github.com/bitrise-io/bitrise/models",
     "github.com/bitrise-io/go-utils/command",
     "github.com/bitrise-io/go-utils/errorutil",
+    "github.com/bitrise-io/go-utils/fileutil",
     "github.com/bitrise-io/go-utils/log",
     "github.com/bitrise-io/go-utils/pathutil",
     "github.com/bitrise-io/goinp/goinp",
