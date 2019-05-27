@@ -4,14 +4,15 @@ import "github.com/bitrise-io/bitrise/models"
 
 // Progress ...
 type Progress struct {
-	Account      *string
-	Public       *bool
-	Repo         *string
-	RepoURL      *string
-	RepoProvider *string
-	RepoOwner    *string
-	RepoSlug     *string
-	RepoType     *string
+	Account string
+	Public  bool
+
+	Repo         string
+	RepoURL      string
+	RepoProvider string
+	RepoOwner    string
+	RepoSlug     string
+	RepoType     string
 
 	SSHPrivateKeyPth string
 	SSHPublicKeyPth  string
@@ -21,8 +22,7 @@ type Progress struct {
 	PrimaryWorkflow string
 	ProjectType     string
 
-	Stack *string
+	Stack string
 
-	AddWebhook   *bool
-	AutoCodesign *bool
+	AddWebhook bool
 }
