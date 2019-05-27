@@ -25,4 +25,6 @@ type Progress struct {
 	Stack string
 
 	AddWebhook bool
+
+	Codesign CodesignResult
 }

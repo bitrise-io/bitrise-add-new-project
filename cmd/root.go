@@ -109,10 +109,11 @@ func executePhases(cmd cobra.Command, progress *phases.Progress) error {
 	progress.AddWebhook = wh
 
 	// codesign
-	_, err = phases.AutoCodesign(projectType)
+	codesign, err := phases.AutoCodesign(projectType)
 	if err != nil {
 		return err
 	}
+	progress.Codesign = codesign
 
 	return nil
 }
