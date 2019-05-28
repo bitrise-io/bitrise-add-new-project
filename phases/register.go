@@ -19,6 +19,8 @@ type CreateProjectParams struct {
 	Project         bitriseio.RegisterFinishParams
 	BitriseYML      bitriseio.BitriseYMLParams
 	TriggerBuild    bitriseio.TriggerBuildParams
+	Keystore        bitriseio.UploadKeystoreParams
+	KeystorePth     string
 }
 
 func toRegistrationParams(progress Progress) (*CreateProjectParams, error) {
@@ -65,6 +67,12 @@ func toRegistrationParams(progress Progress) (*CreateProjectParams, error) {
 		ProjectType:      "",
 		StackID:          progress.Stack,
 	}
+	params.KeystorePth = progress.KeystorePth
+	params.Keystore = bitriseio.UploadKeystoreParams{
+		Password:    progress.Codesign.KeystorePassword,
+		Alias:       progress.Codesign.Alias,
+		KeyPassword: progress.Codesign.AliasPassword,
+	}
 	return &params, nil
 }
 
@@ -107,6 +115,12 @@ func Register(token string, progress Progress) error {
 
 	if err := service.BitriseYML(slug, params.BitriseYML); err != nil {
 		return err
+	}
+
+	if params.KeystorePth != "" {
+		if err := service.UploadKeystore(slug, params.KeystorePth, params.Keystore); err != nil {
+			return err
+		}
 	}
 
 	if err := service.TriggerBuild(slug, params.TriggerBuild); err != nil {
