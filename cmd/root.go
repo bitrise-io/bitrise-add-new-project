@@ -35,7 +35,7 @@ func init() {
 	rootCmd.Flags().StringVar(&cmdFlagAPIToken, cmdFlagKeyAPIToken, "", "Your Bitrise personal access token")
 }
 
-func executePhases(cmd cobra.Command, progress *phases.Progress) error {
+func executePhases(cmd cobra.Command, progress phases.Progress) error {
 	if cmd.Flags().Changed(cmdFlagKeyAccount) {
 		progress.Account = cmdFlagAccount
 	} else {
@@ -119,13 +119,13 @@ func executePhases(cmd cobra.Command, progress *phases.Progress) error {
 }
 
 func run(cmd *cobra.Command, args []string) {
-	progress := &phases.Progress{}
+	progress := phases.Progress{}
 	if err := executePhases(*cmd, progress); err != nil {
 		fmt.Println("failed to execute phases, error:", err)
 		os.Exit(1)
 	}
 
-	if err := phases.Register(*progress, cmdFlagAPIToken); err != nil {
+	if err := phases.Register(cmdFlagAPIToken, progress); err != nil {
 		fmt.Println("failed to add Bitrise app, error:", err)
 		os.Exit(1)
 	}
