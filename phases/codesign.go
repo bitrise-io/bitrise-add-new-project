@@ -15,8 +15,8 @@ import (
 
 // CodesignResult ...
 type CodesignResult struct {
-	KeystorePath, KeystorePassword, Alias, AliasPassword string
-	ProfilePaths, CertificatePaths                       []string
+	KeystorePath, Password, Alias, KeyPassword string
+	ProfilePaths, CertificatePaths             []string
 }
 
 const (
@@ -105,7 +105,7 @@ func AutoCodesign(projectType string) (CodesignResult, error) {
 						title:  "Enter keystore password",
 						secret: true,
 						action: func(answer string) *option {
-							result.KeystorePassword = answer
+							result.Password = answer
 							return nil
 						}}).run()
 
@@ -120,7 +120,7 @@ func AutoCodesign(projectType string) (CodesignResult, error) {
 						title:  "Enter keystore alias password",
 						secret: true,
 						action: func(answer string) *option {
-							result.AliasPassword = answer
+							result.KeyPassword = answer
 							return nil
 						}}).run()
 				}

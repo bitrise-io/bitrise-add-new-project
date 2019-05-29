@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/bitrise-io/xcode-project/serialized"
+	"github.com/bitrise-io/go-utils/log"
 )
 
 // UploadKeystoreParams ...
@@ -37,6 +37,11 @@ func (s *AppsService) UploadKeystore(appSlug, pth string, params UploadKeystoreP
 	if err != nil {
 		return err
 	}
+	defer func() {
+		if err := f.Close(); err != nil {
+			log.Debugf("failed to close keystore file: %s", err)
+		}
+	}()
 
 	i, err := f.Stat()
 	if err != nil {
@@ -54,23 +59,17 @@ func (s *AppsService) UploadKeystore(appSlug, pth string, params UploadKeystoreP
 	if err != nil {
 		return err
 	}
-	var resp serialized.Object
-	if err := s.client.do(req, &resp); err != nil {
-		return err
+
+	type UploadKeystoreResponse struct {
+		Data struct {
+			UploadURL string `json:"upload_url"`
+			Slug      string `json:"slug"`
+		} `json:"data"`
 	}
 
-	data, err := resp.Object("data")
-	if err != nil {
-		return err
-	}
+	var r UploadKeystoreResponse
 
-	uploadURL, err := data.String("upload_url")
-	if err != nil {
-		return err
-	}
-
-	uploadSlug, err := data.String("slug")
-	if err != nil {
+	if err := s.client.do(req, &r); err != nil {
 		return err
 	}
 
@@ -80,7 +79,7 @@ func (s *AppsService) UploadKeystore(appSlug, pth string, params UploadKeystoreP
 	}
 
 	// upload keystore
-	req, err = http.NewRequest(http.MethodPut, uploadURL, bytes.NewReader(content))
+	req, err = http.NewRequest(http.MethodPut, r.Data.UploadURL, bytes.NewReader(content))
 	if err != nil {
 		return err
 	}
@@ -90,7 +89,7 @@ func (s *AppsService) UploadKeystore(appSlug, pth string, params UploadKeystoreP
 	}
 
 	// confirm upload
-	req, err = s.client.newRequest(http.MethodPost, UploadKeystoreConfirmURL(appSlug, uploadSlug), nil)
+	req, err = s.client.newRequest(http.MethodPost, UploadKeystoreConfirmURL(appSlug, r.Data.Slug), nil)
 	if err != nil {
 		return err
 	}

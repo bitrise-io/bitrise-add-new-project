@@ -69,9 +69,9 @@ func toRegistrationParams(progress Progress) (*CreateProjectParams, error) {
 	}
 	params.KeystorePth = progress.Codesign.KeystorePath
 	params.Keystore = bitriseio.UploadKeystoreParams{
-		Password:    progress.Codesign.KeystorePassword,
+		Password:    progress.Codesign.Password,
 		Alias:       progress.Codesign.Alias,
-		KeyPassword: progress.Codesign.AliasPassword,
+		KeyPassword: progress.Codesign.KeyPassword,
 	}
 	return &params, nil
 }
