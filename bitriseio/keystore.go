@@ -32,7 +32,7 @@ func UploadKeystoreConfirmURL(appSlug, uploadSlug string) string {
 }
 
 // UploadKeystore ...
-func (s *AppsService) UploadKeystore(appSlug, pth string, params UploadKeystoreParams) error {
+func (s *AppService) UploadKeystore(pth string, params UploadKeystoreParams) error {
 	f, err := os.Open(pth)
 	if err != nil {
 		return err
@@ -55,7 +55,7 @@ func (s *AppsService) UploadKeystore(appSlug, pth string, params UploadKeystoreP
 	params.UploadFileName = name
 
 	// register keystore
-	req, err := s.client.newRequest(http.MethodPost, UploadKeystoreURL(appSlug), params)
+	req, err := s.client.newRequest(http.MethodPost, UploadKeystoreURL(s.Slug), params)
 	if err != nil {
 		return err
 	}
@@ -89,7 +89,7 @@ func (s *AppsService) UploadKeystore(appSlug, pth string, params UploadKeystoreP
 	}
 
 	// confirm upload
-	req, err = s.client.newRequest(http.MethodPost, UploadKeystoreConfirmURL(appSlug, r.Data.Slug), nil)
+	req, err = s.client.newRequest(http.MethodPost, UploadKeystoreConfirmURL(s.Slug, r.Data.Slug), nil)
 	if err != nil {
 		return err
 	}

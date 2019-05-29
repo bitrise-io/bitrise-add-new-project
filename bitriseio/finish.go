@@ -29,11 +29,11 @@ func RegisterFinishURL(appSlug string) string {
 }
 
 // RegisterFinish ...
-func (s *AppsService) RegisterFinish(appSlug string, params RegisterFinishParams) (*RegisterFinishResponse, error) {
+func (s *AppService) RegisterFinish(params RegisterFinishParams) (*RegisterFinishResponse, error) {
 	params.Mode = "manual"
 	params.Config = "default-ios-config"
 
-	req, err := s.client.newRequest(http.MethodPost, RegisterFinishURL(appSlug), params)
+	req, err := s.client.newRequest(http.MethodPost, RegisterFinishURL(s.Slug), params)
 	if err != nil {
 		return nil, err
 	}

@@ -17,21 +17,21 @@ type RegisterParams struct {
 	Type        string `json:"type,omitempty"`
 }
 
-// RegisterResponse ...
-type RegisterResponse struct {
-	Status string `json:"status,omitempty"`
-	Slug   string `json:"slug,omitempty"`
-}
-
 // Register ...
-func (s *AppsService) Register(params RegisterParams) (string, error) {
+func (s *AppsService) Register(params RegisterParams) (*AppService, error) {
 	req, err := s.client.newRequest(http.MethodPost, RegisterURL, params)
 	if err != nil {
-		return "", err
+		return nil, err
+	}
+	type RegisterResponse struct {
+		Slug string `json:"slug,omitempty"`
 	}
 	var resp RegisterResponse
 	if err := s.client.do(req, &resp); err != nil {
-		return "", err
+		return nil, err
 	}
-	return resp.Slug, nil
+	return &AppService{
+		client: s.client,
+		Slug:   resp.Slug,
+	}, nil
 }

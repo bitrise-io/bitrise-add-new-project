@@ -16,10 +16,6 @@ const apiVersion = "v0.1"
 
 var baseURL = "https://api.bitrise.io/" + apiVersion + "/"
 
-type service struct {
-	client *Client
-}
-
 // Client ...
 type Client struct {
 	BaseURL *url.URL
@@ -27,8 +23,7 @@ type Client struct {
 	client *http.Client
 	token  string
 
-	common service // Reuse a single struct instead of allocating one for each service on the heap.
-	Apps   *AppsService
+	Apps *AppsService
 }
 
 // NewClient ...
@@ -44,8 +39,9 @@ func NewClient(token string) (*Client, error) {
 		client:  httpClient,
 		token:   token,
 	}
-	c.common.client = c
-	c.Apps = (*AppsService)(&c.common)
+	c.Apps = &AppsService{
+		client: c,
+	}
 
 	return c, nil
 }

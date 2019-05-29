@@ -16,8 +16,8 @@ func BitriseYMLURL(appSlug string) string {
 }
 
 // BitriseYML ...
-func (s *AppsService) BitriseYML(appSlug string, params BitriseYMLParams) error {
-	req, err := s.client.newRequest(http.MethodPost, BitriseYMLURL(appSlug), params)
+func (s *AppService) BitriseYML(params BitriseYMLParams) error {
+	req, err := s.client.newRequest(http.MethodPost, BitriseYMLURL(s.Slug), params)
 	if err != nil {
 		return err
 	}

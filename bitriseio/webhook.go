@@ -11,8 +11,8 @@ func RegisterWebhookURL(appSlug string) string {
 }
 
 // RegisterWebhook ...
-func (s *AppsService) RegisterWebhook(appSlug string) error {
-	req, err := s.client.newRequest(http.MethodPost, RegisterWebhookURL(appSlug), nil)
+func (s *AppService) RegisterWebhook() error {
+	req, err := s.client.newRequest(http.MethodPost, RegisterWebhookURL(s.Slug), nil)
 	if err != nil {
 		return err
 	}

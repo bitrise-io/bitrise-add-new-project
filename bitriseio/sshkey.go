@@ -18,8 +18,8 @@ func RegisterSSHKeyURL(appSlug string) string {
 }
 
 // RegisterSSHKey ...
-func (s *AppsService) RegisterSSHKey(appSlug string, params RegisterSSHKeyParams) error {
-	req, err := s.client.newRequest(http.MethodPost, RegisterSSHKeyURL(appSlug), params)
+func (s *AppService) RegisterSSHKey(params RegisterSSHKeyParams) error {
+	req, err := s.client.newRequest(http.MethodPost, RegisterSSHKeyURL(s.Slug), params)
 	if err != nil {
 		return err
 	}

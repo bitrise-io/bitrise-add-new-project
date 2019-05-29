@@ -4,4 +4,12 @@ package bitriseio
 const AppsServiceURL = "apps/"
 
 // AppsService ...
-type AppsService service
+type AppsService struct {
+	client *Client
+}
+
+// AppService ...
+type AppService struct {
+	client *Client
+	Slug   string
+}

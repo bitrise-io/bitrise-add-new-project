@@ -91,42 +91,46 @@ func Register(token string, progress Progress) error {
 	if err != nil {
 		return err
 	}
-	service := client.Apps
-	slug, err := service.Register(params.Repository)
+	app, err := client.Apps.Register(params.Repository)
 	if err != nil {
 		return err
 	}
 	if !params.Repository.IsPublic {
-		if err := service.RegisterSSHKey(slug, params.SSHKey); err != nil {
+		// app.RegisterSSHKey
+		if err := app.RegisterSSHKey(params.SSHKey); err != nil {
 			return err
 		}
 	}
 	if params.RegisterWebhook {
-		if err := service.RegisterWebhook(slug); err != nil {
+		// app.RegisterWebhook
+		if err := app.RegisterWebhook(); err != nil {
 			return err
 		}
 	}
-	resp, err := service.RegisterFinish(slug, params.Project)
+	// app.RegisterFinish
+	resp, err := app.RegisterFinish(params.Project)
 	if err != nil {
 		return err
 	}
 
 	fmt.Println(pretty.Object(resp))
 
-	if err := service.BitriseYML(slug, params.BitriseYML); err != nil {
+	// app.UploadBitriseYML
+	if err := app.BitriseYML(params.BitriseYML); err != nil {
 		return err
 	}
 
 	if params.KeystorePth != "" {
-		if err := service.UploadKeystore(slug, params.KeystorePth, params.Keystore); err != nil {
+		// app.UploadKeystore
+		if err := app.UploadKeystore(params.KeystorePth, params.Keystore); err != nil {
 			return err
 		}
 	}
 
-	if err := service.TriggerBuild(slug, params.TriggerBuild); err != nil {
+	if err := app.TriggerBuild(params.TriggerBuild); err != nil {
 		return err
 	}
 
-	log.Donef("Project created: https://app.bitriseio.io/app/%s", slug)
+	log.Donef("Project created: https://app.bitriseio.io/app/%s", app.Slug)
 	return nil
 }

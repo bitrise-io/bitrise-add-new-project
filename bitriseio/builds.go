@@ -22,8 +22,8 @@ func TriggerBuildURL(appSlug string) string {
 }
 
 // TriggerBuild ...
-func (s *AppsService) TriggerBuild(appSlug string, params TriggerBuildParams) error {
-	req, err := s.client.newRequest(http.MethodPost, TriggerBuildURL(appSlug), params)
+func (s *AppService) TriggerBuild(params TriggerBuildParams) error {
+	req, err := s.client.newRequest(http.MethodPost, TriggerBuildURL(s.Slug), params)
 	if err != nil {
 		return err
 	}
