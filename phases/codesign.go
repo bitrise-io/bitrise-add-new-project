@@ -15,8 +15,8 @@ import (
 
 // CodesignResult ...
 type CodesignResult struct {
-	KeystorePath, KeystorePassword, Alias, AliasPassword string
-	ProfilePaths, CertificatePaths                       []string
+	KeystorePath, Password, Alias, KeyPassword string
+	ProfilePaths, CertificatePaths             []string
 }
 
 const (
@@ -95,32 +95,32 @@ func AutoCodesign(projectType string) (CodesignResult, error) {
 
 				if projectType == platformAndroid || projectType == platformBoth {
 					(&option{
-						title: "Enter keystore path",
+						title: "Enter key store path",
 						action: func(answer string) *option {
 							result.KeystorePath = answer
 							return nil
 						}}).run()
 
 					(&option{
-						title:  "Enter keystore password",
+						title:  "Enter key store password",
 						secret: true,
 						action: func(answer string) *option {
-							result.KeystorePassword = answer
+							result.Password = answer
 							return nil
 						}}).run()
 
 					(&option{
-						title: "Enter keystore alias",
+						title: "Enter key alias",
 						action: func(answer string) *option {
 							result.Alias = answer
 							return nil
 						}}).run()
 
 					(&option{
-						title:  "Enter keystore alias password",
+						title:  "Enter key password",
 						secret: true,
 						action: func(answer string) *option {
-							result.AliasPassword = answer
+							result.KeyPassword = answer
 							return nil
 						}}).run()
 				}
