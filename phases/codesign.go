@@ -95,14 +95,14 @@ func AutoCodesign(projectType string) (CodesignResult, error) {
 
 				if projectType == platformAndroid || projectType == platformBoth {
 					(&option{
-						title: "Enter keystore path",
+						title: "Enter key store path",
 						action: func(answer string) *option {
 							result.KeystorePath = answer
 							return nil
 						}}).run()
 
 					(&option{
-						title:  "Enter keystore password",
+						title:  "Enter key store password",
 						secret: true,
 						action: func(answer string) *option {
 							result.Password = answer
@@ -110,14 +110,14 @@ func AutoCodesign(projectType string) (CodesignResult, error) {
 						}}).run()
 
 					(&option{
-						title: "Enter keystore alias",
+						title: "Enter key alias",
 						action: func(answer string) *option {
 							result.Alias = answer
 							return nil
 						}}).run()
 
 					(&option{
-						title:  "Enter keystore alias password",
+						title:  "Enter key password",
 						secret: true,
 						action: func(answer string) *option {
 							result.KeyPassword = answer
