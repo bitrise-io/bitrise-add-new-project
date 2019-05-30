@@ -15,8 +15,8 @@ func BitriseYMLURL(appSlug string) string {
 	return fmt.Sprintf(AppsServiceURL+"%s/bitrise.yml", appSlug)
 }
 
-// BitriseYML ...
-func (s *AppService) BitriseYML(params BitriseYMLParams) error {
+// UploadBitriseYML ...
+func (s *AppService) UploadBitriseYML(params BitriseYMLParams) error {
 	req, err := s.client.newRequest(http.MethodPost, BitriseYMLURL(s.Slug), params)
 	if err != nil {
 		return err

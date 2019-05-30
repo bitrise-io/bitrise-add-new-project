@@ -96,18 +96,15 @@ func Register(token string, progress Progress) error {
 		return err
 	}
 	if !params.Repository.IsPublic {
-		// app.RegisterSSHKey
 		if err := app.RegisterSSHKey(params.SSHKey); err != nil {
 			return err
 		}
 	}
 	if params.RegisterWebhook {
-		// app.RegisterWebhook
 		if err := app.RegisterWebhook(); err != nil {
 			return err
 		}
 	}
-	// app.RegisterFinish
 	resp, err := app.RegisterFinish(params.Project)
 	if err != nil {
 		return err
@@ -115,13 +112,11 @@ func Register(token string, progress Progress) error {
 
 	fmt.Println(pretty.Object(resp))
 
-	// app.UploadBitriseYML
-	if err := app.BitriseYML(params.BitriseYML); err != nil {
+	if err := app.UploadBitriseYML(params.BitriseYML); err != nil {
 		return err
 	}
 
 	if params.KeystorePth != "" {
-		// app.UploadKeystore
 		if err := app.UploadKeystore(params.KeystorePth, params.Keystore); err != nil {
 			return err
 		}
