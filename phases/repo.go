@@ -17,7 +17,6 @@ type RepoDetails struct {
 	Provider string
 	Owner    string
 	Slug     string
-	RepoType string
 }
 
 type urlParts struct {
@@ -90,7 +89,6 @@ func Repo(isPublic bool) (RepoDetails, error) {
 	}
 
 	provider := getProvider(out)
-	repoType := "git"
 
 	parts := parseURL(out)
 	var url string
@@ -105,13 +103,11 @@ func Repo(isPublic bool) (RepoDetails, error) {
 	log.Donef("- provider: %s", provider)
 	log.Donef("- owner: %s", parts.owner)
 	log.Donef("- slug: %s", parts.slug)
-	log.Donef("- repo type: %s", repoType)
 
 	return RepoDetails{
 		url,
 		provider,
 		parts.owner,
 		parts.slug,
-		repoType,
 	}, nil
 }

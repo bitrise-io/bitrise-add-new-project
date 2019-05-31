@@ -5,25 +5,34 @@ import (
 	"net/http"
 )
 
-// BuildParams ...
-type BuildParams struct {
-	Branch     string `json:"branch,omitempty"`
-	WorkflowID string `json:"workflow_id,omitempty"`
-}
-
-// TriggerBuildParams ...
-type TriggerBuildParams struct {
-	BuildParams BuildParams `json:"build_params,omitempty"`
-}
-
 // TriggerBuildURL ...
 func TriggerBuildURL(appSlug string) string {
 	return fmt.Sprintf(AppsServiceURL+"%s/builds", appSlug)
 }
 
 // TriggerBuild ...
-func (s *AppService) TriggerBuild(params TriggerBuildParams) error {
-	req, err := s.client.newRequest(http.MethodPost, TriggerBuildURL(s.Slug), params)
+func (s *AppService) TriggerBuild(workflowID string) error {
+	type HookInfo struct {
+		Type string `json:"type"`
+	}
+	type BuildParams struct {
+		WorkflowID string `json:"workflow_id"`
+		Branch     string `json:"branch"`
+	}
+	type Params struct {
+		BuildParams BuildParams `json:"build_params"`
+		HookInfo    HookInfo    `json:"hook_info"`
+	}
+	p := Params{
+		BuildParams: BuildParams{
+			WorkflowID: workflowID,
+			Branch:     "master",
+		},
+		HookInfo: HookInfo{
+			Type: "bitrise",
+		},
+	}
+	req, err := s.client.newRequest(http.MethodPost, TriggerBuildURL(s.Slug), p)
 	if err != nil {
 		return err
 	}

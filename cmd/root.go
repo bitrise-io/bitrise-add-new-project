@@ -6,44 +6,48 @@ import (
 	"path/filepath"
 
 	"github.com/bitrise-io/bitrise-add-new-project/phases"
+	"github.com/bitrise-io/go-utils/log"
 	"github.com/spf13/cobra"
 )
 
 const (
-	cmdFlagKeyAccount  = "account"
-	cmdFlagKeyPublic   = "public"
-	cmdFlagKeyAPIToken = "api-token"
+	cmdFlagKeyOrganisation = "org"
+	cmdFlagKeyPublic       = "public"
+	cmdFlagKeyAPIToken     = "api-token"
+	cmdFlagKeyVerbose      = "verbose"
 )
 
 var (
-	cmdFlagAPIToken string
-	cmdFlagAccount  string
-	cmdFlagPublic   bool
-	rootCmd         = &cobra.Command{
+	cmdFlagAPIToken     string
+	cmdFlagOrganisation string
+	cmdFlagVerbose      bool
+	cmdFlagPublic       bool
+	rootCmd             = &cobra.Command{
 		Run:   run,
 		Use:   "bitrise-add-new-project",
 		Short: "Register a new Bitrise Project on bitrise.io",
-		Long: `A guided process for creating a pipeline on bitrise.io
-
-	You can quit the process at any phase and continue from where you left off later.`,
+		Long:  "A guided process for creating a pipeline on bitrise.io.",
 	}
 )
 
 func init() {
-	rootCmd.Flags().StringVar(&cmdFlagAccount, cmdFlagKeyAccount, "", "Name of Bitrise account to use")
-	rootCmd.Flags().BoolVar(&cmdFlagPublic, cmdFlagKeyPublic, false, "Visibility of the Bitrise app")
-	rootCmd.Flags().StringVar(&cmdFlagAPIToken, cmdFlagKeyAPIToken, "", "Your Bitrise personal access token")
+	rootCmd.Flags().StringVar(&cmdFlagOrganisation, cmdFlagKeyOrganisation, "", "The slug of the organization to assign the project")
+	rootCmd.Flags().BoolVar(&cmdFlagPublic, cmdFlagKeyPublic, false, "Create a public app")
+	rootCmd.Flags().StringVar(&cmdFlagAPIToken, cmdFlagKeyAPIToken, "", "Bitrise personal access token")
+	rootCmd.Flags().BoolVar(&cmdFlagVerbose, cmdFlagKeyVerbose, false, "Enable verbose logging")
 }
 
-func executePhases(cmd cobra.Command, progress phases.Progress) error {
-	if cmd.Flags().Changed(cmdFlagKeyAccount) {
-		progress.Account = cmdFlagAccount
+func executePhases(cmd cobra.Command) (phases.Progress, error) {
+	progress := phases.Progress{}
+
+	if cmd.Flags().Changed(cmdFlagKeyOrganisation) {
+		progress.OrganizationSlug = cmdFlagOrganisation
 	} else {
 		account, err := phases.Account(cmdFlagAPIToken)
 		if err != nil {
-			return err
+			return phases.Progress{}, err
 		}
-		progress.Account = account
+		progress.OrganizationSlug = account
 	}
 
 	if cmd.Flags().Changed(cmdFlagKeyPublic) {
@@ -51,7 +55,7 @@ func executePhases(cmd cobra.Command, progress phases.Progress) error {
 	} else {
 		public, err := phases.IsPublic()
 		if err != nil {
-			return err
+			return phases.Progress{}, err
 		}
 		progress.Public = public
 	}
@@ -59,19 +63,18 @@ func executePhases(cmd cobra.Command, progress phases.Progress) error {
 	// repo
 	repoDetails, err := phases.Repo(progress.Public)
 	if err != nil {
-		return err
+		return phases.Progress{}, err
 	}
 
 	progress.RepoURL = repoDetails.URL
 	progress.RepoProvider = repoDetails.Provider
 	progress.RepoOwner = repoDetails.Owner
 	progress.RepoSlug = repoDetails.Slug
-	progress.RepoType = repoDetails.RepoType
 
 	// ssh key
 	publicKeyPth, privateKeyPth, register, err := phases.PrivateKey()
 	if err != nil {
-		return err
+		return phases.Progress{}, err
 	}
 	progress.SSHPrivateKeyPth = privateKeyPth
 	progress.SSHPublicKeyPth = publicKeyPth
@@ -80,11 +83,11 @@ func executePhases(cmd cobra.Command, progress phases.Progress) error {
 	// bitrise.yml
 	currentDir, err := filepath.Abs(".")
 	if err != nil {
-		return fmt.Errorf("failed to get current directory, error: %s", err)
+		return phases.Progress{}, fmt.Errorf("failed to get current directory, error: %s", err)
 	}
 	bitriseYML, primaryWorkflow, err := phases.BitriseYML(currentDir)
 	if err != nil {
-		return err
+		return phases.Progress{}, err
 	}
 	projectType := bitriseYML.ProjectType
 	if projectType == "" {
@@ -97,30 +100,32 @@ func executePhases(cmd cobra.Command, progress phases.Progress) error {
 	// stack
 	stack, err := phases.Stack(projectType)
 	if err != nil {
-		return err
+		return phases.Progress{}, err
 	}
 	progress.Stack = stack
 
 	// webhook
 	wh, err := phases.AddWebhook()
 	if err != nil {
-		return err
+		return phases.Progress{}, err
 	}
 	progress.AddWebhook = wh
 
 	// codesign
 	codesign, err := phases.AutoCodesign(projectType)
 	if err != nil {
-		return err
+		return phases.Progress{}, err
 	}
 	progress.Codesign = codesign
 
-	return nil
+	return progress, nil
 }
 
 func run(cmd *cobra.Command, args []string) {
-	progress := phases.Progress{}
-	if err := executePhases(*cmd, progress); err != nil {
+	log.SetEnableDebugLog(cmdFlagVerbose)
+
+	progress, err := executePhases(*cmd)
+	if err != nil {
 		fmt.Println("failed to execute phases, error:", err)
 		os.Exit(1)
 	}

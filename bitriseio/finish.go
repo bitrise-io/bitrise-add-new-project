@@ -5,22 +5,39 @@ import (
 	"net/http"
 )
 
+// configByProjectType maps default config names to project types.
+// Register finish endpoint is prepared for the use case of the bitrise.io website's frontend,
+// where the user can let the scanner to generate a scan result or use 'manual' config,
+// in which case the user selects one of our static default configs.
+// Since in case of local project registration the frontend is not involved, we can use only the 'manual' config
+// and select any of the give project type's default configs.
+// Later the tool updated the project's bitrise.yml by calling the '/apps/slug/bitrise.yml' endpoint.
+var configByProjectType = map[string]string{
+	"android":      "default-android-config",
+	"cordova":      "default-cordova-config",
+	"fastlane":     "default-fastlane-android-config",
+	"flutter":      "flutter-config-app-android",
+	"ionic":        "default-ionic-config",
+	"ios":          "default-ios-config",
+	"macos":        "default-macos-config",
+	"react-native": "default-react-native-config",
+	"xamarin":      "default-xamarin-config",
+	"other":        "other-config",
+}
+
 // RegisterFinishParams ...
 type RegisterFinishParams struct {
-	Config           string            `json:"config,omitempty"` // in case of local run we do not have scan result, so our only option is Mode: manual + Config: any default config id
-	Envs             map[string]string `json:"envs,omitempty"`
-	Mode             string            `json:"mode,omitempty"`
-	OrganizationSlug string            `json:"organization_slug,omitempty"` // leave it empty if the user will be the owne
-	ProjectType      string            `json:"project_type,omitempty"`
-	StackID          string            `json:"stack_id,omitempty"`
+	OrganizationSlug string `json:"organization_slug"`
+	ProjectType      string `json:"project_type"`
+	StackID          string `json:"stack_id"`
 }
 
 // RegisterFinishResponse ...
 type RegisterFinishResponse struct {
-	Status                    string `json:"status,omitempty"`
-	BuildTriggerToken         string `json:"build_trigger_token,omitempty"`
-	BranchName                string `json:"branch_name,omitempty"`
-	IsWebhookAutoRegSupported bool   `json:"is_webhook_auto_reg_supported,omitempty"`
+	Status                    string `json:"status"`
+	BuildTriggerToken         string `json:"build_trigger_token"`
+	BranchName                string `json:"branch_name"`
+	IsWebhookAutoRegSupported bool   `json:"is_webhook_auto_reg_supported"`
 }
 
 // RegisterFinishURL ...
@@ -30,10 +47,21 @@ func RegisterFinishURL(appSlug string) string {
 
 // RegisterFinish ...
 func (s *AppService) RegisterFinish(params RegisterFinishParams) (*RegisterFinishResponse, error) {
-	params.Mode = "manual"
-	params.Config = "default-ios-config"
+	config, ok := configByProjectType[params.ProjectType]
+	if !ok {
+		return nil, fmt.Errorf("failed to select default config: unkown project type: %s", params.ProjectType)
+	}
 
-	req, err := s.client.newRequest(http.MethodPost, RegisterFinishURL(s.Slug), params)
+	type Params struct {
+		RegisterFinishParams
+		Config string `json:"config"`
+		Mode   string `json:"mode"`
+	}
+	p := Params{RegisterFinishParams: params}
+	p.Mode = "manual"
+	p.Config = config
+
+	req, err := s.client.newRequest(http.MethodPost, RegisterFinishURL(s.Slug), p)
 	if err != nil {
 		return nil, err
 	}

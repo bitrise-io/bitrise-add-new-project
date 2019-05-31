@@ -125,8 +125,8 @@ func checkResponse(r *http.Response) error {
 
 // ErrorResponse ...
 type ErrorResponse struct {
-	Status int    `json:"status"`
-	Err    string `json:"error"`
+	Status interface{} `json:"status"`
+	Err    string      `json:"error"`
 
 	ErrTypeCode int    `json:"error_type_code"`
 	ErrMsg      string `json:"error_msg"`
