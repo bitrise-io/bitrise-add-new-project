@@ -13,8 +13,8 @@ var defaultStacks = map[string]string{
 	"ionic":        "osx-vs4mac-stable",
 	"flutter":      "osx-vs4mac-stable",
 	"android":      "linux-docker-android",
-	"macos":        "osx-xcode-10.0",
-	"ios":          "osx-xcode-10.0",
+	"macos":        "osx-xcode-10.0.x",
+	"ios":          "osx-xcode-10.0.x",
 }
 
 var optionsStacks = []string{
