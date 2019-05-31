@@ -101,7 +101,7 @@ func selectBitriseYMLFile(inputReader io.Reader) (models.BitriseDataModel, bool,
 		if err != nil {
 			log.Warnf("Failed to parse bitrise.yml, error: %s", err)
 			continue
-		} else if warnings != nil {
+		} else if len(warnings) > 0 {
 			log.Warnf("Parsed bitrise.yml, with warnings:")
 			for _, warning := range warnings {
 				log.Warnf(warning)

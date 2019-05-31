@@ -2,6 +2,7 @@ package phases
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/bitrise-io/go-utils/fileutil"
 
@@ -17,8 +18,8 @@ type CreateProjectParams struct {
 	SSHKey          bitriseio.RegisterSSHKeyParams
 	RegisterWebhook bool
 	Project         bitriseio.RegisterFinishParams
-	BitriseYML      bitriseio.BitriseYMLParams
-	TriggerBuild    bitriseio.TriggerBuildParams
+	BitriseYML      string
+	WorkflowID      string
 	Keystore        bitriseio.UploadKeystoreParams
 	KeystorePth     string
 }
@@ -26,21 +27,25 @@ type CreateProjectParams struct {
 func toRegistrationParams(progress Progress) (*CreateProjectParams, error) {
 	bitriseYML, err := yaml.Marshal(progress.BitriseYML)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("bitrise.yml marshal failed: %s", err)
 	}
 	bitriseYMLstr := string(bitriseYML)
 
 	privateKey, err := fileutil.ReadStringFromFile(progress.SSHPrivateKeyPth)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("SSH private key read failed: %s", err)
 	}
+	// privateKey = strings.Replace(privateKey, "\n", "\\n", -1)
+	privateKey = strings.TrimSuffix(privateKey, "\n")
+	privateKey = strings.Replace(privateKey, "OPENSSH", "RSA", -1)
+	progress.RegisterSSHKey = false
 
 	var publicKey string
 	if progress.RegisterSSHKey {
 		var err error
 		publicKey, err = fileutil.ReadStringFromFile(progress.SSHPublicKeyPth)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("SSH public key read failed: %s", err)
 		}
 	}
 
@@ -51,7 +56,6 @@ func toRegistrationParams(progress Progress) (*CreateProjectParams, error) {
 		IsPublic:    progress.Public,
 		Provider:    progress.RepoProvider,
 		RepoURL:     progress.RepoURL,
-		Type:        progress.RepoType,
 	}
 	params.RegisterWebhook = progress.AddWebhook
 	params.SSHKey = bitriseio.RegisterSSHKeyParams{
@@ -60,11 +64,8 @@ func toRegistrationParams(progress Progress) (*CreateProjectParams, error) {
 		IsRegisterKeyIntoProviderService: progress.RegisterSSHKey,
 	}
 	params.Project = bitriseio.RegisterFinishParams{
-		Config:           bitriseYMLstr,
-		Envs:             nil,
-		Mode:             "manual",
-		OrganizationSlug: progress.Account,
-		ProjectType:      "",
+		OrganizationSlug: progress.OrganizationSlug,
+		ProjectType:      progress.ProjectType,
 		StackID:          progress.Stack,
 	}
 	params.KeystorePth = progress.Codesign.KeystorePath
@@ -73,6 +74,8 @@ func toRegistrationParams(progress Progress) (*CreateProjectParams, error) {
 		Alias:       progress.Codesign.Alias,
 		KeyPassword: progress.Codesign.KeyPassword,
 	}
+	params.BitriseYML = bitriseYMLstr
+	params.WorkflowID = progress.PrimaryWorkflow
 	return &params, nil
 }
 
@@ -85,7 +88,7 @@ func Register(token string, progress Progress) error {
 		return err
 	}
 
-	log.Printf("Provided params: %s", pretty.Object(params))
+	log.Printf("Provided params:\n%s", pretty.Object(params))
 
 	client, err := bitriseio.NewClient(token)
 	if err != nil {
@@ -122,10 +125,10 @@ func Register(token string, progress Progress) error {
 		}
 	}
 
-	if err := app.TriggerBuild(params.TriggerBuild); err != nil {
+	if err := app.TriggerBuild(params.WorkflowID); err != nil {
 		return err
 	}
 
-	log.Donef("Project created: https://app.bitriseio.io/app/%s", app.Slug)
+	log.Donef("Project created: https://app.bitrise.io/app/%s", app.Slug)
 	return nil
 }

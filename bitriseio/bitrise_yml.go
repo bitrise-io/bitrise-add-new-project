@@ -5,19 +5,22 @@ import (
 	"net/http"
 )
 
-// BitriseYMLParams ...
-type BitriseYMLParams struct {
-	AppConfigDatastoreYAML string `json:"app_config_datastore_yaml,omitempty"`
-}
-
 // BitriseYMLURL ...
 func BitriseYMLURL(appSlug string) string {
 	return fmt.Sprintf(AppsServiceURL+"%s/bitrise.yml", appSlug)
 }
 
 // UploadBitriseYML ...
-func (s *AppService) UploadBitriseYML(params BitriseYMLParams) error {
-	req, err := s.client.newRequest(http.MethodPost, BitriseYMLURL(s.Slug), params)
+func (s *AppService) UploadBitriseYML(config string) error {
+	type BitriseYMLParams struct {
+		AppConfigDatastoreYAML string `json:"app_config_datastore_yaml"`
+	}
+
+	p := BitriseYMLParams{
+		AppConfigDatastoreYAML: config,
+	}
+
+	req, err := s.client.newRequest(http.MethodPost, BitriseYMLURL(s.Slug), p)
 	if err != nil {
 		return err
 	}

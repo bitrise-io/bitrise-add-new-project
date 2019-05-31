@@ -7,9 +7,9 @@ import (
 
 // RegisterSSHKeyParams ...
 type RegisterSSHKeyParams struct {
-	AuthSSHPrivateKey                string `json:"auth_ssh_private_key,omitempty"`
+	AuthSSHPrivateKey                string `json:"auth_ssh_private_key"`
 	AuthSSHPublicKey                 string `json:"auth_ssh_public_key,omitempty"`
-	IsRegisterKeyIntoProviderService bool   `json:"is_register_key_into_provider_service,omitempty"`
+	IsRegisterKeyIntoProviderService bool   `json:"is_register_key_into_provider_service"`
 }
 
 // RegisterSSHKeyURL ...

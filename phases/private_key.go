@@ -19,7 +19,7 @@ func generateSSHKey() (string, string, error) {
 
 	keyFilePath := filepath.Join(tempDir, "key")
 
-	cmd := command.New("ssh-keygen", "-q", "-t", "rsa", "-b", "4096", "-C", "builds@bitrise.io", "-P", "", "-f", keyFilePath)
+	cmd := command.New("ssh-keygen", "-q", "-t", "rsa", "-b", "2048", "-C", "builds@bitrise.io", "-P", "", "-f", keyFilePath, "-m", "PEM")
 	if out, err := cmd.RunAndReturnTrimmedCombinedOutput(); err != nil {
 		return "", "", errors.Wrap(fmt.Errorf("failed to run command: %s, error: %s", cmd.PrintableCommandArgs(), err), out)
 	}

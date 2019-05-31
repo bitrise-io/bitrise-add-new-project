@@ -90,10 +90,12 @@ func Account(apiToken string) (string, error) {
 			log.Errorf("error reading choice from stdin: %s", err)
 		} else if !isValid(choice, len(options)) {
 			log.Errorf("invalid choice")
-		} else {
-			return options[choice-1]["slug"].(string), nil
+		} else if choice == 1 {
+			// own user selected
+			return "", nil
 		}
-	}
 
-	return "", fmt.Errorf("invalid execution branch: unknown error")
+		// organization selected
+		return options[choice-1]["slug"].(string), nil
+	}
 }

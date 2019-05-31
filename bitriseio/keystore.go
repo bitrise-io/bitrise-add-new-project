@@ -14,11 +14,9 @@ import (
 
 // UploadKeystoreParams ...
 type UploadKeystoreParams struct {
-	Alias          string `json:"alias,omitempty"`
-	Password       string `json:"password,omitempty"`
-	KeyPassword    string `json:"private_key_password,omitempty"`
-	UploadFileName string `json:"upload_file_name,omitempty"`
-	UploadFileSize int64  `json:"upload_file_size,omitempty"`
+	Alias       string `json:"alias"`
+	Password    string `json:"password"`
+	KeyPassword string `json:"private_key_password"`
 }
 
 // UploadKeystoreURL ...
@@ -51,11 +49,17 @@ func (s *AppService) UploadKeystore(pth string, params UploadKeystoreParams) err
 	name := filepath.Base(f.Name())
 	name = strings.TrimSuffix(name, filepath.Ext(name))
 
-	params.UploadFileSize = i.Size()
-	params.UploadFileName = name
+	type Params struct {
+		UploadKeystoreParams
+		UploadFileName string `json:"upload_file_name"`
+		UploadFileSize int64  `json:"upload_file_size"`
+	}
+	p := Params{UploadKeystoreParams: params}
+	p.UploadFileSize = i.Size()
+	p.UploadFileName = name
 
 	// register keystore
-	req, err := s.client.newRequest(http.MethodPost, UploadKeystoreURL(s.Slug), params)
+	req, err := s.client.newRequest(http.MethodPost, UploadKeystoreURL(s.Slug), p)
 	if err != nil {
 		return err
 	}

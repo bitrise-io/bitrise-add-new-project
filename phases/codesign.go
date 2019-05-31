@@ -43,7 +43,7 @@ func getPlatform(projectType string) string {
 
 // AutoCodesign ...
 func AutoCodesign(projectType string) (CodesignResult, error) {
-	log.Donef("Found %s based project", projectType)
+	log.Donef("Project type: %s", projectType)
 	fmt.Println()
 
 	var result CodesignResult

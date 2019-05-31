@@ -9,22 +9,28 @@ const RegisterURL = AppsServiceURL + "register"
 
 // RegisterParams ...
 type RegisterParams struct {
-	GitOwner    string `json:"git_owner,omitempty"`
-	GitRepoSlug string `json:"git_repo_slug,omitempty"`
-	IsPublic    bool   `json:"is_public,omitempty"`
-	Provider    string `json:"provider,omitempty"`
-	RepoURL     string `json:"repo_url,omitempty"`
-	Type        string `json:"type,omitempty"`
+	GitOwner    string `json:"git_owner"`
+	GitRepoSlug string `json:"git_repo_slug"`
+	IsPublic    bool   `json:"is_public"`
+	Provider    string `json:"provider"`
+	RepoURL     string `json:"repo_url"`
 }
 
 // Register ...
 func (s *AppsService) Register(params RegisterParams) (*AppService, error) {
-	req, err := s.client.newRequest(http.MethodPost, RegisterURL, params)
+	type Params struct {
+		RegisterParams
+		Type string `json:"type"`
+	}
+	p := Params{RegisterParams: params}
+	p.Type = "git"
+
+	req, err := s.client.newRequest(http.MethodPost, RegisterURL, p)
 	if err != nil {
 		return nil, err
 	}
 	type RegisterResponse struct {
-		Slug string `json:"slug,omitempty"`
+		Slug string `json:"slug"`
 	}
 	var resp RegisterResponse
 	if err := s.client.do(req, &resp); err != nil {
