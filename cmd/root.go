@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -27,6 +28,12 @@ var (
 		Use:   "bitrise-add-new-project",
 		Short: "Register a new Bitrise Project on bitrise.io",
 		Long:  "A guided process for creating a pipeline on bitrise.io.",
+		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			if cmd.Flag(cmdFlagKeyAPIToken).Value.String() == "" {
+				return errors.New("--api-token not defined")
+			}
+			return nil
+		},
 	}
 )
 
