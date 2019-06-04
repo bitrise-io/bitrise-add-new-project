@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/bitrise-io/go-utils/command"
+	"github.com/bitrise-io/go-utils/errorutil"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
 	"github.com/pkg/errors"
@@ -28,7 +29,25 @@ func generateSSHKey() (string, string, error) {
 }
 
 func validatePrivateKey(path string, url string) (bool, error) {
-	return false, nil
+	const exitCodeAuthSuccess = 1
+
+	cmd := command.New("ssh", "-F", "/dev/null", "-o", "IdentityFile="+path, "-o", "IdentitiesOnly=yes", "-T", "git@github.com")
+	code, err := cmd.RunAndReturnExitCode();
+
+	if errorutil.IsExitStatusError(err) {
+		// strange, but ssh will return with exit status 1 if connection was successful
+		if code == exitCodeAuthSuccess {
+			return true, nil
+		}
+
+		return false, fmt.Errorf("ssh key (%s) cannot access github", path)
+	}
+	
+	if err != nil {
+			return false, fmt.Errorf("failed to run command: %s, error: %s", cmd.PrintableCommandArgs(), err)
+	}
+
+	return false, fmt.Errorf("unkown error")
 }
 
 // PrivateKey ...
