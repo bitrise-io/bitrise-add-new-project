@@ -6,8 +6,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
-	"path/filepath"
-	"strings"
 
 	"github.com/bitrise-io/go-utils/command"
 	"github.com/bitrise-io/go-utils/log"
@@ -16,7 +14,6 @@ import (
 // CodesignResult ...
 type CodesignResult struct {
 	KeystorePath, Password, Alias, KeyPassword string
-	ProfilePaths, CertificatePaths             []string
 }
 
 const (
@@ -42,7 +39,7 @@ func getPlatform(projectType string) string {
 }
 
 // AutoCodesign ...
-func AutoCodesign(projectType string) (CodesignResult, error) {
+func AutoCodesign(projectType, orgSlug, apiToken string) (CodesignResult, error) {
 	log.Donef("Project type: %s", projectType)
 	fmt.Println()
 
@@ -59,37 +56,42 @@ func AutoCodesign(projectType string) (CodesignResult, error) {
 		action: func(answer string) *option {
 			if answer == exportYes {
 				if projectType == platformIOS || projectType == platformBoth {
-
 					log.Infof("Exporting iOS codesigning files")
 
-					var resp *http.Response
-					resp, err = http.Get("https://raw.githubusercontent.com/bitrise-tools/codesigndoc/master/_scripts/install_wrap-xcode.sh")
+					codesigndoc, err := ioutil.TempFile("", "codesigndoc")
 					if err != nil {
 						return nil
 					}
 
-					if _, err = io.Copy(os.Stdin, resp.Body); err != nil {
+					resp, err := http.Get("https://github.com/bitrise-io/codesigndoc/releases/download/latest/codesigndoc-Darwin-x86_64")
+					if err != nil {
 						return nil
 					}
 
-					cmd := command.New("bash").SetStderr(os.Stderr).SetStdin(os.Stdin).SetStdout(os.Stdout)
+					if _, err = io.Copy(codesigndoc, resp.Body); err != nil {
+						return nil
+					}
+
+					if err := codesigndoc.Chmod(0700); err != nil {
+						return nil
+					}
+
+					codesignCmd := []string{
+						codesigndoc.Name(),
+						"scan",
+						"--auth-token", apiToken,
+						"--app-slug", orgSlug,
+						"--write-files", "disable",
+						"xcode",
+					}
+					cmd, err := command.NewFromSlice(codesignCmd)
+					if err != nil {
+						return nil
+					}
+					cmd.SetStderr(os.Stderr).SetStdin(os.Stdin).SetStdout(os.Stdout)
+
 					if err = cmd.Run(); err != nil {
-						err = fmt.Errorf("failed to run command: %s, error: %s", cmd.PrintableCommandArgs(), err)
-					}
-
-					var files []os.FileInfo
-					files, err = ioutil.ReadDir(codesignExportsDir)
-					if err != nil {
-						return nil
-					}
-
-					for _, file := range files {
-						switch ext := strings.HasSuffix; {
-						case ext(file.Name(), ".p12"):
-							result.CertificatePaths = append(result.CertificatePaths, filepath.Join(codesignExportsDir, file.Name()))
-						case ext(file.Name(), ".mobileprovision"):
-							result.ProfilePaths = append(result.ProfilePaths, filepath.Join(codesignExportsDir, file.Name()))
-						}
+						err = fmt.Errorf("failed to run codesigndoc: %s, error: %s", cmd.PrintableCommandArgs(), err)
 					}
 				}
 
