@@ -111,19 +111,22 @@ func PrivateKey(repoURL string) (string, string, bool, error) {
 			case methodManual:
 				register = false
 				publicKeyPath = ""
-				return &option{
-					title: privateKeyPathTitle,
-					action: func(answer string) *option {
-						privateKeyPath = answer
+				
+				for valid := false; !valid; {
+					(&option{
+						title: privateKeyPathTitle,
+						action: func(answer string) *option {
+							privateKeyPath = answer
 
-						if ok, err := validatePrivateKey(privateKeyPath, repoURL); !ok {
-							log.Errorf("Private key invalid: %s", err)
+							if valid, err = validatePrivateKey(privateKeyPath, repoURL); !valid {
+								log.Errorf("Private key invalid: %s", err)
+								return nil
+							}
+							
+							log.Printf("Private key valid!")
 							return nil
-						}
-						
-						log.Printf("Private key valid!")
-						return nil
-					},
+						},
+					}).run()
 				}
 			}
 			return nil
