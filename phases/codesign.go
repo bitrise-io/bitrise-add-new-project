@@ -58,21 +58,25 @@ func AutoCodesign(projectType, orgSlug, apiToken string) (CodesignResult, error)
 				if projectType == platformIOS || projectType == platformBoth {
 					log.Infof("Exporting iOS codesigning files")
 
-					codesigndoc, err := ioutil.TempFile("", "codesigndoc")
-					if err != nil {
+					codesigndoc, lerr := ioutil.TempFile("", "codesigndoc")
+					if lerr != nil {
+						err = lerr
 						return nil
 					}
 
-					resp, err := http.Get("https://github.com/bitrise-io/codesigndoc/releases/download/latest/codesigndoc-Darwin-x86_64")
-					if err != nil {
+					resp, lerr := http.Get("https://github.com/bitrise-io/codesigndoc/releases/download/2.3.0/codesigndoc-Darwin-x86_64")
+					if lerr != nil {
+						err = lerr
 						return nil
 					}
 
-					if _, err = io.Copy(codesigndoc, resp.Body); err != nil {
+					if _, lerr = io.Copy(codesigndoc, resp.Body); lerr != nil {
+						err = lerr
 						return nil
 					}
 
-					if err := codesigndoc.Chmod(0700); err != nil {
+					if lerr := codesigndoc.Chmod(0700); lerr != nil {
+						err = lerr
 						return nil
 					}
 
@@ -84,8 +88,17 @@ func AutoCodesign(projectType, orgSlug, apiToken string) (CodesignResult, error)
 						"--write-files", "disable",
 						"xcode",
 					}
-					cmd, err := command.NewFromSlice(codesignCmd)
-					if err != nil {
+
+					debugSlice := codesignCmd
+					debugSlice[3], debugSlice[5] = "*", "*"
+					fmt.Println()
+					log.Donef("%s", debugSlice)
+					fmt.Println()
+
+					cmd, lerr := command.NewFromSlice(codesignCmd)
+					if lerr != nil {
+						log.Errorf("%s", lerr)
+						err = lerr
 						return nil
 					}
 					cmd.SetStderr(os.Stderr).SetStdin(os.Stdin).SetStdout(os.Stdout)
