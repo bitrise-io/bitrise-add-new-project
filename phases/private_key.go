@@ -27,8 +27,12 @@ func generateSSHKey() (string, string, error) {
 	return keyFilePath + ".pub", keyFilePath, nil
 }
 
+func validatePrivateKey(path string, url string) (bool, error) {
+	return false, nil
+}
+
 // PrivateKey ...
-func PrivateKey() (string, string, bool, error) {
+func PrivateKey(repoURL string) (string, string, bool, error) {
 	log.Infof("Setup repository access")
 	fmt.Println()
 
@@ -92,6 +96,13 @@ func PrivateKey() (string, string, bool, error) {
 					title: privateKeyPathTitle,
 					action: func(answer string) *option {
 						privateKeyPath = answer
+
+						if ok, err := validatePrivateKey(privateKeyPath, repoURL); !ok {
+							log.Errorf("Private key invalid: %s", err)
+							return nil
+						}
+						
+						log.Printf("Private key valid!")
 						return nil
 					},
 				}
