@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 
 	"github.com/bitrise-io/go-utils/command"
-	"github.com/bitrise-io/go-utils/errorutil"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
 	"github.com/pkg/errors"
@@ -29,25 +28,15 @@ func generateSSHKey() (string, string, error) {
 }
 
 func validatePrivateKey(path string, url string) (bool, error) {
-	const exitCodeAuthSuccess = 1
+	cmd := command.New("git", "ls-remote", url)
+	cmd.SetEnvs(fmt.Sprintf("GIT_SSH_COMMAND=ssh -F /dev/null -o IdentityFile=%s -o IdentitiesOnly=yes", path))
 
-	cmd := command.New("ssh", "-F", "/dev/null", "-o", "IdentityFile="+path, "-o", "IdentitiesOnly=yes", "-T", "git@github.com")
-	code, err := cmd.RunAndReturnExitCode();
-
-	if errorutil.IsExitStatusError(err) {
-		// strange, but ssh will return with exit status 1 if connection was successful
-		if code == exitCodeAuthSuccess {
-			return true, nil
-		}
-
-		return false, fmt.Errorf("ssh key (%s) cannot access github", path)
-	}
-	
-	if err != nil {
-			return false, fmt.Errorf("failed to run command: %s, error: %s", cmd.PrintableCommandArgs(), err)
+	if out, err := cmd.RunAndReturnTrimmedCombinedOutput(); err != nil {
+		log.Errorf(out)
+		return false, fmt.Errorf("failed to run command: %s, error: %s", cmd.PrintableCommandArgs(), err)
 	}
 
-	return false, fmt.Errorf("unkown error")
+	return true, nil
 }
 
 // PrivateKey ...
@@ -122,8 +111,6 @@ func PrivateKey(repoURL string) (string, string, bool, error) {
 								log.Errorf("Private key invalid: %s", err)
 								return nil
 							}
-							
-							log.Printf("Private key valid!")
 							return nil
 						},
 					}).run()
