@@ -68,11 +68,11 @@ func toRegistrationParams(progress Progress) (*CreateProjectParams, error) {
 		ProjectType:      progress.ProjectType,
 		StackID:          progress.Stack,
 	}
-	params.KeystorePth = progress.Codesign.KeystorePath
+	params.KeystorePth = progress.Codesign.Android.KeystorePath
 	params.Keystore = bitriseio.UploadKeystoreParams{
-		Password:    progress.Codesign.Password,
-		Alias:       progress.Codesign.Alias,
-		KeyPassword: progress.Codesign.KeyPassword,
+		Password:    progress.Codesign.Android.Password,
+		Alias:       progress.Codesign.Android.Alias,
+		KeyPassword: progress.Codesign.Android.KeyPassword,
 	}
 	params.BitriseYML = bitriseYMLstr
 	params.WorkflowID = progress.PrimaryWorkflow

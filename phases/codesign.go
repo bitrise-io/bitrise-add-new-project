@@ -2,148 +2,169 @@ package phases
 
 import (
 	"fmt"
-	"io"
-	"io/ioutil"
-	"net/http"
-	"os"
+	"path/filepath"
 
-	"github.com/bitrise-io/go-utils/command"
+	bitriseModels "github.com/bitrise-io/bitrise/models"
+	"github.com/bitrise-io/codesigndoc/codesigndoc"
+	"github.com/bitrise-io/codesigndoc/models"
+	"github.com/bitrise-io/codesigndoc/xcode"
+	envmanModels "github.com/bitrise-io/envman/models"
 	"github.com/bitrise-io/go-utils/log"
+	"github.com/bitrise-io/go-utils/sliceutil"
+	"github.com/bitrise-io/goinp/goinp"
 )
 
-// CodesignResult ...
-type CodesignResult struct {
+// CodesignResultsIOS ...
+type CodesignResultsIOS struct {
+	certificates         models.Certificates
+	provisioningProfiles []models.ProvisioningProfile
+}
+
+// CodesignResultAndroid ...
+type CodesignResultAndroid struct {
 	KeystorePath, Password, Alias, KeyPassword string
 }
 
-const (
-	platformIOS        = "iOS"
-	platformAndroid    = "Android"
-	platformBoth       = "iOS and Android"
-	codesignExportsDir = "codesigndoc_exports"
-)
+// CodesignResult ...
+type CodesignResult struct {
+	Android CodesignResultAndroid
+	IOS     CodesignResultsIOS
+}
 
-func getPlatform(projectType string) string {
-	switch projectType {
-	case "ios":
-		return platformIOS
-	case "android":
-		return platformAndroid
-	case "xamarin", "flutter", "cordova", "ionic", "react-native":
-		return platformBoth
-	case "web", "macos":
-		// not supported
-	}
-	// other or if no project type specified
-	return ""
+// Project types: "web", "macos", "other", "": is not suppored
+
+var codesignBothPlatforms = []string{"xamarin", "flutter", "cordova", "ionic", "react-native"}
+
+func isIOSCodesign(projectType string) bool {
+	return projectType == "ios" || sliceutil.IsStringInSlice(projectType, codesignBothPlatforms)
+}
+
+func isAndroidCodesign(projectType string) bool {
+	return projectType == "android" || sliceutil.IsStringInSlice(projectType, codesignBothPlatforms)
 }
 
 // AutoCodesign ...
-func AutoCodesign(projectType, orgSlug, apiToken string) (CodesignResult, error) {
-	log.Donef("Project type: %s", projectType)
+func AutoCodesign(bitriseYML bitriseModels.BitriseDataModel, searchDir string) (CodesignResult, error) {
+	log.Donef("Project type: %s", bitriseYML.ProjectType)
 	fmt.Println()
 
 	var result CodesignResult
-	var err error
-	const (
-		exportTitle = "Do you want to export and upload codesigning files?"
-		exportYes   = "Yes"
-		exportNo    = "No"
-	)
-	(&option{
-		title:        exportTitle,
-		valueOptions: []string{exportYes, exportNo},
-		action: func(answer string) *option {
-			if answer == exportYes {
-				if projectType == platformIOS || projectType == platformBoth {
-					log.Infof("Exporting iOS codesigning files")
 
-					codesigndoc, lerr := ioutil.TempFile("", "codesigndoc")
-					if lerr != nil {
-						err = lerr
-						return nil
+	isExport, err := goinp.AskForBool("Do you want to export and upload codesigning files?")
+	if err != nil {
+		return CodesignResult{}, err
+	}
+	if isExport {
+		if isIOSCodesign(bitriseYML.ProjectType) {
+			log.Infof("Exporting iOS codesigning files")
+
+			var err error
+			for { // The retry is needed as codesign flow contains questions which can not be retried
+				result.IOS, err = iosCodesign(bitriseYML, searchDir)
+				if err != nil {
+					log.Warnf("Failed to export iOS codesigning files, error: %s", err)
+					isRetry, err := goinp.AskForBoolWithDefault("Retry exporting iOS codesigning files?", true)
+					if err != nil {
+						return CodesignResult{}, err
 					}
-
-					resp, lerr := http.Get("https://github.com/bitrise-io/codesigndoc/releases/download/2.3.0/codesigndoc-Darwin-x86_64")
-					if lerr != nil {
-						err = lerr
-						return nil
-					}
-
-					if _, lerr = io.Copy(codesigndoc, resp.Body); lerr != nil {
-						err = lerr
-						return nil
-					}
-
-					if lerr := codesigndoc.Chmod(0700); lerr != nil {
-						err = lerr
-						return nil
-					}
-
-					codesignCmd := []string{
-						codesigndoc.Name(),
-						"scan",
-						"--auth-token", apiToken,
-						"--app-slug", orgSlug,
-						"--write-files", "disable",
-						"xcode",
-					}
-
-					debugSlice := codesignCmd
-					debugSlice[3], debugSlice[5] = "*", "*"
-					fmt.Println()
-					log.Donef("%s", debugSlice)
-					fmt.Println()
-
-					cmd, lerr := command.NewFromSlice(codesignCmd)
-					if lerr != nil {
-						log.Errorf("%s", lerr)
-						err = lerr
-						return nil
-					}
-					cmd.SetStderr(os.Stderr).SetStdin(os.Stdin).SetStdout(os.Stdout)
-
-					if err = cmd.Run(); err != nil {
-						err = fmt.Errorf("failed to run codesigndoc: %s, error: %s", cmd.PrintableCommandArgs(), err)
+					if !isRetry {
+						break
 					}
 				}
-
-				if projectType == platformAndroid || projectType == platformBoth {
-					(&option{
-						title: "Enter key store path",
-						action: func(answer string) *option {
-							result.KeystorePath = answer
-							return nil
-						}}).run()
-
-					(&option{
-						title:  "Enter key store password",
-						secret: true,
-						action: func(answer string) *option {
-							result.Password = answer
-							return nil
-						}}).run()
-
-					(&option{
-						title: "Enter key alias",
-						action: func(answer string) *option {
-							result.Alias = answer
-							return nil
-						}}).run()
-
-					(&option{
-						title:  "Enter key password",
-						secret: true,
-						action: func(answer string) *option {
-							result.KeyPassword = answer
-							return nil
-						}}).run()
-				}
-
-				return nil
 			}
-			return nil
-		}}).run()
+		}
+
+		if isAndroidCodesign(bitriseYML.ProjectType) {
+			(&option{
+				title: "Enter key store path",
+				action: func(answer string) *option {
+					result.Android.KeystorePath = answer
+					return nil
+				}}).run()
+
+			(&option{
+				title:  "Enter key store password",
+				secret: true,
+				action: func(answer string) *option {
+					result.Android.Password = answer
+					return nil
+				}}).run()
+
+			(&option{
+				title: "Enter key alias",
+				action: func(answer string) *option {
+					result.Android.Alias = answer
+					return nil
+				}}).run()
+
+			(&option{
+				title:  "Enter key password",
+				secret: true,
+				action: func(answer string) *option {
+					result.Android.KeyPassword = answer
+					return nil
+				}}).run()
+		}
+	}
 
 	return result, err
+}
+
+func evniromentsToMap(envs []envmanModels.EnvironmentItemModel) (map[string]string, error) {
+	nameToValue := map[string]string{}
+
+	for _, env := range envs {
+		key, value, err := env.GetKeyValuePair()
+		if err != nil {
+			return nil, err
+		}
+		nameToValue[key] = value
+	}
+
+	return nameToValue, nil
+}
+
+func iosCodesign(bitriseYML bitriseModels.BitriseDataModel, searchDir string) (CodesignResultsIOS, error) {
+	var xcodeProjects []xcode.CommandModel
+
+	appEnvToValue, err := evniromentsToMap(bitriseYML.App.Environments)
+	if err != nil {
+		return CodesignResultsIOS{}, err
+	}
+
+	projectPath, pathOk := appEnvToValue["BITRISE_PROJECT_PATH"]
+	scheme, schemeOk := appEnvToValue["BITRISE_SCHEME"]
+
+	if !(pathOk && schemeOk) {
+		return CodesignResultsIOS{}, fmt.Errorf("could not find Xcode project path")
+	}
+
+	projectPathAbs, err := filepath.Abs(projectPath)
+	if err != nil {
+		return CodesignResultsIOS{}, err
+	}
+
+	xcodeProjects = append(xcodeProjects, xcode.CommandModel{
+		ProjectFilePath: projectPathAbs,
+		Scheme:          scheme,
+	})
+	log.Debugf("Xcode projects: %s", xcodeProjects)
+
+	// ToDo: list available Xcode projects to choose from
+
+	archivePath, _, err := codesigndoc.GenerateXCodeArchive(xcodeProjects[0])
+	if err != nil {
+		return CodesignResultsIOS{}, err
+	}
+
+	certificates, profiles, err := codesigndoc.CodesigningFilesForXCodeProject(archivePath, false, false)
+	if err != nil {
+		return CodesignResultsIOS{}, err
+	}
+
+	log.Debugf("Certificates: %s \nProfiles: %s", certificates, profiles)
+	return CodesignResultsIOS{
+		certificates:         certificates,
+		provisioningProfiles: profiles,
+	}, nil
 }
