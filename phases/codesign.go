@@ -71,6 +71,7 @@ func AutoCodesign(bitriseYML bitriseModels.BitriseDataModel, searchDir string) (
 						break
 					}
 				}
+				break
 			}
 		}
 
@@ -150,7 +151,7 @@ func iosCodesign(bitriseYML bitriseModels.BitriseDataModel, searchDir string) (C
 	})
 	log.Debugf("Xcode projects: %s", xcodeProjects)
 
-	// ToDo: list available Xcode projects to choose from
+	// ToDo: add list of found Xcode projects to choose from
 
 	archivePath, _, err := codesigndoc.GenerateXCodeArchive(xcodeProjects[0])
 	if err != nil {
