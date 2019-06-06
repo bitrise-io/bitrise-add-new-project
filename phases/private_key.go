@@ -105,7 +105,10 @@ func PrivateKey(repoURL string) (string, string, bool, error) {
 					(&option{
 						title: privateKeyPathTitle,
 						action: func(answer string) *option {
-							privateKeyPath = answer
+							if privateKeyPath, err = pathutil.AbsPath(answer); err != nil {
+								log.Errorf("could not expand path (%s) to full path: %s", answer, err)
+								return nil
+							}
 
 							if valid, err = validatePrivateKey(privateKeyPath, repoURL); !valid {
 								log.Errorf("Private key invalid: %s", err)
