@@ -1,7 +1,9 @@
 package phases
 
 import (
+	"bufio"
 	"fmt"
+	"os"
 	"strings"
 
 	codesigndocBitriseio "github.com/bitrise-io/codesigndoc/bitriseio"
@@ -9,6 +11,7 @@ import (
 	"github.com/bitrise-io/go-utils/fileutil"
 
 	"github.com/bitrise-io/bitrise-add-new-project/bitriseio"
+	"github.com/bitrise-io/bitrise-add-new-project/httputil"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/xcode-project/pretty"
 	"gopkg.in/yaml.v2"
@@ -109,6 +112,15 @@ func Register(token string, progress Progress) error {
 	}
 	if params.RegisterWebhook {
 		if err := app.RegisterWebhook(); err != nil {
+			if e, ok := err.(*bitriseio.ErrorResponse); ok {
+				if httputil.IsRetryable(e.Response.StatusCode) {
+					log.Printf("Fix the error and hit enter to retry!")
+					if _, err := bufio.NewReader(os.Stdin).ReadString('\n'); err != nil {
+						return fmt.Errorf("failed to read line from input, error: %s", err)
+					}
+					err = app.RegisterWebhook()
+				} 
+			}
 			return err
 		}
 	}

@@ -37,3 +37,7 @@ func PrintResponse(response *http.Response) error {
 
 	return nil
 }
+
+func IsRetryable(statusCode int) bool {
+	return statusCode == 400 || statusCode == 401
+}
