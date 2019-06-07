@@ -19,11 +19,6 @@
   branch = "exported-functions"
   name = "github.com/bitrise-io/codesigndoc"
 
-# Revision overrided (required by codesigndoc) to build
-[[override]]
-  revision = "51984334e0fb83bf66588acf87f09c5ac624874b"
-  name = "github.com/bitrise-io/go-xcode"
-
 [[constraint]]
   branch = "master"
   name = "github.com/bitrise-io/envman"

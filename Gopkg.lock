@@ -63,7 +63,7 @@
 
 [[projects]]
   branch = "exported-functions"
-  digest = "1:605c9e0ffbf5971aee0f30dbbf3ee0ecb6321c0a7a66e28612f1c1b971e4acc6"
+  digest = "1:14b0e2c7209653786c5ced8f472ef8bb6ddc645b87ba26f9bb07747c32eeb835"
   name = "github.com/bitrise-io/codesigndoc"
   packages = [
     "bitriseio",
@@ -76,7 +76,7 @@
     "xcode",
   ]
   pruneopts = "UT"
-  revision = "d5d3c8ff0e5b0c2224b0f8aa703625bd43e2cf6f"
+  revision = "3ff36f59ea120205171f4f9a45412abe577671ab"
 
 [[projects]]
   branch = "master"
@@ -114,7 +114,8 @@
   revision = "8898129615c9e407fc6b0e60ea882f2b18ec4dc2"
 
 [[projects]]
-  digest = "1:425cd43a5a7515b399a6e55771f7da70828506ad2e6366e01df6d351e67c168b"
+  branch = "master"
+  digest = "1:6f75ac41dad21e33fb174f22562faf1824e228ccadd26b3a216cad0e408adb5a"
   name = "github.com/bitrise-io/go-xcode"
   packages = [
     "certificateutil",
@@ -128,7 +129,7 @@
     "xcodeproj",
   ]
   pruneopts = "UT"
-  revision = "51984334e0fb83bf66588acf87f09c5ac624874b"
+  revision = "c1544b4453f2869335f71fb53c0360bdb91d01b4"
 
 [[projects]]
   branch = "master"
