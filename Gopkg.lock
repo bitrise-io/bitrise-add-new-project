@@ -38,7 +38,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:f1965b8cda6ed9d551b3bd5bf22e28bf0d0672cc63832d9e8d314ef97050b7a0"
+  digest = "1:eda12fe75bde75c4035bb4f4d88663b30c36119e27648078593cb97afa11b87f"
   name = "github.com/bitrise-io/bitrise-init"
   packages = [
     "models",
@@ -59,7 +59,24 @@
     "utility",
   ]
   pruneopts = "UT"
-  revision = "1e39bdac80b8db8e4fcf0bac16f27369df08fc15"
+  revision = "98de288741fef66c2b75874123a966250612a172"
+
+[[projects]]
+  branch = "exported-functions"
+  digest = "1:605c9e0ffbf5971aee0f30dbbf3ee0ecb6321c0a7a66e28612f1c1b971e4acc6"
+  name = "github.com/bitrise-io/codesigndoc"
+  packages = [
+    "bitriseio",
+    "bitriseio/bitrise",
+    "codesign",
+    "codesigndoc",
+    "models",
+    "osxkeychain",
+    "utility",
+    "xcode",
+  ]
+  pruneopts = "UT"
+  revision = "d5d3c8ff0e5b0c2224b0f8aa703625bd43e2cf6f"
 
 [[projects]]
   branch = "master"
@@ -71,7 +88,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:431a0646f16733e8892da3b0ca31ba5db766e110b9cce13cdf61af33d8cae824"
+  digest = "1:db88bd140c7344b3179cc98ae30ed3641926d6546276e0f6424105875db24b8f"
   name = "github.com/bitrise-io/go-utils"
   packages = [
     "colorstring",
@@ -83,22 +100,31 @@
     "log",
     "parseutil",
     "pathutil",
+    "pkcs12",
+    "pkcs12/internal/rc2",
     "pointers",
     "progress",
     "retry",
     "sliceutil",
     "stringutil",
+    "urlutil",
     "versions",
   ]
   pruneopts = "UT"
   revision = "8898129615c9e407fc6b0e60ea882f2b18ec4dc2"
 
 [[projects]]
-  branch = "master"
-  digest = "1:3060b1a20d5eccc02b4dcf61127258fb3ca0070b3386d4326907417164a9bcdd"
+  digest = "1:425cd43a5a7515b399a6e55771f7da70828506ad2e6366e01df6d351e67c168b"
   name = "github.com/bitrise-io/go-xcode"
   packages = [
+    "certificateutil",
+    "export",
+    "exportoptions",
+    "models",
     "plistutil",
+    "profileutil",
+    "utility",
+    "xcarchive",
     "xcodeproj",
   ]
   pruneopts = "UT"
@@ -142,6 +168,14 @@
   ]
   pruneopts = "UT"
   revision = "5929ad85d89233b3296d2d795e068a656db7fb25"
+
+[[projects]]
+  branch = "master"
+  digest = "1:0bd05495dbd0567480e48eac9e6602d87875a8747b13c3c0fcb7c83c7c921776"
+  name = "github.com/fullsailor/pkcs7"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "d7302db945fa6ea264fb79d8e13e931ea514a602"
 
 [[projects]]
   branch = "master"
@@ -205,18 +239,18 @@
   name = "golang.org/x/crypto"
   packages = ["ssh/terminal"]
   pruneopts = "UT"
-  revision = "22d7a77e9e5f409e934ed268692e56707cd169e5"
+  revision = "f99c8df09eb5bff426315721bfa5f16a99cad32c"
 
 [[projects]]
   branch = "master"
-  digest = "1:820be5471f9063bf539a8e4acfcf71151c832932c6ae6aab5aa0e8957e5af173"
+  digest = "1:98d02d01de1a49eec5a1f5ec479e522ab4e98ffc6a5488f27bd55b56e570338c"
   name = "golang.org/x/sys"
   packages = [
     "unix",
     "windows",
   ]
   pruneopts = "UT"
-  revision = "6a60838ec2595395fabc7b2e6c2ae9fb5a87722d"
+  revision = "7fc4e5ec1444df20dd195ae7c3bbfcd7114d3faa"
 
 [[projects]]
   digest = "1:1093f2eb4b344996604f7d8b29a16c5b22ab9e1b25652140d3fede39f640d5cd"
@@ -256,11 +290,16 @@
     "github.com/bitrise-io/bitrise-init/scanner",
     "github.com/bitrise-io/bitrise/bitrise",
     "github.com/bitrise-io/bitrise/models",
+    "github.com/bitrise-io/codesigndoc/codesigndoc",
+    "github.com/bitrise-io/codesigndoc/models",
+    "github.com/bitrise-io/codesigndoc/xcode",
+    "github.com/bitrise-io/envman/models",
     "github.com/bitrise-io/go-utils/command",
     "github.com/bitrise-io/go-utils/errorutil",
     "github.com/bitrise-io/go-utils/fileutil",
     "github.com/bitrise-io/go-utils/log",
     "github.com/bitrise-io/go-utils/pathutil",
+    "github.com/bitrise-io/go-utils/sliceutil",
     "github.com/bitrise-io/goinp/goinp",
     "github.com/bitrise-io/xcode-project/pretty",
     "github.com/pkg/errors",
