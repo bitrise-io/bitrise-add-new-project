@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	codesigndocBitriseio "github.com/bitrise-io/codesigndoc/bitriseio"
+	"github.com/bitrise-io/codesigndoc/bitriseio/bitrise"
 	"github.com/bitrise-io/go-utils/fileutil"
 
 	"github.com/bitrise-io/bitrise-add-new-project/bitriseio"
@@ -22,6 +24,7 @@ type CreateProjectParams struct {
 	WorkflowID      string
 	Keystore        bitriseio.UploadKeystoreParams
 	KeystorePth     string
+	CodesignIOS     CodesignResultsIOS
 }
 
 func toRegistrationParams(progress Progress) (*CreateProjectParams, error) {
@@ -68,6 +71,7 @@ func toRegistrationParams(progress Progress) (*CreateProjectParams, error) {
 		ProjectType:      progress.ProjectType,
 		StackID:          progress.Stack,
 	}
+	params.CodesignIOS = progress.Codesign.IOS
 	params.KeystorePth = progress.Codesign.Android.KeystorePath
 	params.Keystore = bitriseio.UploadKeystoreParams{
 		Password:    progress.Codesign.Android.Password,
@@ -121,6 +125,23 @@ func Register(token string, progress Progress) error {
 
 	if params.KeystorePth != "" {
 		if err := app.UploadKeystore(params.KeystorePth, params.Keystore); err != nil {
+			return err
+		}
+	}
+
+	{
+		if token == "" && app.Slug == "" {
+			return fmt.Errorf("invalid personal access token or app slug")
+		}
+
+		codesignIOSClient, err := bitrise.NewClient(token)
+		if err != nil {
+			return err
+		}
+		codesignIOSClient.SetSelectedAppSlug(app.Slug)
+
+		_, _, err = codesigndocBitriseio.UploadCodesigningFiles(codesignIOSClient, params.CodesignIOS.certificates, params.CodesignIOS.provisioningProfiles)
+		if err != nil {
 			return err
 		}
 	}
