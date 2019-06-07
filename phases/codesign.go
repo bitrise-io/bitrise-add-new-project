@@ -48,12 +48,17 @@ func AutoCodesign(bitriseYML bitriseModels.BitriseDataModel, searchDir string) (
 	log.Donef("Project type: %s", bitriseYML.ProjectType)
 	fmt.Println()
 
-	var result CodesignResult
+	if !isIOSCodesign(bitriseYML.ProjectType) && !isAndroidCodesign(bitriseYML.ProjectType) {
+		log.Infof("Unsupported project type for automatic codesigning export.")
+		return CodesignResult{}, nil
+	}
 
 	isExport, err := goinp.AskForBool("Do you want to export and upload codesigning files?")
 	if err != nil {
 		return CodesignResult{}, err
 	}
+
+	var result CodesignResult
 	if isExport {
 		if isIOSCodesign(bitriseYML.ProjectType) {
 			log.Infof("Exporting iOS codesigning files")
@@ -153,7 +158,7 @@ func iosCodesign(bitriseYML bitriseModels.BitriseDataModel, searchDir string) (C
 
 	// ToDo: add list of found Xcode projects to choose from
 
-	archivePath, _, err := codesigndoc.GenerateXCodeArchive(xcodeProjects[0])
+	archivePath, err := codesigndoc.BuildXcodeArchive(xcodeProjects[0], nil)
 	if err != nil {
 		return CodesignResultsIOS{}, err
 	}
