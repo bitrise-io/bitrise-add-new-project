@@ -3,7 +3,7 @@ package phases
 import (
 	"bufio"
 	"fmt"
-	"os"
+	"io"
 	"strings"
 
 	codesigndocBitriseio "github.com/bitrise-io/codesigndoc/bitriseio"
@@ -87,7 +87,7 @@ func toRegistrationParams(progress Progress) (*CreateProjectParams, error) {
 }
 
 // Register ...
-func Register(token string, progress Progress) error {
+func Register(token string, progress Progress, inputReader io.Reader) error {
 	log.Infof("Register")
 
 	params, err := toRegistrationParams(progress)
@@ -115,7 +115,7 @@ func Register(token string, progress Progress) error {
 			if e, ok := err.(*bitriseio.ErrorResponse); ok {
 				if httputil.IsRetryable(e.Response.StatusCode) {
 					log.Printf("Fix the error and hit enter to retry!")
-					if _, err := bufio.NewReader(os.Stdin).ReadString('\n'); err != nil {
+					if _, err := bufio.NewReader(inputReader).ReadString('\n'); err != nil {
 						return fmt.Errorf("failed to read line from input, error: %s", err)
 					}
 					err = app.RegisterWebhook()

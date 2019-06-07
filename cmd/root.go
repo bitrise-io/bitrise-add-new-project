@@ -137,7 +137,7 @@ func run(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	if err := phases.Register(cmdFlagAPIToken, progress); err != nil {
+	if err := phases.Register(cmdFlagAPIToken, progress, os.Stdin); err != nil {
 		fmt.Println("failed to add Bitrise app, error:", err)
 		os.Exit(1)
 	}
