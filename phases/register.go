@@ -114,7 +114,8 @@ func Register(token string, progress Progress, inputReader io.Reader) error {
 		if err := app.RegisterWebhook(); err != nil {
 			if e, ok := err.(*bitriseio.ErrorResponse); ok {
 				if httputil.IsRetryable(e.Response.StatusCode) {
-					log.Printf("Fix the error and hit enter to retry!")
+					log.Errorf("Error registering webhook: %s", err)
+					log.Warnf("Fix the error and hit enter to retry!")
 					if _, err := bufio.NewReader(inputReader).ReadString('\n'); err != nil {
 						return fmt.Errorf("failed to read line from input, error: %s", err)
 					}
