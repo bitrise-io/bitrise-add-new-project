@@ -100,7 +100,7 @@ func PrivateKey(repoURL string) (string, string, bool, error) {
 			case methodManual:
 				register = false
 				publicKeyPath = ""
-				
+
 				for valid := false; !valid; {
 					(&option{
 						title: privateKeyPathTitle,

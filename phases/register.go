@@ -120,7 +120,7 @@ func Register(token string, progress Progress, inputReader io.Reader) error {
 						return fmt.Errorf("failed to read line from input, error: %s", err)
 					}
 					err = app.RegisterWebhook()
-				} 
+				}
 			}
 			return err
 		}
