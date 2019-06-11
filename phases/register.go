@@ -130,10 +130,7 @@ func Register(token string, progress Progress) error {
 	}
 
 	{
-		if token == "" && app.Slug == "" {
-			return fmt.Errorf("invalid personal access token or app slug")
-		}
-
+		// iOS codesigning files upload
 		codesignIOSClient, err := bitrise.NewClient(token)
 		if err != nil {
 			return err
