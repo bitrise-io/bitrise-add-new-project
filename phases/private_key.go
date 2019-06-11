@@ -101,22 +101,27 @@ func PrivateKey(repoURL string) (string, string, bool, error) {
 				register = false
 				publicKeyPath = ""
 
-				for valid := false; !valid; {
-					(&option{
-						title: privateKeyPathTitle,
-						action: func(answer string) *option {
-							if privateKeyPath, err = pathutil.AbsPath(answer); err != nil {
-								log.Errorf("could not expand path (%s) to full path: %s", answer, err)
-								return nil
-							}
 
-							if valid, err = validatePrivateKey(privateKeyPath, repoURL); !valid {
-								log.Errorf("Private key invalid: %s", err)
-								return nil
-							}
-							return nil
-						},
-					}).run()
+				optMethodManual := &option{
+					title: privateKeyPathTitle,
+					action: func(answer string) *option {
+						privateKeyPath, err = pathutil.AbsPath(answer)
+						if err != nil {
+							log.Errorf("could not expand path (%s) to full path: %s", answer, err)
+						}
+						return nil
+					},
+				}
+
+				optMethodManual.run()
+
+				if valid, err := validatePrivateKey(privateKeyPath, repoURL); !valid {
+					log.Errorf("Private key invalid: %s", err)
+					optMethodManual.run()
+
+					if valid, err := validatePrivateKey(privateKeyPath, repoURL); !valid {
+						log.Errorf("Private key invalid: %s", err)
+					}
 				}
 			}
 			return nil
