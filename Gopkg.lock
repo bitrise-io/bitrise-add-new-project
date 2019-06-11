@@ -62,7 +62,7 @@
   revision = "98de288741fef66c2b75874123a966250612a172"
 
 [[projects]]
-  branch = "exported-functions"
+  branch = "master"
   digest = "1:14b0e2c7209653786c5ced8f472ef8bb6ddc645b87ba26f9bb07747c32eeb835"
   name = "github.com/bitrise-io/codesigndoc"
   packages = [
@@ -76,7 +76,7 @@
     "xcode",
   ]
   pruneopts = "UT"
-  revision = "3ff36f59ea120205171f4f9a45412abe577671ab"
+  revision = "55553b08827faf2cadfeb3fb91584cac7fedcd4a"
 
 [[projects]]
   branch = "master"
