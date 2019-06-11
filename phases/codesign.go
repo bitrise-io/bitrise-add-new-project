@@ -37,21 +37,21 @@ type CodesignResult struct {
 	IOS     CodesignResultsIOS
 }
 
-// Project types: "web", "macos" is not suppored
+// Project types "web", "macos" are not suppored as do not have ios and android native projects
 
-var codesignBothPlatforms = []string{"xamarin", "flutter", "cordova", "ionic", "react-native"}
+// Ignoring for iOS, due to ucertainty that native Xcode project is present (as it is needed for archiving)
+var androidPlatforms = []string{"xamarin", "flutter", "cordova", "ionic", "react-native"}
 
 var unknownPlatforms = []string{"", "other"}
 
 func isIOSCodesign(projectType string) bool {
 	return projectType == "ios" ||
-		sliceutil.IsStringInSlice(projectType, codesignBothPlatforms) ||
 		sliceutil.IsStringInSlice(projectType, unknownPlatforms)
 }
 
 func isAndroidCodesign(projectType string) bool {
 	return projectType == "android" ||
-		sliceutil.IsStringInSlice(projectType, codesignBothPlatforms) ||
+		sliceutil.IsStringInSlice(projectType, androidPlatforms) ||
 		sliceutil.IsStringInSlice(projectType, unknownPlatforms)
 }
 
@@ -136,20 +136,6 @@ func AutoCodesign(bitriseYML bitriseModels.BitriseDataModel, searchDir string) (
 	return result, nil
 }
 
-func evniromentsToMap(envs []envmanModels.EnvironmentItemModel) (map[string]string, error) {
-	nameToValue := map[string]string{}
-
-	for _, env := range envs {
-		key, value, err := env.GetKeyValuePair()
-		if err != nil {
-			return nil, err
-		}
-		nameToValue[key] = value
-	}
-
-	return nameToValue, nil
-}
-
 func iosCodesign(bitriseYML bitriseModels.BitriseDataModel, searchDir string) (CodesignResultsIOS, error) {
 	appEnvToValue, err := evniromentsToMap(bitriseYML.App.Environments)
 	if err != nil {
@@ -198,6 +184,20 @@ func iosCodesign(bitriseYML bitriseModels.BitriseDataModel, searchDir string) (C
 		certificates:         certificates,
 		provisioningProfiles: profiles,
 	}, nil
+}
+
+func evniromentsToMap(envs []envmanModels.EnvironmentItemModel) (map[string]string, error) {
+	nameToValue := map[string]string{}
+
+	for _, env := range envs {
+		key, value, err := env.GetKeyValuePair()
+		if err != nil {
+			return nil, err
+		}
+		nameToValue[key] = value
+	}
+
+	return nameToValue, nil
 }
 
 func askXcodeProjectPath() (string, error) {
