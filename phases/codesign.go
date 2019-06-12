@@ -37,10 +37,8 @@ type CodesignResult struct {
 	IOS     CodesignResultsIOS
 }
 
-// Project types "web", "macos" are not suppored as do not have ios and android native projects
-
-// Ignoring for iOS, due to ucertainty that native Xcode project is present (as it is needed for archiving)
-var androidPlatforms = []string{"xamarin", "flutter", "cordova", "ionic", "react-native"}
+// Project types "web", "macos" are unsuppored as do not have ios and android native projects
+// Project types "xamarin", "flutter", "cordova", "ionic", "react-native" are unsupported, due to ucertainty that native (Xcode or Android) project is present
 
 var unknownPlatforms = []string{"", "other"}
 
@@ -51,7 +49,6 @@ func isIOSCodesign(projectType string) bool {
 
 func isAndroidCodesign(projectType string) bool {
 	return projectType == "android" ||
-		sliceutil.IsStringInSlice(projectType, androidPlatforms) ||
 		sliceutil.IsStringInSlice(projectType, unknownPlatforms)
 }
 
@@ -59,7 +56,7 @@ func isAndroidCodesign(projectType string) bool {
 func AutoCodesign(bitriseYML bitriseModels.BitriseDataModel, searchDir string) (CodesignResult, error) {
 	if !isIOSCodesign(bitriseYML.ProjectType) && !isAndroidCodesign(bitriseYML.ProjectType) {
 		log.Warnf("Unsupported project type (%s) for exporting codesigning files.", bitriseYML.ProjectType)
-		log.Warnf("Supported project types for exporting codesigning files: ios, android, xamarin, flutter, cordova, ionic, react-native.")
+		log.Warnf("Supported project types for exporting codesigning files: 'ios', 'android'.")
 		return CodesignResult{}, nil
 	}
 
@@ -95,7 +92,7 @@ func AutoCodesign(bitriseYML bitriseModels.BitriseDataModel, searchDir string) (
 	}
 
 	if isAndroidCodesign(bitriseYML.ProjectType) {
-		uploadAndroid, err := goinp.AskForBoolWithDefault("Do you want to enter Android key store path, key alias, passwords?", true)
+		uploadAndroid, err := goinp.AskForBoolWithDefault("Do you want to upload an Android keystore file?", true)
 		if err != nil {
 			return CodesignResult{}, err
 		}

@@ -129,7 +129,7 @@ func Register(token string, progress Progress) error {
 		}
 	}
 
-	{
+	if len(params.CodesignIOS.certificates.Content) != 0 || len(params.CodesignIOS.provisioningProfiles) != 0 {
 		// iOS codesigning files upload
 		codesignIOSClient, err := bitrise.NewClient(token)
 		if err != nil {
@@ -137,10 +137,12 @@ func Register(token string, progress Progress) error {
 		}
 		codesignIOSClient.SetSelectedAppSlug(app.Slug)
 
-		_, _, err = codesigndocBitriseio.UploadCodesigningFiles(codesignIOSClient, params.CodesignIOS.certificates, params.CodesignIOS.provisioningProfiles)
-		if err != nil {
+		if _, _, err = codesigndocBitriseio.UploadCodesigningFiles(codesignIOSClient, params.CodesignIOS.certificates, params.CodesignIOS.provisioningProfiles); err != nil {
 			return err
 		}
+	} else {
+		log.Warnf(`To upload iOS code signing files, paste this script into your terminal and follow thw instructions:
+bash -l -c "$(curl -sfL https://raw.githubusercontent.com/bitrise-io/codesigndoc/master/_scripts/install_wrap.sh)"`)
 	}
 
 	if err := app.TriggerBuild(params.WorkflowID); err != nil {
