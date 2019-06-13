@@ -67,8 +67,14 @@ func executePhases(cmd cobra.Command) (phases.Progress, error) {
 		progress.Public = public
 	}
 
+	// Search dir
+	currentDir, err := filepath.Abs(".")
+	if err != nil {
+		return phases.Progress{}, fmt.Errorf("failed to get current directory, error: %s", err)
+	}
+
 	// repo
-	repoURL, err := phases.Repo(progress.Public)
+	repoURL, err := phases.Repo(currentDir, progress.Public)
 	if err != nil {
 		return phases.Progress{}, err
 	}
@@ -84,10 +90,6 @@ func executePhases(cmd cobra.Command) (phases.Progress, error) {
 	progress.RegisterSSHKey = register
 
 	// bitrise.yml
-	currentDir, err := filepath.Abs(".")
-	if err != nil {
-		return phases.Progress{}, fmt.Errorf("failed to get current directory, error: %s", err)
-	}
 	bitriseYML, primaryWorkflow, err := phases.BitriseYML(currentDir)
 	if err != nil {
 		return phases.Progress{}, err

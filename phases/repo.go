@@ -5,9 +5,8 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/bitrise-io/go-utils/command"
-	"github.com/bitrise-io/go-utils/errorutil"
 	"github.com/bitrise-io/go-utils/log"
+	git "gopkg.in/src-d/go-git.v4"
 )
 
 // RepoScheme is the type of the git repository protocol
@@ -118,22 +117,25 @@ func getProvider(hostName string) string {
 // Repo returns repository details extracted from the working
 // directory. If the Project visibility was set to public, the
 // https clone url will be used.
-func Repo(isPublic bool) (RepoDetails, error) {
+func Repo(searchDir string, isPublic bool) (RepoDetails, error) {
 	log.Infof("SCANNING WORKDIR FOR GIT REPO")
 	log.Infof("=============================")
 
-	cmd := command.New("git", "remote", "get-url", "origin")
-	log.Donef("$ %s", cmd.PrintableCommandArgs())
-	out, err := cmd.RunAndReturnTrimmedCombinedOutput()
+	repo, err := git.PlainOpen(searchDir)
 	if err != nil {
-		if errorutil.IsExitStatusError(err) {
-			return RepoDetails{}, fmt.Errorf("get repo origin url: %s", out)
-		}
-
-		return RepoDetails{}, fmt.Errorf("get repo origin url: %s", err)
+		return RepoDetails{}, fmt.Errorf("failed to open git repository (%s), error: %s", searchDir, err)
+	}
+	origin, err := repo.Remote("origin")
+	if err != nil {
+		return RepoDetails{}, fmt.Errorf("No remote 'origin' found, error: %s", err)
 	}
 
-	parts, err := parseURL(out)
+	var remoteURL string
+	if origin != nil && len(origin.Config().URLs) != 0 {
+		remoteURL = origin.Config().URLs[0]
+	}
+
+	parts, err := parseURL(remoteURL)
 	if err != nil {
 		return RepoDetails{}, err
 	}
