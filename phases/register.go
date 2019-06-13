@@ -141,7 +141,7 @@ func Register(token string, progress Progress) error {
 			return err
 		}
 	} else {
-		log.Warnf(`To upload iOS code signing files, paste this script into your terminal and follow thw instructions:
+		log.Warnf(`To upload iOS code signing files, paste this script into your terminal and follow the instructions:
 bash -l -c "$(curl -sfL https://raw.githubusercontent.com/bitrise-io/codesigndoc/master/_scripts/install_wrap.sh)"`)
 	}
 
