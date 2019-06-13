@@ -68,15 +68,11 @@ func executePhases(cmd cobra.Command) (phases.Progress, error) {
 	}
 
 	// repo
-	repoDetails, err := phases.Repo(progress.Public)
+	repoURL, err := phases.Repo(progress.Public)
 	if err != nil {
 		return phases.Progress{}, err
 	}
-
-	progress.RepoURL = repoDetails.URL
-	progress.RepoProvider = repoDetails.Provider
-	progress.RepoOwner = repoDetails.Owner
-	progress.RepoSlug = repoDetails.Slug
+	progress.RepoURL = repoURL
 
 	// ssh key
 	publicKeyPth, privateKeyPth, register, err := phases.PrivateKey(progress.RepoURL)

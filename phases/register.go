@@ -6,12 +6,11 @@ import (
 	"io"
 	"strings"
 
+	"github.com/bitrise-io/bitrise-add-new-project/bitriseio"
+	"github.com/bitrise-io/bitrise-add-new-project/httputil"
 	codesigndocBitriseio "github.com/bitrise-io/codesigndoc/bitriseio"
 	"github.com/bitrise-io/codesigndoc/bitriseio/bitrise"
 	"github.com/bitrise-io/go-utils/fileutil"
-
-	"github.com/bitrise-io/bitrise-add-new-project/bitriseio"
-	"github.com/bitrise-io/bitrise-add-new-project/httputil"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/xcode-project/pretty"
 	"gopkg.in/yaml.v2"
@@ -57,11 +56,11 @@ func toRegistrationParams(progress Progress) (*CreateProjectParams, error) {
 
 	params := CreateProjectParams{}
 	params.Repository = bitriseio.RegisterParams{
-		GitOwner:    progress.RepoOwner,
-		GitRepoSlug: progress.RepoSlug,
+		GitOwner:    progress.RepoURL.Owner,
+		GitRepoSlug: progress.RepoURL.Slug,
 		IsPublic:    progress.Public,
-		Provider:    progress.RepoProvider,
-		RepoURL:     progress.RepoURL,
+		Provider:    progress.RepoURL.Provider,
+		RepoURL:     progress.RepoURL.URL,
 	}
 	params.RegisterWebhook = progress.AddWebhook
 	params.SSHKey = bitriseio.RegisterSSHKeyParams{
@@ -110,21 +109,14 @@ func Register(token string, progress Progress, inputReader io.Reader) error {
 			return err
 		}
 	}
+
 	if params.RegisterWebhook {
-		if err := app.RegisterWebhook(); err != nil {
-			if e, ok := err.(*bitriseio.ErrorResponse); ok {
-				if httputil.IsRetryable(e.Response.StatusCode) {
-					log.Errorf("Error registering webhook: %s", err)
-					log.Warnf("Fix the error and hit enter to retry!")
-					if _, err := bufio.NewReader(inputReader).ReadString('\n'); err != nil {
-						return fmt.Errorf("failed to read line from input, error: %s", err)
-					}
-					err = app.RegisterWebhook()
-				}
-			}
-			return err
+		if err := registerWebhook(app, inputReader); err != nil {
+			log.Errorf("Failed to register webhook, error: %s", err)
+			log.Warnf("Skipping webhook registration.")
 		}
 	}
+
 	resp, err := app.RegisterFinish(params.Project)
 	if err != nil {
 		return err
@@ -164,4 +156,26 @@ bash -l -c "$(curl -sfL https://raw.githubusercontent.com/bitrise-io/codesigndoc
 
 	log.Donef("Project created: https://app.bitrise.io/app/%s", app.Slug)
 	return nil
+}
+
+func registerWebhook(app *bitriseio.AppService, inputReader io.Reader) error {
+	var err error
+	for i := 1; i <= 2; i++ {
+		if err := app.RegisterWebhook(); err != nil {
+			if e, ok := err.(*bitriseio.ErrorResponse); ok {
+				if !httputil.IsUserFixable(e.Response.StatusCode) {
+					return err
+				}
+
+				log.Errorf("Error registering webhook: %s", err)
+				log.Warnf("Fix the error and hit enter to retry!")
+				if _, err := bufio.NewReader(inputReader).ReadString('\n'); err != nil {
+					return fmt.Errorf("failed to read line from input, error: %s", err)
+				}
+				continue
+			}
+		}
+		return nil
+	}
+	return err
 }

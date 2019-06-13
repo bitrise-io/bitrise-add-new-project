@@ -3,12 +3,17 @@ package phases
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 
 	"github.com/bitrise-io/go-utils/command"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
+	"github.com/bitrise-io/go-utils/retry"
 	"github.com/pkg/errors"
+	git "gopkg.in/src-d/go-git.v4"
+	"gopkg.in/src-d/go-git.v4/plumbing/transport/ssh"
+	"gopkg.in/src-d/go-git.v4/storage/memory"
 )
 
 func generateSSHKey() (string, string, error) {
@@ -27,20 +32,27 @@ func generateSSHKey() (string, string, error) {
 	return keyFilePath + ".pub", keyFilePath, nil
 }
 
-func validatePrivateKey(path string, url string) (bool, error) {
-	cmd := command.New("git", "ls-remote", url)
-	cmd.SetEnvs(fmt.Sprintf("GIT_SSH_COMMAND=ssh -F /dev/null -o IdentityFile=%s -o IdentitiesOnly=yes", path))
+func validatePrivateKey(path string, username string, url string) (bool, error) {
+	SSHAuth, err := ssh.NewPublicKeysFromFile(username, path, "")
+	if err != nil {
+		return false, err
+	}
 
-	if out, err := cmd.RunAndReturnTrimmedCombinedOutput(); err != nil {
-		log.Errorf(out)
-		return false, fmt.Errorf("failed to run command: %s, error: %s", cmd.PrintableCommandArgs(), err)
+	if _, err = git.Clone(memory.NewStorage(), nil, &git.CloneOptions{
+		Auth:              SSHAuth,
+		URL:               url,
+		Progress:          os.Stdout,
+		NoCheckout:        true,
+		RecurseSubmodules: git.NoRecurseSubmodules,
+	}); err != nil {
+		return false, nil
 	}
 
 	return true, nil
 }
 
 // PrivateKey ...
-func PrivateKey(repoURL string) (string, string, bool, error) {
+func PrivateKey(repoURL RepoDetails) (string, string, bool, error) {
 	log.Infof("Setup repository access")
 	fmt.Println()
 
@@ -101,28 +113,24 @@ func PrivateKey(repoURL string) (string, string, bool, error) {
 				register = false
 				publicKeyPath = ""
 
+				err = retry.Times(2).Try(func(attempt uint) error {
+					(&option{
+						title: privateKeyPathTitle,
+						action: func(answer string) *option {
+							privateKeyPath, err = pathutil.AbsPath(answer)
+							if err != nil {
+								log.Errorf("could not expand path (%s) to full path: %s", answer, err)
+							}
+							return nil
+						},
+					}).run()
 
-				optMethodManual := &option{
-					title: privateKeyPathTitle,
-					action: func(answer string) *option {
-						privateKeyPath, err = pathutil.AbsPath(answer)
-						if err != nil {
-							log.Errorf("could not expand path (%s) to full path: %s", answer, err)
-						}
-						return nil
-					},
-				}
-
-				optMethodManual.run()
-
-				if valid, err := validatePrivateKey(privateKeyPath, repoURL); !valid {
-					log.Errorf("Private key invalid: %s", err)
-					optMethodManual.run()
-
-					if valid, err := validatePrivateKey(privateKeyPath, repoURL); !valid {
+					if valid, err := validatePrivateKey(privateKeyPath, repoURL.SSHUsername, repoURL.URL); !valid {
 						log.Errorf("Private key invalid: %s", err)
+						return err
 					}
-				}
+					return nil
+				})
 			}
 			return nil
 		},

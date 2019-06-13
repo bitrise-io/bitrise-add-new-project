@@ -2,6 +2,7 @@ package phases
 
 import (
 	"fmt"
+	"net/url"
 	"strings"
 
 	"github.com/bitrise-io/go-utils/command"
@@ -9,47 +10,91 @@ import (
 	"github.com/bitrise-io/go-utils/log"
 )
 
+// RepoScheme is the type of the git repository protocol
+type RepoScheme int
+
+const (
+	// Invalid is an unsupported git repo scheme type
+	Invalid RepoScheme = iota
+	// HTTPS is the https git repo scheme type
+	HTTPS
+	// SSH is the ssh git repo scheme type
+	SSH
+)
+
 // RepoDetails encapsulates data needed to perform
 // repo registration related requests through the
 // Bitrise API
 type RepoDetails struct {
-	URL      string
-	Provider string
-	Owner    string
-	Slug     string
+	URL         string
+	Provider    string
+	Owner       string
+	Slug        string
+	Scheme      RepoScheme
+	SSHUsername string
 }
 
 type urlParts struct {
-	host  string
-	owner string
-	slug  string
+	host        string
+	owner       string
+	slug        string
+	scheme      RepoScheme
+	SSHUsername string
 }
 
-func parseURL(cloneURL string) urlParts {
-	parts := strings.SplitAfter(cloneURL, "https://")
-	if len(parts) > 1 {
-		// e.g. cloneURL=https://github.com/bitrise-io/go-utils.git
-		parts = strings.Split(parts[1], "/")
-		return urlParts{
-			host:  parts[0],
-			owner: parts[1],
-			slug:  parts[2],
-		}
+func parseURL(cloneURL string) (urlParts, error) {
+	cloneURL = strings.TrimSpace(cloneURL)
+	const pathSeperator = "/"
+
+	if strings.HasPrefix(cloneURL, "git@") { // e.g. git@github.com:bitrise-io/go-utils.git
+		cloneURL = strings.Replace(cloneURL, ":", pathSeperator, 1)
+		cloneURL = "ssh://" + cloneURL
 	}
 
-	// e.g. cloneURL=git@github.com:bitrise-io/go-utils.git
-	afterAt := strings.SplitAfter(parts[0], "git@")[1]
-	parts = strings.Split(afterAt, ":")
-	host := parts[0]
+	// Supporting the formats:
+	// ssh://git@github.com/bitrise-io/go-utils.git
+	// https://github.com/bitrise-io/go-utils.git
 
-	afterHost := strings.SplitAfter(afterAt, ":")[1]
-	parts = strings.Split(afterHost, "/")
+	parsed, err := url.Parse(cloneURL)
+	if err != nil {
+		return urlParts{}, err
+	}
+
+	var scheme RepoScheme
+	switch parsed.Scheme {
+	case "https":
+		scheme = HTTPS
+	case "ssh":
+		scheme = SSH
+	default:
+		scheme = Invalid
+	}
+	if scheme == Invalid {
+		return urlParts{}, fmt.Errorf("unsupported URL scheme: %s", parsed.Scheme)
+	}
+
+	if scheme == HTTPS && parsed.User.Username() != "" {
+		return urlParts{}, fmt.Errorf("username or access token is included in https git repository, only public https repositories are supported")
+	}
+	var SSHUsername string
+	if scheme == SSH {
+		SSHUsername = parsed.User.Username()
+	}
+
+	escapedPath := strings.TrimPrefix(parsed.EscapedPath(), pathSeperator)
+	pathParts := strings.Split(escapedPath, pathSeperator)
+	log.Debugf("URL path parts: %s", pathParts)
+	if len(pathParts) < 2 {
+		return urlParts{}, fmt.Errorf("URL path does not contain at least two elements")
+	}
+
 	return urlParts{
-		host:  host,
-		owner: parts[0],
-		slug:  strings.TrimSuffix(parts[1], ".git"),
-	}
-
+		scheme:      scheme,
+		host:        parsed.Hostname(),
+		owner:       pathParts[0],
+		slug:        strings.TrimRight(pathParts[len(pathParts)-1], ".git"),
+		SSHUsername: SSHUsername,
+	}, nil
 }
 
 func buildURL(parts urlParts, ssh bool) string {
@@ -59,12 +104,12 @@ func buildURL(parts urlParts, ssh bool) string {
 	return fmt.Sprintf("https://%s/%s/%s.git", parts.host, parts.owner, parts.slug)
 }
 
-func getProvider(cloneURL string) string {
-	if strings.Contains(cloneURL, "github.com") {
+func getProvider(hostName string) string {
+	if strings.HasSuffix(hostName, "github.com") {
 		return "github"
-	} else if strings.Contains(cloneURL, "gitlab.com") {
+	} else if strings.HasSuffix(hostName, "gitlab.com") {
 		return "gitlab"
-	} else if strings.Contains(cloneURL, "bitbucket.org") {
+	} else if strings.HasSuffix(hostName, "bitbucket.org") {
 		return "bitbucket"
 	}
 	return "other"
@@ -88,9 +133,12 @@ func Repo(isPublic bool) (RepoDetails, error) {
 		return RepoDetails{}, fmt.Errorf("get repo origin url: %s", err)
 	}
 
-	provider := getProvider(out)
+	parts, err := parseURL(out)
+	if err != nil {
+		return RepoDetails{}, err
+	}
+	provider := getProvider(parts.host)
 
-	parts := parseURL(out)
 	var url string
 	if isPublic {
 		url = buildURL(parts, false)
@@ -105,9 +153,11 @@ func Repo(isPublic bool) (RepoDetails, error) {
 	log.Donef("- slug: %s", parts.slug)
 
 	return RepoDetails{
-		url,
-		provider,
-		parts.owner,
-		parts.slug,
+		Scheme:      parts.scheme,
+		URL:         url,
+		Provider:    provider,
+		Owner:       parts.owner,
+		Slug:        parts.slug,
+		SSHUsername: parts.SSHUsername,
 	}, nil
 }
