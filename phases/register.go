@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	codesigndocBitriseio "github.com/bitrise-io/codesigndoc/bitriseio"
+	"github.com/bitrise-io/codesigndoc/bitriseio/bitrise"
 	"github.com/bitrise-io/go-utils/fileutil"
 
 	"github.com/bitrise-io/bitrise-add-new-project/bitriseio"
@@ -22,6 +24,7 @@ type CreateProjectParams struct {
 	WorkflowID      string
 	Keystore        bitriseio.UploadKeystoreParams
 	KeystorePth     string
+	CodesignIOS     CodesignResultsIOS
 }
 
 func toRegistrationParams(progress Progress) (*CreateProjectParams, error) {
@@ -68,11 +71,12 @@ func toRegistrationParams(progress Progress) (*CreateProjectParams, error) {
 		ProjectType:      progress.ProjectType,
 		StackID:          progress.Stack,
 	}
-	params.KeystorePth = progress.Codesign.KeystorePath
+	params.CodesignIOS = progress.Codesign.IOS
+	params.KeystorePth = progress.Codesign.Android.KeystorePath
 	params.Keystore = bitriseio.UploadKeystoreParams{
-		Password:    progress.Codesign.Password,
-		Alias:       progress.Codesign.Alias,
-		KeyPassword: progress.Codesign.KeyPassword,
+		Password:    progress.Codesign.Android.Password,
+		Alias:       progress.Codesign.Android.Alias,
+		KeyPassword: progress.Codesign.Android.KeyPassword,
 	}
 	params.BitriseYML = bitriseYMLstr
 	params.WorkflowID = progress.PrimaryWorkflow
@@ -123,6 +127,22 @@ func Register(token string, progress Progress) error {
 		if err := app.UploadKeystore(params.KeystorePth, params.Keystore); err != nil {
 			return err
 		}
+	}
+
+	if len(params.CodesignIOS.certificates.Content) != 0 || len(params.CodesignIOS.provisioningProfiles) != 0 {
+		// iOS codesigning files upload
+		codesignIOSClient, err := bitrise.NewClient(token)
+		if err != nil {
+			return err
+		}
+		codesignIOSClient.SetSelectedAppSlug(app.Slug)
+
+		if _, _, err := codesigndocBitriseio.UploadCodesigningFiles(codesignIOSClient, params.CodesignIOS.certificates, params.CodesignIOS.provisioningProfiles); err != nil {
+			return err
+		}
+	} else {
+		log.Warnf(`To upload iOS code signing files, paste this script into your terminal and follow the instructions:
+bash -l -c "$(curl -sfL https://raw.githubusercontent.com/bitrise-io/codesigndoc/master/_scripts/install_wrap.sh)"`)
 	}
 
 	if err := app.TriggerBuild(params.WorkflowID); err != nil {

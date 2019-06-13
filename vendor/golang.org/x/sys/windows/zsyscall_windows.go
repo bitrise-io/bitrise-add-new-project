@@ -42,6 +42,7 @@ var (
 	modmswsock  = NewLazySystemDLL("mswsock.dll")
 	modcrypt32  = NewLazySystemDLL("crypt32.dll")
 	moduser32   = NewLazySystemDLL("user32.dll")
+	modole32    = NewLazySystemDLL("ole32.dll")
 	modws2_32   = NewLazySystemDLL("ws2_32.dll")
 	moddnsapi   = NewLazySystemDLL("dnsapi.dll")
 	modiphlpapi = NewLazySystemDLL("iphlpapi.dll")
@@ -133,6 +134,7 @@ var (
 	procSetEnvironmentVariableW            = modkernel32.NewProc("SetEnvironmentVariableW")
 	procCreateEnvironmentBlock             = moduserenv.NewProc("CreateEnvironmentBlock")
 	procDestroyEnvironmentBlock            = moduserenv.NewProc("DestroyEnvironmentBlock")
+	procGetTickCount64                     = modkernel32.NewProc("GetTickCount64")
 	procSetFileTime                        = modkernel32.NewProc("SetFileTime")
 	procGetFileAttributesW                 = modkernel32.NewProc("GetFileAttributesW")
 	procSetFileAttributesW                 = modkernel32.NewProc("SetFileAttributesW")
@@ -199,6 +201,7 @@ var (
 	procSetPriorityClass                   = modkernel32.NewProc("SetPriorityClass")
 	procGetPriorityClass                   = modkernel32.NewProc("GetPriorityClass")
 	procSetInformationJobObject            = modkernel32.NewProc("SetInformationJobObject")
+	procGenerateConsoleCtrlEvent           = modkernel32.NewProc("GenerateConsoleCtrlEvent")
 	procDefineDosDeviceW                   = modkernel32.NewProc("DefineDosDeviceW")
 	procDeleteVolumeMountPointW            = modkernel32.NewProc("DeleteVolumeMountPointW")
 	procFindFirstVolumeW                   = modkernel32.NewProc("FindFirstVolumeW")
@@ -219,6 +222,9 @@ var (
 	procSetVolumeLabelW                    = modkernel32.NewProc("SetVolumeLabelW")
 	procSetVolumeMountPointW               = modkernel32.NewProc("SetVolumeMountPointW")
 	procMessageBoxW                        = moduser32.NewProc("MessageBoxW")
+	procCLSIDFromString                    = modole32.NewProc("CLSIDFromString")
+	procStringFromGUID2                    = modole32.NewProc("StringFromGUID2")
+	procCoCreateGuid                       = modole32.NewProc("CoCreateGuid")
 	procWSAStartup                         = modws2_32.NewProc("WSAStartup")
 	procWSACleanup                         = modws2_32.NewProc("WSACleanup")
 	procWSAIoctl                           = modws2_32.NewProc("WSAIoctl")
@@ -1372,6 +1378,12 @@ func DestroyEnvironmentBlock(block *uint16) (err error) {
 	return
 }
 
+func getTickCount64() (ms uint64) {
+	r0, _, _ := syscall.Syscall(procGetTickCount64.Addr(), 0, 0, 0, 0)
+	ms = uint64(r0)
+	return
+}
+
 func SetFileTime(handle Handle, ctime *Filetime, atime *Filetime, wtime *Filetime) (err error) {
 	r1, _, e1 := syscall.Syscall6(procSetFileTime.Addr(), 4, uintptr(handle), uintptr(unsafe.Pointer(ctime)), uintptr(unsafe.Pointer(atime)), uintptr(unsafe.Pointer(wtime)), 0, 0)
 	if r1 == 0 {
@@ -2146,6 +2158,18 @@ func SetInformationJobObject(job Handle, JobObjectInformationClass uint32, JobOb
 	return
 }
 
+func GenerateConsoleCtrlEvent(ctrlEvent uint32, processGroupID uint32) (err error) {
+	r1, _, e1 := syscall.Syscall(procGenerateConsoleCtrlEvent.Addr(), 2, uintptr(ctrlEvent), uintptr(processGroupID), 0)
+	if r1 == 0 {
+		if e1 != 0 {
+			err = errnoErr(e1)
+		} else {
+			err = syscall.EINVAL
+		}
+	}
+	return
+}
+
 func DefineDosDevice(flags uint32, deviceName *uint16, targetPath *uint16) (err error) {
 	r1, _, e1 := syscall.Syscall(procDefineDosDeviceW.Addr(), 3, uintptr(flags), uintptr(unsafe.Pointer(deviceName)), uintptr(unsafe.Pointer(targetPath)))
 	if r1 == 0 {
@@ -2382,6 +2406,32 @@ func MessageBox(hwnd Handle, text *uint16, caption *uint16, boxtype uint32) (ret
 		} else {
 			err = syscall.EINVAL
 		}
+	}
+	return
+}
+
+func clsidFromString(lpsz *uint16, pclsid *GUID) (err error) {
+	r1, _, e1 := syscall.Syscall(procCLSIDFromString.Addr(), 2, uintptr(unsafe.Pointer(lpsz)), uintptr(unsafe.Pointer(pclsid)), 0)
+	if r1 != 0 {
+		if e1 != 0 {
+			err = errnoErr(e1)
+		} else {
+			err = syscall.EINVAL
+		}
+	}
+	return
+}
+
+func stringFromGUID2(rguid *GUID, lpsz *uint16, cchMax int) (chars int) {
+	r0, _, _ := syscall.Syscall(procStringFromGUID2.Addr(), 3, uintptr(unsafe.Pointer(rguid)), uintptr(unsafe.Pointer(lpsz)), uintptr(cchMax))
+	chars = int(r0)
+	return
+}
+
+func coCreateGuid(pguid *GUID) (ret error) {
+	r0, _, _ := syscall.Syscall(procCoCreateGuid.Addr(), 1, uintptr(unsafe.Pointer(pguid)), 0, 0)
+	if r0 != 0 {
+		ret = syscall.Errno(r0)
 	}
 	return
 }

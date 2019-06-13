@@ -17,11 +17,23 @@
 
 [[constraint]]
   branch = "master"
+  name = "github.com/bitrise-io/codesigndoc"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/bitrise-io/envman"
+
+[[constraint]]
+  branch = "master"
   name = "github.com/bitrise-io/go-utils"
 
 [[constraint]]
   branch = "master"
   name = "github.com/bitrise-io/goinp"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/bitrise-io/xcode-project"
 
 [[constraint]]
   name = "github.com/pkg/errors"
