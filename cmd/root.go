@@ -74,20 +74,33 @@ func executePhases(cmd cobra.Command) (phases.Progress, error) {
 	}
 
 	// repo
+	log.Infof("SCANNING WORKDIR FOR GIT REPO")
+	log.Infof("=============================")
+
 	repoURL, err := phases.Repo(currentDir, progress.Public)
 	if err != nil {
 		return phases.Progress{}, err
 	}
 	progress.RepoURL = repoURL
 
+	log.Donef("REPOSITORY SCANNED. DETAILS:")
+	log.Donef("- scheme: %s", repoURL.Scheme)
+	log.Donef("- url: %s", repoURL.URL)
+	log.Donef("- provider: %s", repoURL.Provider)
+	log.Donef("- owner: %s", repoURL.Owner)
+	log.Donef("- slug: %s", repoURL.Slug)
+	log.Donef("- username: %s", repoURL.SSHUsername)
+
 	// ssh key
-	publicKeyPth, privateKeyPth, register, err := phases.PrivateKey(progress.RepoURL)
-	if err != nil {
-		return phases.Progress{}, err
+	if repoURL.Scheme == phases.SSH {
+		publicKeyPth, privateKeyPth, register, err := phases.PrivateKey(progress.RepoURL)
+		if err != nil {
+			return phases.Progress{}, err
+		}
+		progress.SSHPrivateKeyPth = privateKeyPth
+		progress.SSHPublicKeyPth = publicKeyPth
+		progress.RegisterSSHKey = register
 	}
-	progress.SSHPrivateKeyPth = privateKeyPth
-	progress.SSHPublicKeyPth = publicKeyPth
-	progress.RegisterSSHKey = register
 
 	// bitrise.yml
 	bitriseYML, primaryWorkflow, err := phases.BitriseYML(currentDir)
