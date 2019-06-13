@@ -137,7 +137,7 @@ func Register(token string, progress Progress) error {
 		}
 		codesignIOSClient.SetSelectedAppSlug(app.Slug)
 
-		if _, _, err = codesigndocBitriseio.UploadCodesigningFiles(codesignIOSClient, params.CodesignIOS.certificates, params.CodesignIOS.provisioningProfiles); err != nil {
+		if _, _, err := codesigndocBitriseio.UploadCodesigningFiles(codesignIOSClient, params.CodesignIOS.certificates, params.CodesignIOS.provisioningProfiles); err != nil {
 			return err
 		}
 	} else {
