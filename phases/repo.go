@@ -214,7 +214,7 @@ func Repo(searchDir string, isPublicApp bool) (RepoDetails, error) {
 
 	// Private Bitrise app
 	if parts.URL.Scheme == "ssh" && alternatePublicRepoDetails != nil {
-		result, err := goinp.AskOptions("Select repository URL:", alternatePublicRepoDetails.URL, false, []string{alternatePublicRepoDetails.URL, repoDetails.URL}...)
+		result, err := goinp.SelectFromStringsWithDefault("Select repository URL:", 0, []string{alternatePublicRepoDetails.URL, repoDetails.URL})
 		if err != nil {
 			return RepoDetails{}, err
 		}
