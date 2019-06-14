@@ -119,37 +119,43 @@ func Test_splitURL(t *testing.T) {
 	tests := []struct {
 		name    string
 		URL     *url.URL
-		want    urlParts
+		want    *RepoDetails
 		wantErr bool
 	}{
 		{
 			name: "SSH URL",
 			URL:  sshURL,
-			want: urlParts{
-				scheme:      SSH,
-				owner:       "bitrise-io",
-				slug:        "go-utils",
+			want: &RepoDetails{
+				URL:         sshURL.String(),
+				Scheme:      SSH,
+				Owner:       "bitrise-io",
+				Slug:        "go-utils",
 				SSHUsername: "git",
+				Provider:    "github",
 			},
 		},
 		{
 			name: "HTTPS URL",
 			URL:  httpsURL,
-			want: urlParts{
-				scheme:      HTTPS,
-				owner:       "bitrise-io",
-				slug:        "go-utils",
+			want: &RepoDetails{
+				URL:         httpsURL.String(),
+				Scheme:      HTTPS,
+				Owner:       "bitrise-io",
+				Slug:        "go-utils",
 				SSHUsername: "",
+				Provider:    "github",
 			},
 		},
 		{
 			name: "HTTPS Auth URL",
 			URL:  httpsAuthURL,
-			want: urlParts{
-				scheme:      HTTPS,
-				owner:       "bitrise-io",
-				slug:        "go-utils",
+			want: &RepoDetails{
+				URL:         httpsAuthURL.String(),
+				Scheme:      HTTPS,
+				Owner:       "bitrise-io",
+				Slug:        "go-utils",
 				SSHUsername: "token",
+				Provider:    "github",
 			},
 		},
 	}
