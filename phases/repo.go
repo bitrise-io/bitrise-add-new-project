@@ -37,20 +37,19 @@ type RepoDetails struct {
 }
 
 type urlParts struct {
-	host        string
 	owner       string
 	slug        string
 	scheme      RepoScheme
 	SSHUsername string
-	URL         *url.URL
 }
 
-func parseURL(cloneURL string) (urlParts, error) {
+const urlPathSeperator = "/"
+
+func parseURL(cloneURL string) (*url.URL, error) {
 	cloneURL = strings.TrimSpace(cloneURL)
-	const pathSeperator = "/"
 
 	if strings.HasPrefix(cloneURL, "git@") { // e.g. git@github.com:bitrise-io/go-utils.git
-		cloneURL = strings.Replace(cloneURL, ":", pathSeperator, 1)
+		cloneURL = strings.Replace(cloneURL, ":", urlPathSeperator, 1)
 		cloneURL = "ssh://" + cloneURL
 	}
 
@@ -60,49 +59,54 @@ func parseURL(cloneURL string) (urlParts, error) {
 
 	parsed, err := url.Parse(cloneURL)
 	if err != nil {
-		return urlParts{}, err
+		return nil, err
 	}
 
+	if parsed.Scheme == "https" {
+		if parsed.User.Username() != "" {
+			log.Debugf("username or access token is included in https git repository")
+		}
+		parsed.User = nil
+	}
+
+	return parsed, nil
+}
+
+func splitURL(URL *url.URL) (urlParts, error) {
 	var scheme RepoScheme
-	switch parsed.Scheme {
+	switch URL.Scheme {
 	case "https":
 		scheme = HTTPS
 	case "ssh":
 		scheme = SSH
 	default:
-		scheme = Invalid
-	}
-	if scheme == Invalid {
-		return urlParts{}, fmt.Errorf("unsupported URL scheme: %s", parsed.Scheme)
+		return urlParts{}, fmt.Errorf("unsupported URL scheme: %s", URL.Scheme)
 	}
 
-	if scheme == HTTPS && parsed.User.Username() != "" {
-		return urlParts{}, fmt.Errorf("username or access token is included in https git repository, only public https repositories are supported")
-	}
-	var SSHUsername string
-	if scheme == SSH {
-		SSHUsername = parsed.User.Username()
-	}
-
-	escapedPath := strings.TrimPrefix(parsed.EscapedPath(), pathSeperator)
-	pathParts := strings.Split(escapedPath, pathSeperator)
+	escapedPath := strings.TrimPrefix(URL.EscapedPath(), urlPathSeperator)
+	pathParts := strings.Split(escapedPath, urlPathSeperator)
 	log.Debugf("URL path parts: %s", pathParts)
-	if len(pathParts) != 2 {
-		return urlParts{}, fmt.Errorf("URL path does not contain exactly two parts")
+	if len(pathParts) < 2 {
+		return urlParts{}, fmt.Errorf("URL path does not contain at least two parts")
 	}
 
 	return urlParts{
 		scheme:      scheme,
-		host:        parsed.Hostname(),
 		owner:       pathParts[0],
 		slug:        strings.TrimRight(pathParts[len(pathParts)-1], ".git"),
-		SSHUsername: SSHUsername,
-		URL:         parsed,
+		SSHUsername: URL.User.Username(),
 	}, nil
 }
 
 func setSchemeToHTTPS(URL *url.URL) *url.URL {
 	URL.Scheme = "https"
+	URL.User = nil
+	return URL
+}
+
+func setSchemeToSSH(URL *url.URL) *url.URL {
+	URL.Scheme = "ssh"
+	URL.User = url.User("git")
 	return URL
 }
 
@@ -156,15 +160,21 @@ func Repo(searchDir string, isPublicApp bool) (RepoDetails, error) {
 	log.Donef("Remote URL: %s", remoteURL)
 
 	// Parse remote URL
-	parts, err := parseURL(remoteURL)
+	URL, err := parseURL(remoteURL)
 	if err != nil {
 		return RepoDetails{}, err
 	}
-	provider := getProvider(parts.host)
+
+	parts, err := splitURL(URL)
+	if err != nil {
+		return RepoDetails{}, err
+	}
+
+	provider := getProvider(URL.Hostname())
 
 	repoDetails := RepoDetails{
 		Scheme:      parts.scheme,
-		URL:         parts.URL.String(),
+		URL:         URL.String(),
 		Provider:    provider,
 		Owner:       parts.owner,
 		Slug:        parts.slug,
@@ -172,22 +182,43 @@ func Repo(searchDir string, isPublicApp bool) (RepoDetails, error) {
 	}
 
 	// Validate https repositoy
+	var alternateSSHRepoDetails *RepoDetails
 	if parts.scheme == HTTPS {
-		if err := validateRepositoryAvailablePublic(parts.URL.String()); err != nil {
-			return RepoDetails{}, fmt.Errorf("could not check repository (%s) with git clone, error: %s", parts.URL.String(), err)
+		if err := validateRepositoryAvailablePublic(URL.String()); err != nil {
+			log.Donef("Repository (%s) is not public, error: %s", URL.String(), err)
+
+			alternateSSHRepoURL := setSchemeToSSH(URL)
+			parts, err := splitURL(alternateSSHRepoURL)
+			if err != nil {
+				return RepoDetails{}, err
+			}
+
+			alternateSSHRepoDetails = &RepoDetails{
+				Scheme:   SSH,
+				URL:      alternateSSHRepoURL.String(),
+				Provider: provider,
+				Owner:    parts.owner,
+				Slug:     parts.slug,
+			}
 		}
 	}
 
 	// If ssh repository is provided, check the alternate availability with https scheme
 	var alternatePublicRepoDetails *RepoDetails
 	if parts.scheme == SSH {
-		alternatePublicURL := setSchemeToHTTPS(parts.URL)
+		alternatePublicURL := setSchemeToHTTPS(URL)
+		log.Infof("Checking if repository %s is public.", alternatePublicURL.String())
 
 		if err := validateRepositoryAvailablePublic(alternatePublicURL.String()); err != nil {
-			log.Debugf("Alternate public URL is not available, error: %s", err)
+			log.Infof("Alternate public URL is not available, error: %s", err)
 		} else {
+			parts, err := splitURL(alternatePublicURL)
+			if err != nil {
+				return RepoDetails{}, err
+			}
+
 			alternatePublicRepoDetails = &RepoDetails{
-				Scheme:   HTTPS,
+				Scheme:   parts.scheme,
 				URL:      alternatePublicURL.String(),
 				Provider: provider,
 				Owner:    parts.owner,
@@ -196,25 +227,54 @@ func Repo(searchDir string, isPublicApp bool) (RepoDetails, error) {
 		}
 	}
 
+	type repoAuth int
+	const (
+		Invalid repoAuth = iota
+		HTTPSPublic
+		HTTPSAuth
+		SSHWithPublicAlternate
+		SSH
+	)
+
+	var auth repoAuth
+	if parts.scheme == HTTPS {
+		if alternateSSHRepoDetails != nil {
+			auth = HTTPSAuth
+		} else {
+			auth = HTTPSPublic
+		}
+	} else {
+		if alternatePublicRepoDetails != nil {
+			auth = SSHWithPublicAlternate
+		} else {
+			auth = SSH
+		}
+	}
+
 	// Public Bitrise app
 	if isPublicApp {
-		if parts.URL.Scheme == "https" {
+		switch auth {
+		case HTTPSPublic:
 			return repoDetails, nil
+		case SSHWithPublicAlternate:
+			log.Donef("Using alternate public URL: %s", alternatePublicRepoDetails.URL)
+			return *alternatePublicRepoDetails, nil
+		case HTTPSAuth:
+			fallthrough
+		case SSH:
+			// Public app authenticated clone URL is not allowed
+			return RepoDetails{}, fmt.Errorf(("public Bitrise app must use a git repository without authentication"))
+		default:
+			return RepoDetails{}, fmt.Errorf("invalid state")
 		}
-		// scheme is SSH
-
-		// Public app authenticated clone URL is not allowed
-		if alternatePublicRepoDetails != nil {
-			return RepoDetails{}, fmt.Errorf(("public Bitrise app must use a public git repository but have SSH clone URL"))
-		}
-
-		log.Donef("Using alternate public URL: %s", alternatePublicRepoDetails.URL)
-		return *alternatePublicRepoDetails, nil
 	}
 
 	// Private Bitrise app
-	if parts.URL.Scheme == "ssh" && alternatePublicRepoDetails != nil {
-		result, err := goinp.SelectFromStringsWithDefault("Select repository URL:", 0, []string{alternatePublicRepoDetails.URL, repoDetails.URL})
+	switch auth {
+	case HTTPSPublic:
+		return repoDetails, nil
+	case SSHWithPublicAlternate:
+		result, err := goinp.SelectFromStringsWithDefault("Select repository URL:", 1, []string{alternatePublicRepoDetails.URL, repoDetails.URL})
 		if err != nil {
 			return RepoDetails{}, err
 		}
@@ -223,7 +283,11 @@ func Repo(searchDir string, isPublicApp bool) (RepoDetails, error) {
 			return repoDetails, nil
 		}
 		return *alternatePublicRepoDetails, nil
+	case HTTPSAuth:
+		return *alternateSSHRepoDetails, nil
+	case SSH:
+		return repoDetails, nil
+	default:
+		return RepoDetails{}, fmt.Errorf("invalid state")
 	}
-
-	return repoDetails, nil
 }
