@@ -1,6 +1,9 @@
 package phases
 
-import "github.com/bitrise-io/bitrise/models"
+import (
+	"github.com/bitrise-io/bitrise-add-new-project/sshutil"
+	"github.com/bitrise-io/bitrise/models"
+)
 
 // Progress ...
 type Progress struct {
@@ -9,8 +12,7 @@ type Progress struct {
 
 	RepoDetails RepoDetails
 
-	SSHPrivateKey  string
-	SSHPublicKey   string
+	SSHKeys        sshutil.SSHKeyPair
 	RegisterSSHKey bool
 
 	BitriseYML      models.BitriseDataModel

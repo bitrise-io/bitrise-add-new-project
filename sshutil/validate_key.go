@@ -32,8 +32,15 @@ func ValidatePrivateKey(privateKey []byte, username string, url string) (bool, e
 	return true, nil
 }
 
+// SSHKeyPair is an asssymetric keypair used for SSH authentication
+type SSHKeyPair struct {
+	PublicKey  []byte
+	PrivateKey []byte
+}
+
 // SSHRepo conmtains information to connect to an SSH git repository
 type SSHRepo struct {
+	Keys       SSHKeyPair
 	PublicKey  []byte
 	PrivateKey []byte
 	Username   string

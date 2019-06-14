@@ -45,8 +45,8 @@ func toRegistrationParams(progress Progress) (*CreateProjectParams, error) {
 	params.RegisterWebhook = progress.AddWebhook
 
 	params.SSHKey = bitriseio.RegisterSSHKeyParams{
-		AuthSSHPrivateKey:                progress.SSHPrivateKey,
-		AuthSSHPublicKey:                 progress.SSHPublicKey,
+		AuthSSHPrivateKey:                string(progress.SSHKeys.PrivateKey),
+		AuthSSHPublicKey:                 string(progress.SSHKeys.PublicKey),
 		IsRegisterKeyIntoProviderService: progress.RegisterSSHKey,
 		Username:                         progress.RepoDetails.SSHUsername,
 	}
@@ -66,6 +66,28 @@ func toRegistrationParams(progress Progress) (*CreateProjectParams, error) {
 	params.BitriseYML = bitriseYMLstr
 	params.WorkflowID = progress.PrimaryWorkflow
 	return &params, nil
+}
+
+func registerWebhook(app *bitriseio.AppService, inputReader io.Reader) error {
+	var err error
+	for i := 1; i <= 2; i++ {
+		if err := app.RegisterWebhook(); err != nil {
+			if e, ok := err.(*bitriseio.ErrorResponse); ok {
+				if !httputil.IsUserFixable(e.Response.StatusCode) {
+					return err
+				}
+
+				log.Errorf("Error registering webhook: %s", err)
+				log.Warnf("Fix the error and hit enter to retry!")
+				if _, err := bufio.NewReader(inputReader).ReadString('\n'); err != nil {
+					return fmt.Errorf("failed to read line from input, error: %s", err)
+				}
+				continue
+			}
+		}
+		return nil
+	}
+	return err
 }
 
 // Register ...
@@ -141,26 +163,4 @@ bash -l -c "$(curl -sfL https://raw.githubusercontent.com/bitrise-io/codesigndoc
 
 	log.Donef("Project created: https://app.bitrise.io/app/%s", app.Slug)
 	return nil
-}
-
-func registerWebhook(app *bitriseio.AppService, inputReader io.Reader) error {
-	var err error
-	for i := 1; i <= 2; i++ {
-		if err := app.RegisterWebhook(); err != nil {
-			if e, ok := err.(*bitriseio.ErrorResponse); ok {
-				if !httputil.IsUserFixable(e.Response.StatusCode) {
-					return err
-				}
-
-				log.Errorf("Error registering webhook: %s", err)
-				log.Warnf("Fix the error and hit enter to retry!")
-				if _, err := bufio.NewReader(inputReader).ReadString('\n'); err != nil {
-					return fmt.Errorf("failed to read line from input, error: %s", err)
-				}
-				continue
-			}
-		}
-		return nil
-	}
-	return err
 }

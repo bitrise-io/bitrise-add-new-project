@@ -14,50 +14,54 @@ import (
 	"github.com/pkg/errors"
 )
 
-func readPrivateKey(keyFilePath string) (string, error) {
+func readPrivateKey(keyFilePath string) ([]byte, error) {
 	privateKey, err := fileutil.ReadStringFromFile(keyFilePath)
 	if err != nil {
-		return "", fmt.Errorf("SSH private key read failed: %s", err)
+		return nil, fmt.Errorf("SSH private key read failed: %s", err)
 	}
 	privateKey = strings.TrimSuffix(privateKey, "\n")
-	return strings.Replace(privateKey, "OPENSSH", "RSA", -1), nil
+	privateKey = strings.Replace(privateKey, "OPENSSH", "RSA", -1)
+	return []byte(privateKey), nil
 }
 
-func generateSSHKey() (string, string, error) {
+func generateSSHKey() (sshutil.SSHKeyPair, error) {
 	tempDir, err := pathutil.NormalizedOSTempDirPath("_key_")
 	if err != nil {
-		return "", "", err
+		return sshutil.SSHKeyPair{}, err
 	}
 
 	keyFilePath := filepath.Join(tempDir, "key")
 
 	cmd := command.New("ssh-keygen", "-q", "-t", "rsa", "-b", "2048", "-C", "builds@bitrise.io", "-P", "", "-f", keyFilePath, "-m", "PEM")
 	if out, err := cmd.RunAndReturnTrimmedCombinedOutput(); err != nil {
-		return "", "", errors.Wrap(fmt.Errorf("failed to run command: %s, error: %s", cmd.PrintableCommandArgs(), err), out)
+		return sshutil.SSHKeyPair{}, errors.Wrap(fmt.Errorf("failed to run command: %s, error: %s", cmd.PrintableCommandArgs(), err), out)
 	}
 
 	privateKey, err := readPrivateKey(keyFilePath)
 	if err != nil {
-		return "", "", err
+		return sshutil.SSHKeyPair{}, err
 	}
 
 	publicKey, err := fileutil.ReadStringFromFile(keyFilePath + ".pub")
 	if err != nil {
-		return "", "", fmt.Errorf("SSH public key read failed: %s", err)
+		return sshutil.SSHKeyPair{}, fmt.Errorf("SSH public key read failed: %s", err)
 	}
 
-	return publicKey, privateKey, nil
+	return sshutil.SSHKeyPair{
+		PublicKey:  []byte(publicKey),
+		PrivateKey: privateKey,
+	}, nil
 }
 
 // PrivateKey ...
-func PrivateKey(repoURL RepoDetails) (string, string, bool, error) {
+func PrivateKey(repoURL RepoDetails) (sshutil.SSHKeyPair, bool, error) {
 	log.Infof("Setup repository access")
 	fmt.Println()
 
 	var (
-		err                   error
-		register              bool
-		publicKey, privateKey string
+		err      error
+		register bool
+		SSHKeys  sshutil.SSHKeyPair
 	)
 
 	const (
@@ -78,7 +82,7 @@ func PrivateKey(repoURL RepoDetails) (string, string, bool, error) {
 			switch answer {
 			case methodAuto:
 				register = true
-				publicKey, privateKey, err = generateSSHKey()
+				SSHKeys, err = generateSSHKey()
 				if err != nil {
 					return nil
 				}
@@ -94,10 +98,9 @@ func PrivateKey(repoURL RepoDetails) (string, string, bool, error) {
 							register = false
 
 							err = sshutil.ValidateSSHAddedManually(sshutil.SSHRepo{
-								PublicKey:  []byte(publicKey),
-								PrivateKey: []byte(privateKey),
-								URL:        repoURL.URL,
-								Username:   repoURL.SSHUsername,
+								Keys:     SSHKeys,
+								URL:      repoURL.URL,
+								Username: repoURL.SSHUsername,
 							})
 							return nil
 						}
@@ -106,7 +109,7 @@ func PrivateKey(repoURL RepoDetails) (string, string, bool, error) {
 				}
 			case methodManual:
 				register = false
-				publicKey = ""
+				SSHKeys.PublicKey = nil
 
 				err = retry.Times(3).Try(func(attempt uint) error {
 					var privateKeyPath string
@@ -121,13 +124,13 @@ func PrivateKey(repoURL RepoDetails) (string, string, bool, error) {
 						},
 					}).run()
 
-					privateKey, err = readPrivateKey(privateKeyPath)
+					SSHKeys.PrivateKey, err = readPrivateKey(privateKeyPath)
 					if err != nil {
 						return err
 					}
 
 					var valid bool
-					if valid, err = sshutil.ValidatePrivateKey([]byte(privateKey), repoURL.SSHUsername, repoURL.URL); !valid {
+					if valid, err = sshutil.ValidatePrivateKey(SSHKeys.PrivateKey, repoURL.SSHUsername, repoURL.URL); !valid {
 						log.Errorf("Could not connect to repository with private key, error: %s", err)
 						return err
 					}
@@ -138,5 +141,5 @@ func PrivateKey(repoURL RepoDetails) (string, string, bool, error) {
 		},
 	}).run()
 
-	return publicKey, privateKey, register, err
+	return SSHKeys, register, err
 }
