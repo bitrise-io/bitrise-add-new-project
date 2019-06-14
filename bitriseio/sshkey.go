@@ -41,8 +41,10 @@ func (s *AppService) RegisterSSHKey(params RegisterSSHKeyParams, repoURL string)
 		params.IsRegisterKeyIntoProviderService = false
 
 		if err := sshutil.ValidateSSHAddedManually(sshutil.SSHRepo{
-			PublicKey:  []byte(params.AuthSSHPublicKey),
-			PrivateKey: []byte(params.AuthSSHPrivateKey),
+			Keys: sshutil.SSHKeyPair{
+				PublicKey:  []byte(params.AuthSSHPublicKey),
+				PrivateKey: []byte(params.AuthSSHPrivateKey),
+			},
 			URL:        repoURL,
 			Username:   params.Username,
 		}); err != nil {

@@ -41,8 +41,6 @@ type SSHKeyPair struct {
 // SSHRepo conmtains information to connect to an SSH git repository
 type SSHRepo struct {
 	Keys       SSHKeyPair
-	PublicKey  []byte
-	PrivateKey []byte
 	Username   string
 	URL        string
 }
@@ -50,7 +48,7 @@ type SSHRepo struct {
 // ValidateSSHAddedManually checks that a generated public key is added to the git service provider
 func ValidateSSHAddedManually(repo SSHRepo) error {
 	log.Warnf("Copy this SSH public key to your clipboard and add it to your Github repository or account!")
-	fmt.Println(string(repo.PublicKey))
+	fmt.Println(string(repo.Keys.PublicKey))
 
 	return retry.Times(3).Try(func(attempt uint) error {
 		log.Printf("Hit enter if you have finished with the setup")
@@ -59,7 +57,7 @@ func ValidateSSHAddedManually(repo SSHRepo) error {
 			return nil
 		}
 
-		if valid, err := ValidatePrivateKey(repo.PrivateKey, repo.Username, repo.URL); !valid {
+		if valid, err := ValidatePrivateKey(repo.Keys.PrivateKey, repo.Username, repo.URL); !valid {
 			log.Errorf("Could not connect to repository with private key, error: %s", err)
 			return err
 		}
