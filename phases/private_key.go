@@ -1,17 +1,20 @@
 package phases
 
 import (
+	"bytes"
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/x509"
+	"encoding/pem"
 	"fmt"
-	"path/filepath"
 	"strings"
 
 	"github.com/bitrise-io/bitrise-add-new-project/sshutil"
-	"github.com/bitrise-io/go-utils/command"
 	"github.com/bitrise-io/go-utils/fileutil"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
 	"github.com/bitrise-io/go-utils/retry"
-	"github.com/pkg/errors"
+	"golang.org/x/crypto/ssh"
 )
 
 func readPrivateKey(keyFilePath string) ([]byte, error) {
@@ -25,31 +28,28 @@ func readPrivateKey(keyFilePath string) ([]byte, error) {
 }
 
 func generateSSHKey() (sshutil.SSHKeyPair, error) {
-	tempDir, err := pathutil.NormalizedOSTempDirPath("_key_")
+	privateKey, err := rsa.GenerateKey(rand.Reader, 4096)
 	if err != nil {
 		return sshutil.SSHKeyPair{}, err
 	}
 
-	keyFilePath := filepath.Join(tempDir, "key")
-
-	cmd := command.New("ssh-keygen", "-q", "-t", "rsa", "-b", "2048", "-C", "builds@bitrise.io", "-P", "", "-f", keyFilePath, "-m", "PEM")
-	if out, err := cmd.RunAndReturnTrimmedCombinedOutput(); err != nil {
-		return sshutil.SSHKeyPair{}, errors.Wrap(fmt.Errorf("failed to run command: %s, error: %s", cmd.PrintableCommandArgs(), err), out)
+	var privateKeyPEM bytes.Buffer
+	privateKeyBlock := &pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(privateKey)}
+	if err := pem.Encode(&privateKeyPEM, privateKeyBlock); err != nil {
+		return sshutil.SSHKeyPair{}, err
 	}
 
-	privateKey, err := readPrivateKey(keyFilePath)
+	publicKey, err := ssh.NewPublicKey(&privateKey.PublicKey)
 	if err != nil {
 		return sshutil.SSHKeyPair{}, err
 	}
 
-	publicKey, err := fileutil.ReadStringFromFile(keyFilePath + ".pub")
-	if err != nil {
-		return sshutil.SSHKeyPair{}, fmt.Errorf("SSH public key read failed: %s", err)
-	}
+	publicKeyString := strings.TrimSuffix(string(ssh.MarshalAuthorizedKey(publicKey)), "\n")
+	publicKeyString = publicKeyString + " builds@bitrise.io\n"
 
 	return sshutil.SSHKeyPair{
-		PublicKey:  []byte(publicKey),
-		PrivateKey: privateKey,
+		PrivateKey: privateKeyPEM.Bytes(),
+		PublicKey:  []byte(publicKeyString),
 	}, nil
 }
 
