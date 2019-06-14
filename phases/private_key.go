@@ -64,7 +64,7 @@ func PrivateKey(repoURL RepoDetails) (string, string, bool, error) {
 
 	const (
 		methodTitle  = "Specify how Bitrise will be able to access the source code"
-		methodAuto   = "Automatic"
+		methodAuto   = "Automatic (git provider account must be connected at: https://app.bitrise.io/me/profile)"
 		methodManual = "Add own SSH"
 	)
 	(&option{
@@ -93,6 +93,7 @@ func PrivateKey(repoURL RepoDetails) (string, string, bool, error) {
 							return nil
 						case additionalAccessYes:
 							log.Warnf("Copy this SSH public key to your clipboard and add it to your Github repository or account!")
+							register = false
 							content, readErr := ioutil.ReadFile(publicKeyPath)
 							if readErr != nil {
 								err = readErr

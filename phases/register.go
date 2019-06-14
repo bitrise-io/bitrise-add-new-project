@@ -36,24 +36,6 @@ func toRegistrationParams(progress Progress) (*CreateProjectParams, error) {
 	}
 	bitriseYMLstr := string(bitriseYML)
 
-	privateKey, err := fileutil.ReadStringFromFile(progress.SSHPrivateKeyPth)
-	if err != nil {
-		return nil, fmt.Errorf("SSH private key read failed: %s", err)
-	}
-	// privateKey = strings.Replace(privateKey, "\n", "\\n", -1)
-	privateKey = strings.TrimSuffix(privateKey, "\n")
-	privateKey = strings.Replace(privateKey, "OPENSSH", "RSA", -1)
-	progress.RegisterSSHKey = false
-
-	var publicKey string
-	if progress.RegisterSSHKey {
-		var err error
-		publicKey, err = fileutil.ReadStringFromFile(progress.SSHPublicKeyPth)
-		if err != nil {
-			return nil, fmt.Errorf("SSH public key read failed: %s", err)
-		}
-	}
-
 	params := CreateProjectParams{}
 	params.Repository = bitriseio.RegisterParams{
 		GitOwner:    progress.RepoURL.Owner,
@@ -63,11 +45,31 @@ func toRegistrationParams(progress Progress) (*CreateProjectParams, error) {
 		RepoURL:     progress.RepoURL.URL,
 	}
 	params.RegisterWebhook = progress.AddWebhook
-	params.SSHKey = bitriseio.RegisterSSHKeyParams{
-		AuthSSHPrivateKey:                privateKey,
-		AuthSSHPublicKey:                 publicKey,
-		IsRegisterKeyIntoProviderService: progress.RegisterSSHKey,
+
+	if progress.SSHPrivateKeyPth != "" {
+		privateKey, err := fileutil.ReadStringFromFile(progress.SSHPrivateKeyPth)
+		if err != nil {
+			return nil, fmt.Errorf("SSH private key read failed: %s", err)
+		}
+		privateKey = strings.TrimSuffix(privateKey, "\n")
+		privateKey = strings.Replace(privateKey, "OPENSSH", "RSA", -1)
+
+		var publicKey string
+		if progress.RegisterSSHKey {
+			var err error
+			publicKey, err = fileutil.ReadStringFromFile(progress.SSHPublicKeyPth)
+			if err != nil {
+				return nil, fmt.Errorf("SSH public key read failed: %s", err)
+			}
+		}
+
+		params.SSHKey = bitriseio.RegisterSSHKeyParams{
+			AuthSSHPrivateKey:                privateKey,
+			AuthSSHPublicKey:                 publicKey,
+			IsRegisterKeyIntoProviderService: progress.RegisterSSHKey,
+		}
 	}
+
 	params.Project = bitriseio.RegisterFinishParams{
 		OrganizationSlug: progress.OrganizationSlug,
 		ProjectType:      progress.ProjectType,
@@ -104,7 +106,7 @@ func Register(token string, progress Progress, inputReader io.Reader) error {
 	if err != nil {
 		return err
 	}
-	if !params.Repository.IsPublic {
+	if !params.Repository.IsPublic && params.SSHKey.AuthSSHPrivateKey != "" {
 		if err := app.RegisterSSHKey(params.SSHKey); err != nil {
 			return err
 		}

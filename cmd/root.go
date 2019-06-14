@@ -84,7 +84,6 @@ func executePhases(cmd cobra.Command) (phases.Progress, error) {
 	progress.RepoURL = repoURL
 
 	log.Donef("REPOSITORY SCANNED. DETAILS:")
-	log.Donef("- scheme: %s", repoURL.Scheme)
 	log.Donef("- url: %s", repoURL.URL)
 	log.Donef("- provider: %s", repoURL.Provider)
 	log.Donef("- owner: %s", repoURL.Owner)
