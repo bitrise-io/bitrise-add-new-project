@@ -116,6 +116,11 @@ func Test_splitURL(t *testing.T) {
 		t.Errorf("setup: failed to parse URL")
 	}
 
+	fileURL, err := url.Parse("./../path/")
+	if err != nil {
+		t.Errorf("setup: failed to parse URL")
+	}
+
 	tests := []struct {
 		name    string
 		URL     *url.URL
@@ -157,6 +162,12 @@ func Test_splitURL(t *testing.T) {
 				SSHUsername: "token",
 				Provider:    "github",
 			},
+		},
+		{
+			name:    "File URL",
+			URL:     fileURL,
+			want:    &RepoDetails{},
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {

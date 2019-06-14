@@ -117,13 +117,6 @@ func Register(token string, progress Progress, inputReader io.Reader) error {
 		log.Printf("Skipping SSH key registration.")
 	}
 
-	if params.RegisterWebhook {
-		if err := registerWebhook(app, inputReader); err != nil {
-			log.Errorf("Failed to register webhook, error: %s", err)
-			log.Warnf("Skipping webhook registration.")
-		}
-	}
-
 	resp, err := app.RegisterFinish(params.Project)
 	if err != nil {
 		return err
@@ -133,6 +126,17 @@ func Register(token string, progress Progress, inputReader io.Reader) error {
 
 	if err := app.UploadBitriseYML(params.BitriseYML); err != nil {
 		return err
+	}
+
+	if params.RegisterWebhook {
+		if resp.IsWebhookAutoRegSupported {
+			if err := registerWebhook(app, inputReader); err != nil {
+				log.Errorf("Failed to register webhook, error: %s", err)
+			}
+		} else {
+			log.Errorf("Webhook registration is not possible right now, see options at: https://app.bitrise.io/app/%s#/code", app.Slug)
+		}
+		log.Warnf("Skipping webhook registration.")
 	}
 
 	if params.KeystorePth != "" {
