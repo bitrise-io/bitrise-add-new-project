@@ -7,7 +7,7 @@ type Progress struct {
 	OrganizationSlug string
 	Public           bool
 
-	RepoURL RepoDetails
+	RepoDetails RepoDetails
 
 	SSHPrivateKey  string
 	SSHPublicKey   string

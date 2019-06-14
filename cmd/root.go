@@ -81,7 +81,7 @@ func executePhases(cmd cobra.Command) (phases.Progress, error) {
 	if err != nil {
 		return phases.Progress{}, err
 	}
-	progress.RepoURL = repoURL
+	progress.RepoDetails = repoURL
 
 	log.Donef("REPOSITORY SCANNED. DETAILS:")
 	log.Donef("- url: %s", repoURL.URL)
@@ -92,7 +92,7 @@ func executePhases(cmd cobra.Command) (phases.Progress, error) {
 
 	// ssh key
 	if repoURL.Scheme == phases.SSH {
-		publicKey, privateKey, register, err := phases.PrivateKey(progress.RepoURL)
+		publicKey, privateKey, register, err := phases.PrivateKey(progress.RepoDetails)
 		if err != nil {
 			return phases.Progress{}, err
 		}
