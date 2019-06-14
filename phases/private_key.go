@@ -2,19 +2,26 @@ package phases
 
 import (
 	"fmt"
-	"io/ioutil"
-	"os"
 	"path/filepath"
+	"strings"
 
+	"github.com/bitrise-io/bitrise-add-new-project/sshutil"
 	"github.com/bitrise-io/go-utils/command"
+	"github.com/bitrise-io/go-utils/fileutil"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
 	"github.com/bitrise-io/go-utils/retry"
 	"github.com/pkg/errors"
-	git "gopkg.in/src-d/go-git.v4"
-	"gopkg.in/src-d/go-git.v4/plumbing/transport/ssh"
-	"gopkg.in/src-d/go-git.v4/storage/memory"
 )
+
+func readPrivateKey(keyFilePath string) (string, error) {
+	privateKey, err := fileutil.ReadStringFromFile(keyFilePath)
+	if err != nil {
+		return "", fmt.Errorf("SSH private key read failed: %s", err)
+	}
+	privateKey = strings.TrimSuffix(privateKey, "\n")
+	return strings.Replace(privateKey, "OPENSSH", "RSA", -1), nil
+}
 
 func generateSSHKey() (string, string, error) {
 	tempDir, err := pathutil.NormalizedOSTempDirPath("_key_")
@@ -29,26 +36,17 @@ func generateSSHKey() (string, string, error) {
 		return "", "", errors.Wrap(fmt.Errorf("failed to run command: %s, error: %s", cmd.PrintableCommandArgs(), err), out)
 	}
 
-	return keyFilePath + ".pub", keyFilePath, nil
-}
-
-func validatePrivateKey(path string, username string, url string) (bool, error) {
-	SSHAuth, err := ssh.NewPublicKeysFromFile(username, path, "")
+	privateKey, err := readPrivateKey(keyFilePath)
 	if err != nil {
-		return false, err
+		return "", "", err
 	}
 
-	if _, err = git.Clone(memory.NewStorage(), nil, &git.CloneOptions{
-		Auth:              SSHAuth,
-		URL:               url,
-		Progress:          os.Stdout,
-		NoCheckout:        true,
-		RecurseSubmodules: git.NoRecurseSubmodules,
-	}); err != nil {
-		return false, nil
+	publicKey, err := fileutil.ReadStringFromFile(keyFilePath + ".pub")
+	if err != nil {
+		return "", "", fmt.Errorf("SSH public key read failed: %s", err)
 	}
 
-	return true, nil
+	return publicKey, privateKey, nil
 }
 
 // PrivateKey ...
@@ -57,14 +55,14 @@ func PrivateKey(repoURL RepoDetails) (string, string, bool, error) {
 	fmt.Println()
 
 	var (
-		err                           error
-		register                      bool
-		publicKeyPath, privateKeyPath string
+		err                   error
+		register              bool
+		publicKey, privateKey string
 	)
 
 	const (
 		methodTitle  = "Specify how Bitrise will be able to access the source code"
-		methodAuto   = "Automatic (git provider account must be connected at: https://app.bitrise.io/me/profile)"
+		methodAuto   = "Automatic (Git provider must be connected at: https://app.bitrise.io/me/profile or will fall back to manual registration.)"
 		methodManual = "Add own SSH"
 	)
 	(&option{
@@ -80,10 +78,11 @@ func PrivateKey(repoURL RepoDetails) (string, string, bool, error) {
 			switch answer {
 			case methodAuto:
 				register = true
-				publicKeyPath, privateKeyPath, err = generateSSHKey()
+				publicKey, privateKey, err = generateSSHKey()
 				if err != nil {
 					return nil
 				}
+
 				return &option{
 					title:        additionalAccessTitle,
 					valueOptions: []string{additionalAccessNo, additionalAccessYes},
@@ -92,29 +91,25 @@ func PrivateKey(repoURL RepoDetails) (string, string, bool, error) {
 						case additionalAccessNo:
 							return nil
 						case additionalAccessYes:
-							log.Warnf("Copy this SSH public key to your clipboard and add it to your Github repository or account!")
 							register = false
-							content, readErr := ioutil.ReadFile(publicKeyPath)
-							if readErr != nil {
-								err = readErr
-								return nil
-							}
-							fmt.Println(string(content))
-							return &option{
-								title: "Hit enter if you have finished with the setup",
-								action: func(_ string) *option {
-									return nil
-								},
-							}
+
+							err = sshutil.ValidateSSHAddedManually(sshutil.SSHRepo{
+								PublicKey:  []byte(publicKey),
+								PrivateKey: []byte(privateKey),
+								URL:        repoURL.URL,
+								Username:   repoURL.SSHUsername,
+							})
+							return nil
 						}
 						return nil
 					},
 				}
 			case methodManual:
 				register = false
-				publicKeyPath = ""
+				publicKey = ""
 
-				err = retry.Times(2).Try(func(attempt uint) error {
+				err = retry.Times(3).Try(func(attempt uint) error {
+					var privateKeyPath string
 					(&option{
 						title: privateKeyPathTitle,
 						action: func(answer string) *option {
@@ -126,8 +121,14 @@ func PrivateKey(repoURL RepoDetails) (string, string, bool, error) {
 						},
 					}).run()
 
-					if valid, err := validatePrivateKey(privateKeyPath, repoURL.SSHUsername, repoURL.URL); !valid {
-						log.Errorf("Private key invalid: %s", err)
+					privateKey, err = readPrivateKey(privateKeyPath)
+					if err != nil {
+						return err
+					}
+
+					var valid bool
+					if valid, err = sshutil.ValidatePrivateKey([]byte(privateKey), repoURL.SSHUsername, repoURL.URL); !valid {
+						log.Errorf("Could not connect to repository with private key, error: %s", err)
 						return err
 					}
 					return nil
@@ -137,5 +138,5 @@ func PrivateKey(repoURL RepoDetails) (string, string, bool, error) {
 		},
 	}).run()
 
-	return publicKeyPath, privateKeyPath, register, err
+	return publicKey, privateKey, register, err
 }

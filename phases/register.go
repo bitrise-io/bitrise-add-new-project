@@ -4,13 +4,11 @@ import (
 	"bufio"
 	"fmt"
 	"io"
-	"strings"
 
 	"github.com/bitrise-io/bitrise-add-new-project/bitriseio"
 	"github.com/bitrise-io/bitrise-add-new-project/httputil"
 	codesigndocBitriseio "github.com/bitrise-io/codesigndoc/bitriseio"
 	"github.com/bitrise-io/codesigndoc/bitriseio/bitrise"
-	"github.com/bitrise-io/go-utils/fileutil"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/xcode-project/pretty"
 	"gopkg.in/yaml.v2"
@@ -46,28 +44,11 @@ func toRegistrationParams(progress Progress) (*CreateProjectParams, error) {
 	}
 	params.RegisterWebhook = progress.AddWebhook
 
-	if progress.SSHPrivateKeyPth != "" {
-		privateKey, err := fileutil.ReadStringFromFile(progress.SSHPrivateKeyPth)
-		if err != nil {
-			return nil, fmt.Errorf("SSH private key read failed: %s", err)
-		}
-		privateKey = strings.TrimSuffix(privateKey, "\n")
-		privateKey = strings.Replace(privateKey, "OPENSSH", "RSA", -1)
-
-		var publicKey string
-		if progress.RegisterSSHKey {
-			var err error
-			publicKey, err = fileutil.ReadStringFromFile(progress.SSHPublicKeyPth)
-			if err != nil {
-				return nil, fmt.Errorf("SSH public key read failed: %s", err)
-			}
-		}
-
-		params.SSHKey = bitriseio.RegisterSSHKeyParams{
-			AuthSSHPrivateKey:                privateKey,
-			AuthSSHPublicKey:                 publicKey,
-			IsRegisterKeyIntoProviderService: progress.RegisterSSHKey,
-		}
+	params.SSHKey = bitriseio.RegisterSSHKeyParams{
+		AuthSSHPrivateKey:                progress.SSHPrivateKey,
+		AuthSSHPublicKey:                 progress.SSHPublicKey,
+		IsRegisterKeyIntoProviderService: progress.RegisterSSHKey,
+		Username:                         progress.RepoURL.SSHUsername,
 	}
 
 	params.Project = bitriseio.RegisterFinishParams{
@@ -107,9 +88,11 @@ func Register(token string, progress Progress, inputReader io.Reader) error {
 		return err
 	}
 	if !params.Repository.IsPublic && params.SSHKey.AuthSSHPrivateKey != "" {
-		if err := app.RegisterSSHKey(params.SSHKey); err != nil {
+		if err := app.RegisterSSHKey(params.SSHKey, params.Repository.RepoURL); err != nil {
 			return err
 		}
+	} else {
+		log.Printf("Skipping SSH key registration.")
 	}
 
 	if params.RegisterWebhook {

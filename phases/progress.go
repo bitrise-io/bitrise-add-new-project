@@ -9,9 +9,9 @@ type Progress struct {
 
 	RepoURL RepoDetails
 
-	SSHPrivateKeyPth string
-	SSHPublicKeyPth  string
-	RegisterSSHKey   bool
+	SSHPrivateKey  string
+	SSHPublicKey   string
+	RegisterSSHKey bool
 
 	BitriseYML      models.BitriseDataModel
 	PrimaryWorkflow string

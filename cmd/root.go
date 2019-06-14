@@ -92,12 +92,12 @@ func executePhases(cmd cobra.Command) (phases.Progress, error) {
 
 	// ssh key
 	if repoURL.Scheme == phases.SSH {
-		publicKeyPth, privateKeyPth, register, err := phases.PrivateKey(progress.RepoURL)
+		publicKey, privateKey, register, err := phases.PrivateKey(progress.RepoURL)
 		if err != nil {
 			return phases.Progress{}, err
 		}
-		progress.SSHPrivateKeyPth = privateKeyPth
-		progress.SSHPublicKeyPth = publicKeyPth
+		progress.SSHPrivateKey = privateKey
+		progress.SSHPublicKey = publicKey
 		progress.RegisterSSHKey = register
 	}
 
