@@ -23,11 +23,19 @@ func Test_getProvider(t *testing.T) {
 			want:     "github",
 		},
 		{
+			hostName: "gitlab.com",
+			want:     "gitlab",
+		},
+		{
 			hostName: "bitbucket.org",
 			want:     "bitbucket",
 		},
 		{
 			hostName: "github.com.unknown.com",
+			want:     "other",
+		},
+		{
+			hostName: "unknowngithub.com",
 			want:     "other",
 		},
 	}

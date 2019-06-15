@@ -93,24 +93,33 @@ func splitURL(URL *url.URL) (*RepoDetails, error) {
 	}, nil
 }
 
-func setSchemeToHTTPS(URL *url.URL) *url.URL {
-	URL.Scheme = "https"
-	URL.User = nil
-	return URL
+func schemeToHTTPS(URL *url.URL) *url.URL {
+	httpsURL := &url.URL{}
+	*httpsURL = *URL
+	httpsURL.Scheme = "https"
+	httpsURL.User = nil
+	return httpsURL
 }
 
-func setSchemeToSSH(URL *url.URL) *url.URL {
-	URL.Scheme = "ssh"
-	URL.User = url.User("git")
-	return URL
+func schemeToSSH(URL *url.URL) *url.URL {
+	sshURL := &url.URL{}
+	*sshURL = *URL
+	sshURL.Scheme = "ssh"
+	sshURL.User = url.User("git")
+	return sshURL
 }
 
 func getProvider(hostName string) string {
-	if strings.HasSuffix(hostName, "github.com") {
+	hostParts := strings.Split(hostName, ".")
+	if len(hostParts) < 2 {
+		return "other"
+	}
+
+	if hostParts[len(hostParts)-1] == "com" && hostParts[len(hostParts)-2] == "github" {
 		return "github"
-	} else if strings.HasSuffix(hostName, "gitlab.com") {
+	} else if hostParts[len(hostParts)-1] == "com" && hostParts[len(hostParts)-2] == "gitlab" {
 		return "gitlab"
-	} else if strings.HasSuffix(hostName, "bitbucket.org") {
+	} else if hostParts[len(hostParts)-1] == "org" && hostParts[len(hostParts)-2] == "bitbucket" {
 		return "bitbucket"
 	}
 	return "other"
@@ -172,7 +181,7 @@ func Repo(searchDir string, isPublicApp bool) (RepoDetails, error) {
 			log.Donef("Repository (%s) is not public, error: %s", URL.String(), err)
 
 			var err error
-			if alternateSSHRepoDetails, err = splitURL(setSchemeToSSH(URL)); err != nil {
+			if alternateSSHRepoDetails, err = splitURL(schemeToSSH(URL)); err != nil {
 				return RepoDetails{}, err
 			}
 		}
@@ -181,7 +190,7 @@ func Repo(searchDir string, isPublicApp bool) (RepoDetails, error) {
 	// If ssh repository is provided, check the alternate availability with https scheme
 	var alternatePublicRepoDetails *RepoDetails
 	if repoDetails.Scheme == SSH {
-		alternatePublicURL := setSchemeToHTTPS(URL)
+		alternatePublicURL := schemeToHTTPS(URL)
 		log.Infof("Checking if repository %s is public.", alternatePublicURL.String())
 
 		if err := validateRepositoryAvailablePublic(alternatePublicURL.String()); err != nil {
