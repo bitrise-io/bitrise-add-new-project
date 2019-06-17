@@ -40,9 +40,9 @@ type SSHKeyPair struct {
 
 // SSHRepo conmtains information to connect to an SSH git repository
 type SSHRepo struct {
-	Keys       SSHKeyPair
-	Username   string
-	URL        string
+	Keys     SSHKeyPair
+	Username string
+	URL      string
 }
 
 // ValidateSSHAddedManually checks that a generated public key is added to the git service provider

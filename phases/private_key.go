@@ -1,12 +1,14 @@
 package phases
 
 import (
+	"bufio"
 	"bytes"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/bitrise-io/bitrise-add-new-project/sshutil"
@@ -94,13 +96,14 @@ func PrivateKey(repoURL RepoDetails) (sshutil.SSHKeyPair, bool, error) {
 						case additionalAccessNo:
 							return nil
 						case additionalAccessYes:
-							register = false
+							log.Warnf("Copy this SSH public key to your clipboard and add it to any additional Git repository or account!")
+							fmt.Println(string(SSHKeys.PublicKey))
 
-							err = sshutil.ValidateSSHAddedManually(sshutil.SSHRepo{
-								Keys:     SSHKeys,
-								URL:      repoURL.URL,
-								Username: repoURL.SSHUsername,
-							})
+							log.Printf("Hit enter if you have finished with the setup")
+							if _, err := bufio.NewReader(os.Stdin).ReadString('\n'); err != nil {
+								err = fmt.Errorf("failed to read line from input, error: %s", err)
+								return nil
+							}
 							return nil
 						}
 						return nil
