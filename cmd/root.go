@@ -83,12 +83,12 @@ func executePhases(cmd cobra.Command) (phases.Progress, error) {
 	}
 	progress.RepoDetails = repoURL
 
-	log.Donef("REPOSITORY SCANNED. DETAILS:")
-	log.Donef("- url: %s", repoURL.URL)
-	log.Donef("- provider: %s", repoURL.Provider)
-	log.Donef("- owner: %s", repoURL.Owner)
-	log.Donef("- slug: %s", repoURL.Slug)
-	log.Donef("- username: %s", repoURL.SSHUsername)
+	log.Debugf("REPOSITORY SCANNED. DETAILS:")
+	log.Debugf("- url: %s", repoURL.URL)
+	log.Debugf("- provider: %s", repoURL.Provider)
+	log.Debugf("- owner: %s", repoURL.Owner)
+	log.Debugf("- slug: %s", repoURL.Slug)
+	log.Debugf("- username: %s", repoURL.SSHUsername)
 
 	// ssh key
 	if repoURL.Scheme == phases.SSH {
