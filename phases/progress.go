@@ -17,6 +17,7 @@ type Progress struct {
 
 	BitriseYML      models.BitriseDataModel
 	PrimaryWorkflow string
+	Branch          string
 	ProjectType     string
 
 	Stack string

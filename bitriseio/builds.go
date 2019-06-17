@@ -11,7 +11,7 @@ func TriggerBuildURL(appSlug string) string {
 }
 
 // TriggerBuild ...
-func (s *AppService) TriggerBuild(workflowID string) error {
+func (s *AppService) TriggerBuild(workflowID, branch string) error {
 	type HookInfo struct {
 		Type string `json:"type"`
 	}
@@ -26,7 +26,7 @@ func (s *AppService) TriggerBuild(workflowID string) error {
 	p := Params{
 		BuildParams: BuildParams{
 			WorkflowID: workflowID,
-			Branch:     "master",
+			Branch:     branch,
 		},
 		HookInfo: HookInfo{
 			Type: "bitrise",

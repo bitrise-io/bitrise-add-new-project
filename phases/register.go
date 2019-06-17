@@ -22,6 +22,7 @@ type CreateProjectParams struct {
 	Project         bitriseio.RegisterFinishParams
 	BitriseYML      string
 	WorkflowID      string
+	Branch          string
 	Keystore        bitriseio.UploadKeystoreParams
 	KeystorePth     string
 	CodesignIOS     CodesignResultsIOS
@@ -65,6 +66,7 @@ func toRegistrationParams(progress Progress) (*CreateProjectParams, error) {
 	}
 	params.BitriseYML = bitriseYMLstr
 	params.WorkflowID = progress.PrimaryWorkflow
+	params.Branch = progress.Branch
 	return &params, nil
 }
 
@@ -161,7 +163,7 @@ func Register(token string, progress Progress, inputReader io.Reader) error {
 bash -l -c "$(curl -sfL https://raw.githubusercontent.com/bitrise-io/codesigndoc/master/_scripts/install_wrap.sh)"`)
 	}
 
-	if err := app.TriggerBuild(params.WorkflowID); err != nil {
+	if err := app.TriggerBuild(params.WorkflowID, params.Branch); err != nil {
 		return err
 	}
 
