@@ -88,9 +88,13 @@ func Account(apiToken string) (string, error) {
 		choice, err := strconv.Atoi(strings.TrimSpace(input))
 		if err != nil {
 			log.Errorf("error reading choice from stdin: %s", err)
-		} else if !isValid(choice, len(options)) {
+			continue
+		}
+		if !isValid(choice, len(options)) {
 			log.Errorf("invalid choice")
-		} else if choice == 1 {
+			continue
+		}
+		if choice == 1 {
 			// own user selected
 			return "", nil
 		}
