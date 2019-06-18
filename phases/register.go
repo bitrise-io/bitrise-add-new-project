@@ -101,7 +101,7 @@ func Register(token string, progress Progress, inputReader io.Reader) error {
 		return err
 	}
 
-	log.Printf("Provided params:\n%s", pretty.Object(params))
+	log.Debugf("Provided params:\n%s", pretty.Object(params))
 
 	client, err := bitriseio.NewClient(token)
 	if err != nil {
@@ -124,7 +124,7 @@ func Register(token string, progress Progress, inputReader io.Reader) error {
 		return err
 	}
 
-	fmt.Println(pretty.Object(resp))
+	log.Debugf(pretty.Object(resp))
 
 	if err := app.UploadBitriseYML(params.BitriseYML); err != nil {
 		return err
