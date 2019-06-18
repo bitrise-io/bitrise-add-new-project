@@ -18,7 +18,7 @@
   version = "v1.1.0"
 
 [[projects]]
-  digest = "1:7f16d0c48ea1244c77df4367588d9ee36e900e0c1f05d79162d26b75032325e0"
+  digest = "1:af21945d625099a5f5566121aa70987d7d84087064f4b34f376b815cb69cfd29"
   name = "github.com/bitrise-io/bitrise"
   packages = [
     "bitrise",
@@ -33,12 +33,11 @@
     "version",
   ]
   pruneopts = "UT"
-  revision = "a7523d99944aaf56c644dec41f374f746db9a453"
-  version = "1.29.0"
+  revision = "f7458dd6a6c5612fd3e92ab021fb7f18a7d0abc4"
+  version = "1.31.0"
 
 [[projects]]
-  branch = "master"
-  digest = "1:eda12fe75bde75c4035bb4f4d88663b30c36119e27648078593cb97afa11b87f"
+  digest = "1:311b271339b4711660ffd2a1a327303a664d76c71d6e28ee26260b477762b7f5"
   name = "github.com/bitrise-io/bitrise-init"
   packages = [
     "models",
@@ -59,11 +58,12 @@
     "utility",
   ]
   pruneopts = "UT"
-  revision = "98de288741fef66c2b75874123a966250612a172"
+  revision = "ab4737bb343acb1b20de334c919e06aa62d23818"
+  version = "2.1.3"
 
 [[projects]]
   branch = "master"
-  digest = "1:14b0e2c7209653786c5ced8f472ef8bb6ddc645b87ba26f9bb07747c32eeb835"
+  digest = "1:c3dae6026ad96380b701a9d501a66a234310853aa1d497e7a8dba2d99ae6fddd"
   name = "github.com/bitrise-io/codesigndoc"
   packages = [
     "bitriseio",
@@ -76,7 +76,7 @@
     "xcode",
   ]
   pruneopts = "UT"
-  revision = "55553b08827faf2cadfeb3fb91584cac7fedcd4a"
+  revision = "3f16f92f01bbb04b07fc631a4d833fbe7076d9e4"
 
 [[projects]]
   branch = "master"
@@ -84,7 +84,7 @@
   name = "github.com/bitrise-io/envman"
   packages = ["models"]
   pruneopts = "UT"
-  revision = "1716460e0651c3f40b9542f9e237b9a3d35773bb"
+  revision = "eb2e53257e527de59351cec1ecdffb50dadd5a07"
 
 [[projects]]
   branch = "master"
@@ -111,7 +111,7 @@
     "versions",
   ]
   pruneopts = "UT"
-  revision = "8898129615c9e407fc6b0e60ea882f2b18ec4dc2"
+  revision = "7a4402b387ebcdf3e2a0aa3b18d4c8636768f9a0"
 
 [[projects]]
   branch = "master"
@@ -133,11 +133,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:094419e25266ad87ac9eec38043f314f474c81f6b1bb7f4ca11cc7fe5a5d9c2d"
+  digest = "1:980e760f25b82cb4ffe32b146956029f1f5c8bea3c39f9f973cc023d4ae965b1"
   name = "github.com/bitrise-io/goinp"
   packages = ["goinp"]
   pruneopts = "UT"
-  revision = "c9a4dac0f9b3539bbbeb10eece5c3f03d0ec3ea0"
+  revision = "bd18a8681e272db4696c50152b288f722d08b914"
 
 [[projects]]
   branch = "master"
@@ -153,7 +153,7 @@
   name = "github.com/bitrise-io/stepman"
   packages = ["models"]
   pruneopts = "UT"
-  revision = "050220145c5a1c555ae67c6f62677d95eb46ed26"
+  revision = "af0e468635253eaf3a66dca748af4a5966d161b1"
 
 [[projects]]
   branch = "master"
@@ -169,6 +169,21 @@
   ]
   pruneopts = "UT"
   revision = "5929ad85d89233b3296d2d795e068a656db7fb25"
+
+[[projects]]
+  digest = "1:b498b36dbb2b306d1c5205ee5236c9e60352be8f9eea9bf08186723a9f75b4f3"
+  name = "github.com/emirpasic/gods"
+  packages = [
+    "containers",
+    "lists",
+    "lists/arraylist",
+    "trees",
+    "trees/binaryheap",
+    "utils",
+  ]
+  pruneopts = "UT"
+  revision = "1615341f118ae12f353cc8a983f35b584342c9b3"
+  version = "v1.12.0"
 
 [[projects]]
   branch = "master"
@@ -195,12 +210,44 @@
   version = "v1.0"
 
 [[projects]]
+  branch = "master"
+  digest = "1:62fe3a7ea2050ecbd753a71889026f83d73329337ada66325cbafd5dea5f713d"
+  name = "github.com/jbenet/go-context"
+  packages = ["io"]
+  pruneopts = "UT"
+  revision = "d14ea06fba99483203c19d92cfcd13ebe73135f4"
+
+[[projects]]
+  digest = "1:ae5f4d0779a45e2cb3075d8b3ece6c623e171407f4aac83521392ff06d188871"
+  name = "github.com/kevinburke/ssh_config"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "81db2a75821ed34e682567d48be488a1c3121088"
+  version = "0.5"
+
+[[projects]]
   digest = "1:31e761d97c76151dde79e9d28964a812c46efc5baee4085b86f68f0c654450de"
   name = "github.com/konsorten/go-windows-terminal-sequences"
   packages = ["."]
   pruneopts = "UT"
   revision = "f55edac94c9bbba5d6182a4be46d86a2c9b5b50e"
   version = "v1.0.2"
+
+[[projects]]
+  digest = "1:5d231480e1c64a726869bc4142d270184c419749d34f167646baa21008eb0a79"
+  name = "github.com/mitchellh/go-homedir"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "af06845cf3004701891bf4fdb884bfe4920b3727"
+  version = "v1.1.0"
+
+[[projects]]
+  digest = "1:b2ee62e09bec113cf086d2ce0769efcc7bf79481aba8373fd8f7884e94df3462"
+  name = "github.com/pelletier/go-buffruneio"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "c37440a7cf42ac63b919c752ca73a85067e05992"
+  version = "v0.2.0"
 
 [[projects]]
   digest = "1:cf31692c14422fa27c83a05292eb5cbe0fb2775972e8f1f8446a71549bd8980b"
@@ -219,12 +266,20 @@
   revision = "51a8f68e6c24dc43f1e371749c89a267de4ebc53"
 
 [[projects]]
-  digest = "1:22799aea8fe96dd5693abdd1eaa14b1b29e3eafbdc7733fa155b3cb556c8a7ae"
+  digest = "1:d917313f309bda80d27274d53985bc65651f81a5b66b820749ac7f8ef061fd04"
+  name = "github.com/sergi/go-diff"
+  packages = ["diffmatchpatch"]
+  pruneopts = "UT"
+  revision = "1744e2970ca51c86172c8190fadad617561ed6e7"
+  version = "v1.0.0"
+
+[[projects]]
+  digest = "1:e096613fb7cf34743d49af87d197663cfccd61876e2219853005a57baedfa562"
   name = "github.com/spf13/cobra"
   packages = ["."]
   pruneopts = "UT"
-  revision = "67fc4837d267bc9bfd6e47f77783fcc3dffc68de"
-  version = "v0.0.4"
+  revision = "f2b07da1e2c38d5f12845a4f607e2e1018cbb1f5"
+  version = "v0.0.5"
 
 [[projects]]
   digest = "1:c1b1102241e7f645bc8e0c22ae352e8f0dc6484b6cb4d132fa9f24174e0119e2"
@@ -235,23 +290,71 @@
   version = "v1.0.3"
 
 [[projects]]
-  branch = "master"
-  digest = "1:bbe51412d9915d64ffaa96b51d409e070665efc5194fcf145c4a27d4133107a4"
-  name = "golang.org/x/crypto"
-  packages = ["ssh/terminal"]
+  digest = "1:e4ed0afd67bf7be353921665cdac50834c867ff1bba153efc0745b755a7f5905"
+  name = "github.com/src-d/gcfg"
+  packages = [
+    ".",
+    "scanner",
+    "token",
+    "types",
+  ]
   pruneopts = "UT"
-  revision = "f99c8df09eb5bff426315721bfa5f16a99cad32c"
+  revision = "1ac3a1ac202429a54835fe8408a92880156b489d"
+  version = "v1.4.0"
+
+[[projects]]
+  digest = "1:172f94a6b3644a8f9e6b5e5b7fc9fe1e42d424f52a0300b2e7ab1e57db73f85d"
+  name = "github.com/xanzy/ssh-agent"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "6a3e2ff9e7c564f36873c2e36413f634534f1c44"
+  version = "v0.2.1"
 
 [[projects]]
   branch = "master"
-  digest = "1:98d02d01de1a49eec5a1f5ec479e522ab4e98ffc6a5488f27bd55b56e570338c"
+  digest = "1:6e4f2858c46c0c1dbf7e050cb41e3b600b5cd36459a3a545dcc9a7b2a0e5c4d4"
+  name = "golang.org/x/crypto"
+  packages = [
+    "cast5",
+    "curve25519",
+    "ed25519",
+    "ed25519/internal/edwards25519",
+    "internal/chacha20",
+    "internal/subtle",
+    "openpgp",
+    "openpgp/armor",
+    "openpgp/elgamal",
+    "openpgp/errors",
+    "openpgp/packet",
+    "openpgp/s2k",
+    "poly1305",
+    "ssh",
+    "ssh/agent",
+    "ssh/knownhosts",
+    "ssh/terminal",
+  ]
+  pruneopts = "UT"
+  revision = "5c40567a22f818bd14a1ea7245dad9f8ef0691aa"
+
+[[projects]]
+  branch = "master"
+  digest = "1:76ee51c3f468493aff39dbacc401e8831fbb765104cbf613b89bef01cf4bad70"
+  name = "golang.org/x/net"
+  packages = ["context"]
+  pruneopts = "UT"
+  revision = "3f473d35a33aa6fdd203e306dc439b797820e3f1"
+
+[[projects]]
+  branch = "master"
+  digest = "1:045752b84cd0934fbbd44c90af093cce9b4579be1962f7e401fe672132a2627a"
   name = "golang.org/x/sys"
   packages = [
+    "cpu",
     "unix",
     "windows",
   ]
   pruneopts = "UT"
-  revision = "7fc4e5ec1444df20dd195ae7c3bbfcd7114d3faa"
+  revision = "5ed2794edfdc1c54dfb61d619c5944285f35d444"
 
 [[projects]]
   digest = "1:1093f2eb4b344996604f7d8b29a16c5b22ab9e1b25652140d3fede39f640d5cd"
@@ -267,6 +370,78 @@
   pruneopts = "UT"
   revision = "342b2e1fbaa52c93f31447ad2c6abc048c63e475"
   version = "v0.3.2"
+
+[[projects]]
+  digest = "1:866df945fc92cd221d2b384dca7de5f3131a6113b9f72a7a8019ae5046abe828"
+  name = "gopkg.in/src-d/go-billy.v4"
+  packages = [
+    ".",
+    "helper/chroot",
+    "helper/polyfill",
+    "osfs",
+    "util",
+  ]
+  pruneopts = "UT"
+  revision = "982626487c60a5252e7d0b695ca23fb0fa2fd670"
+  version = "v4.3.0"
+
+[[projects]]
+  digest = "1:7fcf8681ff737e3fa6b387448717283c2053058c5d7344c22a9a025b0dc5be4a"
+  name = "gopkg.in/src-d/go-git.v4"
+  packages = [
+    ".",
+    "config",
+    "internal/revision",
+    "internal/url",
+    "plumbing",
+    "plumbing/cache",
+    "plumbing/filemode",
+    "plumbing/format/config",
+    "plumbing/format/diff",
+    "plumbing/format/gitignore",
+    "plumbing/format/idxfile",
+    "plumbing/format/index",
+    "plumbing/format/objfile",
+    "plumbing/format/packfile",
+    "plumbing/format/pktline",
+    "plumbing/object",
+    "plumbing/protocol/packp",
+    "plumbing/protocol/packp/capability",
+    "plumbing/protocol/packp/sideband",
+    "plumbing/revlist",
+    "plumbing/storer",
+    "plumbing/transport",
+    "plumbing/transport/client",
+    "plumbing/transport/file",
+    "plumbing/transport/git",
+    "plumbing/transport/http",
+    "plumbing/transport/internal/common",
+    "plumbing/transport/server",
+    "plumbing/transport/ssh",
+    "storage",
+    "storage/filesystem",
+    "storage/filesystem/dotgit",
+    "storage/memory",
+    "utils/binary",
+    "utils/diff",
+    "utils/ioutil",
+    "utils/merkletrie",
+    "utils/merkletrie/filesystem",
+    "utils/merkletrie/index",
+    "utils/merkletrie/internal/frame",
+    "utils/merkletrie/noder",
+  ]
+  pruneopts = "UT"
+  revision = "aa6f288c256ff8baf8a7745546a9752323dc0d89"
+  version = "v4.11.0"
+
+[[projects]]
+  digest = "1:78d374b493e747afa9fbb2119687e3740a7fb8d0ebabddfef0a012593aaecbb3"
+  name = "gopkg.in/warnings.v0"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "ec4a0fea49c7b46c2aeb0b51aac55779c607e52b"
+  version = "v0.1.2"
 
 [[projects]]
   digest = "1:4d2e5a73dc1500038e504a8d78b986630e3626dc027bc030ba5c75da257cdb96"
@@ -299,10 +474,10 @@
     "github.com/bitrise-io/envman/models",
     "github.com/bitrise-io/go-utils/colorstring",
     "github.com/bitrise-io/go-utils/command",
-    "github.com/bitrise-io/go-utils/errorutil",
     "github.com/bitrise-io/go-utils/fileutil",
     "github.com/bitrise-io/go-utils/log",
     "github.com/bitrise-io/go-utils/pathutil",
+    "github.com/bitrise-io/go-utils/retry",
     "github.com/bitrise-io/go-utils/sliceutil",
     "github.com/bitrise-io/goinp/goinp",
     "github.com/bitrise-io/xcode-project/pretty",
@@ -312,6 +487,9 @@
     "github.com/pkg/errors",
     "github.com/spf13/cobra",
     "golang.org/x/crypto/ssh/terminal",
+    "gopkg.in/src-d/go-git.v4",
+    "gopkg.in/src-d/go-git.v4/plumbing/transport/ssh",
+    "gopkg.in/src-d/go-git.v4/storage/memory",
     "gopkg.in/yaml.v2",
   ]
   solver-name = "gps-cdcl"

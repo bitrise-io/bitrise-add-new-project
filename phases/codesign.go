@@ -284,7 +284,7 @@ func askXcodeProjectScheme(path string) (string, error) {
 		return "", fmt.Errorf("no schemes found in project")
 	}
 
-	selectedScheme, err := goinp.AskOptions("Select scheme:", schemeNames[0], false, schemeNames...)
+	selectedScheme, err := goinp.SelectFromStringsWithDefault("Select scheme:", 0, schemeNames)
 	if err != nil {
 		return "", err
 	}

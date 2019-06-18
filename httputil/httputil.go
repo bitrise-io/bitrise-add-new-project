@@ -37,3 +37,10 @@ func PrintResponse(response *http.Response) error {
 
 	return nil
 }
+
+// IsUserFixable returns true if statusCode is a value
+// that is deemed retryable, i.e. something that could
+// be fixed by the user.
+func IsUserFixable(statusCode int) bool {
+	return statusCode == 400 || statusCode == 401
+}

@@ -1,46 +1,74 @@
 package phases
 
 import (
+	"bufio"
+	"bytes"
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/x509"
+	"encoding/pem"
 	"fmt"
-	"io/ioutil"
-	"path/filepath"
+	"os"
+	"strings"
 
-	"github.com/bitrise-io/go-utils/command"
+	"github.com/bitrise-io/bitrise-add-new-project/sshutil"
+	"github.com/bitrise-io/go-utils/fileutil"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
-	"github.com/pkg/errors"
+	"github.com/bitrise-io/go-utils/retry"
+	"golang.org/x/crypto/ssh"
 )
 
-func generateSSHKey() (string, string, error) {
-	tempDir, err := pathutil.NormalizedOSTempDirPath("_key_")
+func readPrivateKey(keyFilePath string) ([]byte, error) {
+	privateKey, err := fileutil.ReadStringFromFile(keyFilePath)
 	if err != nil {
-		return "", "", err
+		return nil, fmt.Errorf("SSH private key read failed: %s", err)
+	}
+	privateKey = strings.TrimSuffix(privateKey, "\n")
+	privateKey = strings.Replace(privateKey, "OPENSSH", "RSA", -1)
+	return []byte(privateKey), nil
+}
+
+func generateSSHKey() (sshutil.SSHKeyPair, error) {
+	privateKey, err := rsa.GenerateKey(rand.Reader, 4096)
+	if err != nil {
+		return sshutil.SSHKeyPair{}, err
 	}
 
-	keyFilePath := filepath.Join(tempDir, "key")
-
-	cmd := command.New("ssh-keygen", "-q", "-t", "rsa", "-b", "2048", "-C", "builds@bitrise.io", "-P", "", "-f", keyFilePath, "-m", "PEM")
-	if out, err := cmd.RunAndReturnTrimmedCombinedOutput(); err != nil {
-		return "", "", errors.Wrap(fmt.Errorf("failed to run command: %s, error: %s", cmd.PrintableCommandArgs(), err), out)
+	var privateKeyPEM bytes.Buffer
+	privateKeyBlock := &pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(privateKey)}
+	if err := pem.Encode(&privateKeyPEM, privateKeyBlock); err != nil {
+		return sshutil.SSHKeyPair{}, err
 	}
 
-	return keyFilePath + ".pub", keyFilePath, nil
+	publicKey, err := ssh.NewPublicKey(&privateKey.PublicKey)
+	if err != nil {
+		return sshutil.SSHKeyPair{}, err
+	}
+
+	publicKeyString := strings.TrimSuffix(string(ssh.MarshalAuthorizedKey(publicKey)), "\n")
+	publicKeyString = publicKeyString + " builds@bitrise.io\n"
+
+	return sshutil.SSHKeyPair{
+		PrivateKey: privateKeyPEM.Bytes(),
+		PublicKey:  []byte(publicKeyString),
+	}, nil
 }
 
 // PrivateKey ...
-func PrivateKey() (string, string, bool, error) {
+func PrivateKey(repoURL RepoDetails) (sshutil.SSHKeyPair, bool, error) {
 	log.Infof("Setup repository access")
 	fmt.Println()
 
 	var (
-		err                           error
-		register                      bool
-		publicKeyPath, privateKeyPath string
+		err      error
+		register bool
+		SSHKeys  sshutil.SSHKeyPair
 	)
 
 	const (
 		methodTitle  = "Specify how Bitrise will be able to access the source code"
-		methodAuto   = "Automatic"
+		methodAuto   = "Automatic (Git provider must be connected at: https://app.bitrise.io/me/profile or will fall back to manual registration.)"
 		methodManual = "Add own SSH"
 	)
 	(&option{
@@ -56,10 +84,10 @@ func PrivateKey() (string, string, bool, error) {
 			switch answer {
 			case methodAuto:
 				register = true
-				publicKeyPath, privateKeyPath, err = generateSSHKey()
-				if err != nil {
+				if SSHKeys, err = generateSSHKey(); err != nil {
 					return nil
 				}
+
 				return &option{
 					title:        additionalAccessTitle,
 					valueOptions: []string{additionalAccessNo, additionalAccessYes},
@@ -68,37 +96,52 @@ func PrivateKey() (string, string, bool, error) {
 						case additionalAccessNo:
 							return nil
 						case additionalAccessYes:
-							log.Warnf("Copy this SSH public key to your clipboard and add it to your Github repository or account!")
-							content, readErr := ioutil.ReadFile(publicKeyPath)
-							if readErr != nil {
-								err = readErr
+							log.Warnf("Copy this SSH public key to your clipboard and add it to any additional Git repository or account!")
+							fmt.Println(string(SSHKeys.PublicKey))
+
+							log.Printf("Hit enter if you have finished with the setup")
+							if _, err := bufio.NewReader(os.Stdin).ReadString('\n'); err != nil {
+								err = fmt.Errorf("failed to read line from input, error: %s", err)
 								return nil
 							}
-							fmt.Println(string(content))
-							return &option{
-								title: "Hit enter if you have finished with the setup",
-								action: func(_ string) *option {
-									return nil
-								},
-							}
+							return nil
 						}
 						return nil
 					},
 				}
 			case methodManual:
 				register = false
-				publicKeyPath = ""
-				return &option{
-					title: privateKeyPathTitle,
-					action: func(answer string) *option {
-						privateKeyPath = answer
-						return nil
-					},
-				}
+				SSHKeys.PublicKey = nil
+
+				err = retry.Times(3).Try(func(attempt uint) error {
+					var privateKeyPath string
+					(&option{
+						title: privateKeyPathTitle,
+						action: func(answer string) *option {
+							privateKeyPath, err = pathutil.AbsPath(answer)
+							if err != nil {
+								log.Errorf("could not expand path (%s) to full path: %s", answer, err)
+							}
+							return nil
+						},
+					}).run()
+
+					SSHKeys.PrivateKey, err = readPrivateKey(privateKeyPath)
+					if err != nil {
+						return err
+					}
+
+					var valid bool
+					if valid, err = sshutil.ValidatePrivateKey(SSHKeys.PrivateKey, repoURL.SSHUsername, repoURL.URL); !valid {
+						log.Errorf("Could not connect to repository with private key, error: %s", err)
+						return err
+					}
+					return nil
+				})
 			}
 			return nil
 		},
 	}).run()
 
-	return publicKeyPath, privateKeyPath, register, err
+	return SSHKeys, register, err
 }

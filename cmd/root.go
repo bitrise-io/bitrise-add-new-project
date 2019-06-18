@@ -67,32 +67,41 @@ func executePhases(cmd cobra.Command) (phases.Progress, error) {
 		progress.Public = public
 	}
 
-	// repo
-	repoDetails, err := phases.Repo(progress.Public)
-	if err != nil {
-		return phases.Progress{}, err
-	}
-
-	progress.RepoURL = repoDetails.URL
-	progress.RepoProvider = repoDetails.Provider
-	progress.RepoOwner = repoDetails.Owner
-	progress.RepoSlug = repoDetails.Slug
-
-	// ssh key
-	publicKeyPth, privateKeyPth, register, err := phases.PrivateKey()
-	if err != nil {
-		return phases.Progress{}, err
-	}
-	progress.SSHPrivateKeyPth = privateKeyPth
-	progress.SSHPublicKeyPth = publicKeyPth
-	progress.RegisterSSHKey = register
-
-	// bitrise.yml
+	// Search dir
 	currentDir, err := filepath.Abs(".")
 	if err != nil {
 		return phases.Progress{}, fmt.Errorf("failed to get current directory, error: %s", err)
 	}
-	bitriseYML, primaryWorkflow, err := phases.BitriseYML(currentDir)
+
+	// repo
+	log.Infof("SCANNING WORKDIR FOR GIT REPO")
+	log.Infof("=============================")
+
+	repoURL, err := phases.Repo(currentDir, progress.Public)
+	if err != nil {
+		return phases.Progress{}, err
+	}
+	progress.RepoDetails = repoURL
+
+	log.Donef("REPOSITORY SCANNED. DETAILS:")
+	log.Donef("- url: %s", repoURL.URL)
+	log.Donef("- provider: %s", repoURL.Provider)
+	log.Donef("- owner: %s", repoURL.Owner)
+	log.Donef("- slug: %s", repoURL.Slug)
+	log.Donef("- username: %s", repoURL.SSHUsername)
+
+	// ssh key
+	if repoURL.Scheme == phases.SSH {
+		SSHKeys, register, err := phases.PrivateKey(progress.RepoDetails)
+		if err != nil {
+			return phases.Progress{}, err
+		}
+		progress.SSHKeys = SSHKeys
+		progress.RegisterSSHKey = register
+	}
+
+	// bitrise.yml
+	branch, bitriseYML, primaryWorkflow, err := phases.BitriseYML(currentDir)
 	if err != nil {
 		return phases.Progress{}, err
 	}
@@ -102,6 +111,7 @@ func executePhases(cmd cobra.Command) (phases.Progress, error) {
 	}
 	progress.BitriseYML = bitriseYML
 	progress.PrimaryWorkflow = primaryWorkflow
+	progress.Branch = branch
 	progress.ProjectType = projectType
 
 	// stack
@@ -137,7 +147,7 @@ func run(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	if err := phases.Register(cmdFlagAPIToken, progress); err != nil {
+	if err := phases.Register(cmdFlagAPIToken, progress, os.Stdin); err != nil {
 		fmt.Println("failed to add Bitrise app, error:", err)
 		os.Exit(1)
 	}
