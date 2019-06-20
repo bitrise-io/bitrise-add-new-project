@@ -152,7 +152,6 @@ func validateRepositoryAvailablePublic(url string) error {
 // https clone url will be used.
 func Repo(searchDir string, isPublicApp bool) (RepoDetails, error) {
 	log.Infof("SCANNING WORKDIR FOR GIT REPO")
-	log.Infof("=============================")
 
 	// Open local git repository
 	repo, err := git.PlainOpen(searchDir)
