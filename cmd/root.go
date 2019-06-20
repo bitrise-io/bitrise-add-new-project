@@ -74,21 +74,11 @@ func executePhases(cmd cobra.Command) (phases.Progress, error) {
 	}
 
 	// repo
-	log.Infof("SCANNING WORKDIR FOR GIT REPO")
-	log.Infof("=============================")
-
 	repoURL, err := phases.Repo(currentDir, progress.Public)
 	if err != nil {
 		return phases.Progress{}, err
 	}
 	progress.RepoDetails = repoURL
-
-	log.Debugf("REPOSITORY SCANNED. DETAILS:")
-	log.Debugf("- url: %s", repoURL.URL)
-	log.Debugf("- provider: %s", repoURL.Provider)
-	log.Debugf("- owner: %s", repoURL.Owner)
-	log.Debugf("- slug: %s", repoURL.Slug)
-	log.Debugf("- username: %s", repoURL.SSHUsername)
 
 	// ssh key
 	if repoURL.Scheme == phases.SSH {

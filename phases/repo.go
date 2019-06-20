@@ -36,6 +36,15 @@ type RepoDetails struct {
 	SSHUsername string
 }
 
+func logRepoDetailsResult(repoURL repoDetails) string {
+	log.Debugf("REPOSITORY SCANNED. DETAILS:")
+	log.Debugf("- url: %s", repoURL.URL)
+	log.Debugf("- provider: %s", repoURL.Provider)
+	log.Debugf("- owner: %s", repoURL.Owner)
+	log.Debugf("- slug: %s", repoURL.Slug)
+	log.Debugf("- username: %s", repoURL.SSHUsername)
+}
+
 const urlPathSeperator = "/"
 
 func parseURL(cloneURL string) (*url.URL, error) {
@@ -142,6 +151,9 @@ func validateRepositoryAvailablePublic(url string) error {
 // directory. If the Project visibility was set to public, the
 // https clone url will be used.
 func Repo(searchDir string, isPublicApp bool) (RepoDetails, error) {
+	log.Infof("SCANNING WORKDIR FOR GIT REPO")
+	log.Infof("=============================")
+
 	// Open local git repository
 	repo, err := git.PlainOpen(searchDir)
 	if err != nil {
@@ -231,9 +243,11 @@ func Repo(searchDir string, isPublicApp bool) (RepoDetails, error) {
 	if isPublicApp {
 		switch auth {
 		case HTTPSPublic:
+			logRepoDetailsResult(*repoDetails)
 			return *repoDetails, nil
 		case SSHWithPublicAlternate:
 			log.Donef("Using alternate public URL: %s", alternatePublicRepoDetails.URL)
+			logRepoDetailsResult(*repoDetails)
 			return *alternatePublicRepoDetails, nil
 		case HTTPSAuth:
 			fallthrough
@@ -244,24 +258,29 @@ func Repo(searchDir string, isPublicApp bool) (RepoDetails, error) {
 			return RepoDetails{}, fmt.Errorf("invalid state")
 		}
 	}
-
+	
 	// Private Bitrise app
 	switch auth {
 	case HTTPSPublic:
+		logRepoDetailsResult(*repoDetails)
 		return *repoDetails, nil
 	case SSHWithPublicAlternate:
 		result, err := goinp.SelectFromStringsWithDefault("Select repository URL:", 1, []string{alternatePublicRepoDetails.URL, repoDetails.URL})
 		if err != nil {
 			return RepoDetails{}, err
 		}
-
+		
 		if result == repoDetails.URL {
+			logRepoDetailsResult(*repoDetails)
 			return *repoDetails, nil
 		}
+		logRepoDetailsResult(*alternatePublicRepoDetails)
 		return *alternatePublicRepoDetails, nil
 	case HTTPSAuth:
+		logRepoDetailsResult(*alternatePublicRepoDetails)
 		return *alternateSSHRepoDetails, nil
 	case SSH:
+		logRepoDetailsResult(*repoDetails)
 		return *repoDetails, nil
 	default:
 		return RepoDetails{}, fmt.Errorf("invalid state")
