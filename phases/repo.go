@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/bitrise-io/go-utils/log"
-	"github.com/bitrise-io/goinp/goinp"
+	"github.com/manifoldco/promptui"
 	git "gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/storage/memory"
 )
@@ -36,7 +36,7 @@ type RepoDetails struct {
 	SSHUsername string
 }
 
-func logRepoDetailsResult(repoURL repoDetails) string {
+func logRepoDetailsResult(repoURL RepoDetails) {
 	log.Debugf("REPOSITORY SCANNED. DETAILS:")
 	log.Debugf("- url: %s", repoURL.URL)
 	log.Debugf("- provider: %s", repoURL.Provider)
@@ -264,9 +264,14 @@ func Repo(searchDir string, isPublicApp bool) (RepoDetails, error) {
 		logRepoDetailsResult(*repoDetails)
 		return *repoDetails, nil
 	case SSHWithPublicAlternate:
-		result, err := goinp.SelectFromStringsWithDefault("Select repository URL:", 1, []string{alternatePublicRepoDetails.URL, repoDetails.URL})
+		prompt := promptui.Select{
+			Label: "Select repository URL:",
+			Items: []string{alternatePublicRepoDetails.URL, repoDetails.URL},
+		}
+
+		_, result, err := prompt.Run()
 		if err != nil {
-			return RepoDetails{}, err
+			return RepoDetails{}, fmt.Errorf("scan user input: %s", err)
 		}
 		
 		if result == repoDetails.URL {
