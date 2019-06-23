@@ -1,12 +1,10 @@
 package phases
 
 import (
-	"bufio"
-	"os"
-	"strconv"
-	"strings"
+	"fmt"
 
 	"github.com/bitrise-io/go-utils/log"
+	"github.com/manifoldco/promptui"
 )
 
 const (
@@ -17,34 +15,18 @@ const (
 // IsPublic returns the whether the Bitrise project
 // should be public or not.
 func IsPublic() (bool, error) {
-	options := []string{optPrivate, optPublic}
-
+	items := []string{optPrivate, optPublic}
+	
 	log.Infof("SET THE PRIVACY OF THE APP")
-	log.Infof("==========================")
-	for i, opt := range options {
-		log.Printf("%d) %s", i+1, opt)
+	prompt := promptui.Select{
+		Label: "Choose who can see you app logs and configs on bitrise.io",
+		Items: items,
+	}
+	
+	_, visibility, err := prompt.Run()
+	if err != nil {
+		return false, fmt.Errorf("scan user input: %s", err)
 	}
 
-	for {
-		log.Warnf("CHOOSE THE VISIBILITY: ")
-
-		reader := bufio.NewReader(os.Stdin)
-		input, err := reader.ReadString('\n')
-		if err != nil {
-			log.Errorf("error reading choice from stdin: %s", err)
-			continue
-		}
-
-		choice, err := strconv.Atoi(strings.TrimSpace(input))
-		if err != nil {
-			log.Errorf("error reading choice from stdin: %s", err)
-			continue
-		}
-		if !isValid(choice, len(options)) {
-			log.Errorf("invalid choice")
-			continue
-		}
-
-		return options[choice-1] == optPublic, nil
-	}
+	return visibility == optPublic, nil
 }
