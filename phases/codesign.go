@@ -7,7 +7,7 @@ import (
 	"github.com/bitrise-io/codesigndoc/models"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/sliceutil"
-	"github.com/bitrise-io/goinp/goinp"
+	"github.com/manifoldco/promptui"
 	"runtime"
 )
 
@@ -54,14 +54,23 @@ func AutoCodesign(bitriseYML bitriseModels.BitriseDataModel, searchDir string) (
 	log.Donef("Project type: %s", bitriseYML.ProjectType)
 	fmt.Println()
 
+	const (
+		answerYes = "yes"
+		answerNo  = "no"
+	)
+
 	var result CodesignResult
 	if runtime.GOOS == "darwin" && isIOSCodesign(bitriseYML.ProjectType) {
-		uploadIOS, err := goinp.AskForBoolWithDefault("Do you want to export and upload iOS codesigning files?", true)
+		prompt := promptui.Select{
+			Label: "Do you want to export and upload iOS codesigning files?",
+			Items: []string{answerYes, answerNo},
+		}
+		_, uploadIOS, err := prompt.Run()
 		if err != nil {
-			return CodesignResult{}, err
+			return CodesignResult{}, fmt.Errorf("scan user input: %s", err)
 		}
 
-		if uploadIOS {
+		if uploadIOS == answerYes {
 			log.Infof("Exporting iOS codesigning files.")
 
 			var err error
@@ -69,11 +78,15 @@ func AutoCodesign(bitriseYML bitriseModels.BitriseDataModel, searchDir string) (
 				result.IOS, err = iosCodesign(bitriseYML, searchDir)
 				if err != nil {
 					log.Warnf("Failed to export iOS codesigning files, error: %s", err)
-					isRetry, err := goinp.AskForBoolWithDefault("Retry exporting iOS codesigning files?", true)
-					if err != nil {
-						return CodesignResult{}, err
+					prompt := promptui.Select{
+						Label: "Retry exporting iOS codesigning files?",
+						Items: []string{answerYes, answerNo},
 					}
-					if isRetry {
+					_, isRetry, err := prompt.Run()
+					if err != nil {
+						return CodesignResult{}, fmt.Errorf("scan user input: %s", err)
+					}
+					if isRetry == answerYes {
 						continue
 					}
 				}
@@ -83,41 +96,50 @@ func AutoCodesign(bitriseYML bitriseModels.BitriseDataModel, searchDir string) (
 	}
 
 	if isAndroidCodesign(bitriseYML.ProjectType) {
-		uploadAndroid, err := goinp.AskForBoolWithDefault("Do you want to upload an Android keystore file?", true)
+		prmpt := promptui.Select{
+			Label: "Do you want to upload an Android keystore file?",
+			Items: []string{answerYes, answerNo},
+		}
+		_, uploadAndroid, err := prmpt.Run()
 		if err != nil {
-			return CodesignResult{}, err
+			return CodesignResult{}, fmt.Errorf("scan user input: %s", err)
 		}
 
-		if uploadAndroid {
-			(&option{
-				title: "Enter key store path",
-				action: func(answer string) *option {
-					result.Android.KeystorePath = answer
-					return nil
-				}}).run()
+		if uploadAndroid == answerYes{
+			prompt := promptui.Prompt{
+				Label: "Enter key store path",
+			}
 
-			(&option{
-				title:  "Enter key store password",
-				secret: true,
-				action: func(answer string) *option {
-					result.Android.Password = answer
-					return nil
-				}}).run()
+			result.Android.KeystorePath, err = prompt.Run()
+			if err != nil {
+				return CodesignResult{}, fmt.Errorf("scan user input: %s", err)
+			}
 
-			(&option{
-				title: "Enter key alias",
-				action: func(answer string) *option {
-					result.Android.Alias = answer
-					return nil
-				}}).run()
+			prompt = promptui.Prompt{
+				Label: "Enter key store password",
+			}
+			result.Android.Password, err = prompt.Run()
+			if err != nil {
+				return CodesignResult{}, fmt.Errorf("scan user input: %s", err)
+			}
 
-			(&option{
-				title:  "Enter key password",
-				secret: true,
-				action: func(answer string) *option {
-					result.Android.KeyPassword = answer
-					return nil
-				}}).run()
+			prompt = promptui.Prompt{
+				Label: "Enter key alias",
+			}
+			result.Android.Alias, err = prompt.Run()
+			if err != nil {
+				return CodesignResult{}, fmt.Errorf("scan user input: %s", err)
+			}
+
+			prompt = promptui.Prompt{
+				Label: "Enter key password",
+				Mask: '*',
+			}
+				
+			result.Android.KeyPassword, err = prompt.Run()
+			if err != nil {
+				return CodesignResult{}, fmt.Errorf("scan user input: %s", err)
+			}
 		}
 	}
 

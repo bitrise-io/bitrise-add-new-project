@@ -12,10 +12,10 @@ import (
 	"github.com/bitrise-io/go-utils/colorstring"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
-	"github.com/bitrise-io/goinp/goinp"
 	"github.com/bitrise-io/xcode-project/xcodeproj"
 	"github.com/bitrise-io/xcode-project/xcscheme"
 	"github.com/bitrise-io/xcode-project/xcworkspace"
+	"github.com/manifoldco/promptui"
 )
 
 func iosCodesign(bitriseYML bitriseModels.BitriseDataModel, searchDir string) (CodesignResultsIOS, error) {
@@ -88,7 +88,10 @@ func askXcodeProjectPath() (string, error) {
 		askText := `Please drag-and-drop your Xcode Project (` + colorstring.Green(".xcodeproj") + `) or Workspace (` + colorstring.Green(".xcworkspace") + `) file, 
 the one you usually open in Xcode, then hit Enter.
 (Note: if you have a Workspace file you should most likely use that)`
-		path, err := goinp.AskForPath(askText)
+		prompt := promptui.Prompt{
+			Label: askText,
+		}
+		path, err := prompt.Run()
 		if err != nil {
 			return "", fmt.Errorf("failed to read input: %s", err)
 		}
@@ -110,12 +113,21 @@ the one you usually open in Xcode, then hit Enter.
 		}
 
 		if !validProject {
-			retry, err := goinp.AskForBoolWithDefault("Input Xcode project or workspace path again?", true)
+			const (
+				answerYes = "yes"
+				answerNo  = "no"
+			)
+
+			prompt := promptui.Select{
+				Label: "Input Xcode project or workspace path again?",
+				Items: []string{answerYes, answerNo},
+			}
+			_, retry, err := prompt.Run()
 			if err != nil {
 				return "", err
 			}
 
-			if retry {
+			if retry == answerYes {
 				continue
 			}
 		}
@@ -169,9 +181,13 @@ func askXcodeProjectScheme(path string) (string, error) {
 		return "", fmt.Errorf("no schemes found in project")
 	}
 
-	selectedScheme, err := goinp.SelectFromStringsWithDefault("Select scheme:", 1, schemeNames)
+	prompt := promptui.Select{
+		Label: "Select scheme:",
+		Items: schemeNames,
+	}
+	_, selectedScheme, err := prompt.Run()
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("user input: %s", err)
 	}
 
 	return selectedScheme, nil
