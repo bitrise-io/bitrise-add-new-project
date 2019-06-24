@@ -77,6 +77,17 @@ func Stack(projectType string) (string, error) {
 		if keep == optionYes {
 			return stack, nil			
 		}
+
+		stackPrompt := promptui.Select{
+			Label: "Choose stack",
+			Items: optionsStacks,
+		}
+		_, stack, err = stackPrompt.Run()
+		if err != nil {
+			return "", fmt.Errorf("user input: %s", err)
+		}
+
+		return stack, nil
 	}
 
 	return "", fmt.Errorf("invalid state")
