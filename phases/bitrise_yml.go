@@ -106,12 +106,22 @@ func ParseBitriseYMLFile(inputReader io.Reader) (models.BitriseDataModel, []stri
 	return decodedBitriseYML, warnings, nil
 }
 
-func selectBitriseYMLFile(inputReader io.Reader) (models.BitriseDataModel, error) {
+func selectBitriseYMLFile(inputReader io.Reader, potentialBitriseYMLFilePath string) (models.BitriseDataModel, error) {
 	for {
 		const msgBitriseYml = "Enter the path of your bitrise.yml file (you can also drag & drop the file here)"
-		filePath, err := goinp.AskForPathFromReader(msgBitriseYml, inputReader)
-		if err != nil {
-			return models.BitriseDataModel{}, err
+
+		var filePath string
+		var err error
+		if potentialBitriseYMLFilePath != "" {
+			filePath, err = goinp.AskForPathFromReaderWithDefault(msgBitriseYml, potentialBitriseYMLFilePath, inputReader)
+			if err != nil {
+				return models.BitriseDataModel{}, err
+			}
+		} else {
+			filePath, err = goinp.AskForPathFromReader(msgBitriseYml, inputReader)
+			if err != nil {
+				return models.BitriseDataModel{}, err
+			}
 		}
 
 		bitriseYMLFile, err := os.Open(filePath)
@@ -180,54 +190,23 @@ func getBitriseYML(searchDir string, inputReader io.Reader) (models.BitriseDataM
 	}
 
 	const msg = "How do you want to upload a bitrise.yml?"
-	const optionBitriseYMLInRepo = "Use the existing bitrise.yml in the repository"
-	const optionAlreadyExisting = "Use already existing bitrise.yml"
 	const optionRunScanner = "Run the scanner to generate new bitrise.yml"
+	const optionAlreadyExisting = "Use already existing bitrise.yml"
 	options := []string{
-		optionAlreadyExisting,
 		optionRunScanner,
+		optionAlreadyExisting,
 	}
-
-	var answer string
-	var err error
-	if potentialBitriseYMLFilePath != "" {
-		options = append([]string{optionBitriseYMLInRepo}, options...)
-		answer, err = goinp.SelectFromStringsFromReaderWithDefault(msg, 1, options, inputReader)
-	} else {
-		answer, err = goinp.SelectFromStringsFromReader(msg, options, inputReader)
-	}
+	answer, err := goinp.SelectFromStringsFromReaderWithDefault(msg, 1, options, inputReader)
 	if err != nil {
 		return models.BitriseDataModel{}, fmt.Errorf("failed to get bitrise.yml, error: %s", err)
 	}
 
-	switch answer {
-	case optionBitriseYMLInRepo:
-		file, err := os.Open(potentialBitriseYMLFilePath)
-		defer func() {
-			if err := file.Close(); err != nil {
-				log.Warnf("failed to close file, error: %s", err)
-			}
-		}()
-		if err != nil && !os.IsNotExist(err) {
-			return models.BitriseDataModel{}, fmt.Errorf("failed to open file (%s), error: %s", potentialBitriseYMLFilePath, err)
-		}
-		bitriseYML, warnings, err := ParseBitriseYMLFile(file)
-		if err != nil {
-			return models.BitriseDataModel{}, fmt.Errorf("failed to parse bitrise.yml, error: %s", err)
-		} else if len(warnings) > 0 {
-			log.Warnf("Parsed bitrise.yml, with warnings:")
-			for _, warning := range warnings {
-				log.Warnf(warning)
-			}
-		}
-		return bitriseYML, nil
-	case optionAlreadyExisting:
-		bitriseYML, err := selectBitriseYMLFile(inputReader)
+	if answer == optionAlreadyExisting {
+		bitriseYML, err := selectBitriseYMLFile(inputReader, potentialBitriseYMLFilePath)
 		if err != nil {
 			return models.BitriseDataModel{}, fmt.Errorf("failed to select bitrise.yml, error: %s", err)
 		}
 		return bitriseYML, nil
-	case optionRunScanner:
 	}
 
 	if err := checkBranch(searchDir, os.Stdin); err != nil {
