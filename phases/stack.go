@@ -54,7 +54,7 @@ func Stack(projectType string) (string, error) {
 	}
 
 	systemReportURL := fmt.Sprintf("https://github.com/bitrise-io/bitrise.io/blob/master/system_reports/%s.log", stack)
-	log.Printf("An %s project has been detected based on the provided bitrise.yml", projectType)
+	log.Printf("A(n) %s project has been detected based on the bitrise.yml", projectType)
 	log.Printf("The default stack for your project type is %s. You can check the preinstalled tools at %s", stack, systemReportURL)
 
 	const (
