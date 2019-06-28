@@ -16,7 +16,7 @@ const (
 // should be public or not.
 func IsPublic() (bool, error) {
 	items := []string{optPrivate, optPublic}
-	
+
 	log.Infof("SET THE PRIVACY OF THE APP")
 	prompt := promptui.Select{
 		Label: "Choose who can see you app logs and configs on bitrise.io",
@@ -25,7 +25,7 @@ func IsPublic() (bool, error) {
 			Selected: "Selected visibility: {{ . | green }}",
 		},
 	}
-	
+
 	_, visibility, err := prompt.Run()
 	if err != nil {
 		return false, fmt.Errorf("scan user input: %s", err)

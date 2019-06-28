@@ -79,7 +79,7 @@ func PrivateKey(repoURL RepoDetails) (sshutil.SSHKeyPair, bool, error) {
 			Selected: "Repo access method: {{ . | green }}",
 		},
 	}
-	
+
 	_, method, err := prompt.Run()
 	if err != nil {
 		return SSHKeys, false, fmt.Errorf("scan user input: %s", err)
@@ -108,7 +108,6 @@ func PrivateKey(repoURL RepoDetails) (sshutil.SSHKeyPair, bool, error) {
 		if err != nil {
 			return SSHKeys, false, fmt.Errorf("scan user input: %s", err)
 		}
-		
 
 		if additional == additionalAccessNo {
 			return SSHKeys, true, nil
@@ -137,7 +136,7 @@ func PrivateKey(repoURL RepoDetails) (sshutil.SSHKeyPair, bool, error) {
 				Success: "Private key path: {{ . | green }}",
 			},
 		}
-		
+
 		privateKeyPath, err := prompt.Run()
 		if err != nil {
 			return fmt.Errorf("scan user input: %s", err)

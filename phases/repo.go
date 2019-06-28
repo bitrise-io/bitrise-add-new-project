@@ -247,7 +247,7 @@ func Repo(searchDir string, isPublicApp bool) (RepoDetails, error) {
 			return RepoDetails{}, fmt.Errorf("invalid state")
 		}
 	}
-	
+
 	// Private Bitrise app
 	switch auth {
 	case HTTPSPublic:
@@ -265,7 +265,7 @@ func Repo(searchDir string, isPublicApp bool) (RepoDetails, error) {
 		if err != nil {
 			return RepoDetails{}, fmt.Errorf("scan user input: %s", err)
 		}
-		
+
 		if result == repoDetails.URL {
 			return *repoDetails, nil
 		}

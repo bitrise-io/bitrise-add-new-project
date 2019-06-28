@@ -42,15 +42,15 @@ func Stack(projectType string) (string, error) {
 
 	if stack == "" {
 		log.Warnf("Could not identify default stack for project. Falling back to manual stack selection.")
-		
+
 		prompt := promptui.Select{
-			Label: "Please choose from the available stacks", 
+			Label: "Please choose from the available stacks",
 			Items: optionsStacks,
 			Templates: &promptui.SelectTemplates{
 				Selected: "Stack: {{ . | green }}",
 			},
 		}
-		
+
 		_, stack, err = prompt.Run()
 		if err != nil {
 			return "", fmt.Errorf("scan user input: %s", err)
@@ -75,8 +75,7 @@ func Stack(projectType string) (string, error) {
 			Selected: "Keep default stack: {{ . | green }}",
 		},
 	}
-	
-	
+
 	for {
 		_, keep, err := prompt.Run()
 		if err != nil {
@@ -84,7 +83,7 @@ func Stack(projectType string) (string, error) {
 		}
 
 		if keep == optionYes {
-			return stack, nil			
+			return stack, nil
 		}
 
 		stackPrompt := promptui.Select{

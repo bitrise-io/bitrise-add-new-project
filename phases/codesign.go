@@ -114,7 +114,7 @@ func AutoCodesign(bitriseYML bitriseModels.BitriseDataModel, searchDir string) (
 			return CodesignResult{}, fmt.Errorf("scan user input: %s", err)
 		}
 
-		if uploadAndroid == answerYes{
+		if uploadAndroid == answerYes {
 			prompt := promptui.Prompt{
 				Label: "Enter keystore path",
 				Templates: &promptui.PromptTemplates{
@@ -129,7 +129,7 @@ func AutoCodesign(bitriseYML bitriseModels.BitriseDataModel, searchDir string) (
 
 			prompt = promptui.Prompt{
 				Label: "Enter key store password",
-				Mask: '*',
+				Mask:  '*',
 				Templates: &promptui.PromptTemplates{
 					Success: "keystore password: [REDACTED]",
 				},
@@ -152,9 +152,9 @@ func AutoCodesign(bitriseYML bitriseModels.BitriseDataModel, searchDir string) (
 
 			prompt = promptui.Prompt{
 				Label: "Enter key password",
-				Mask: '*',
+				Mask:  '*',
 			}
-				
+
 			result.Android.KeyPassword, err = prompt.Run()
 			if err != nil {
 				return CodesignResult{}, fmt.Errorf("scan user input: %s", err)

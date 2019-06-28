@@ -1,8 +1,8 @@
 package sshutil
 
 import (
-	"bytes"
 	"bufio"
+	"bytes"
 	"fmt"
 	"os"
 
