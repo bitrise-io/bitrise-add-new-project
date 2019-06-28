@@ -14,19 +14,19 @@ type organizationData struct {
 	Slug string
 }
 
-type OrganizationsRespone struct {
+type organizationsRespone struct {
 	Data []organizationData
 }
 
-type MeData struct {
+type meData struct {
 	Username string
 }
 
-type MeResponse struct {
-	Data MeData
+type meResponse struct {
+	Data meData
 }
 
-func fetchOrgs(apiToken string) (*OrganizationsRespone, error) {
+func fetchOrgs(apiToken string) (*organizationsRespone, error) {
 	req, err := http.NewRequest(http.MethodGet, "https://api.bitrise.io/v0.1/organizations", nil)
 	if err != nil {
 		return nil, err
@@ -42,7 +42,7 @@ func fetchOrgs(apiToken string) (*OrganizationsRespone, error) {
 		return nil, fmt.Errorf("server response: %s", res.Status)
 	}
 
-	var orgs OrganizationsRespone
+	var orgs organizationsRespone
 	if err := json.NewDecoder(res.Body).Decode(&orgs); err != nil {
 		return nil, err
 	}
@@ -50,7 +50,7 @@ func fetchOrgs(apiToken string) (*OrganizationsRespone, error) {
 	return &orgs, nil
 }
 
-func fetchUser(apiToken string) (*MeResponse, error) {
+func fetchUser(apiToken string) (*meResponse, error) {
 	req, err := http.NewRequest(http.MethodGet, "https://api.bitrise.io/v0.1/me", nil)
 	if err != nil {
 		return nil, err
@@ -66,7 +66,7 @@ func fetchUser(apiToken string) (*MeResponse, error) {
 		return nil, fmt.Errorf("server response: %s", res.Status)
 	}
 
-	var me MeResponse
+	var me meResponse
 	if err := json.NewDecoder(res.Body).Decode(&me); err != nil {
 		return nil, err
 	}
