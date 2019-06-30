@@ -14,7 +14,7 @@ import (
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
 	"github.com/bitrise-io/goinp/goinp"
-	git "gopkg.in/src-d/go-git.v4"
+	"gopkg.in/src-d/go-git.v4"
 )
 
 const bitriseYMLName = "bitrise.yml"
@@ -23,6 +23,11 @@ type branchConfiguration struct {
 	local    string
 	tracking string
 	remote   string
+}
+
+func askBranch(currentBranch string, inputReader io.Reader) (string, error) {
+	const msg = "Which branch would you like to be the default?"
+	return goinp.AskForStringFromReaderWithDefault(msg, currentBranch, inputReader)
 }
 
 func currentBranch(searchDir string) (branchConfiguration, error) {
@@ -58,19 +63,19 @@ func currentBranch(searchDir string) (branchConfiguration, error) {
 	return branch, nil
 }
 
-func checkBranch(searchDir string, inputReader io.Reader) error {
+func checkBranch(searchDir string, inputReader io.Reader) (string, error) {
 	var branch branchConfiguration
 	for {
 		var err error
 		if branch, err = currentBranch(searchDir); err != nil {
-			return fmt.Errorf("failed to get current branch, error: %s", err)
+			return "", fmt.Errorf("failed to get current branch, error: %s", err)
 		}
 
 		log.Donef("The current branch is: %s (tracking: %s %s).", branch.local, branch.remote, branch.tracking)
 		if branch.tracking == "" {
 			log.Errorf("No tracking branch is set for the current branch. Check out an other branch then press Enter.")
 			if _, err := bufio.NewReader(inputReader).ReadString('\n'); err != nil {
-				return fmt.Errorf("failed to read line from input, error: %s", err)
+				return "", fmt.Errorf("failed to read line from input, error: %s", err)
 			}
 			continue
 		}
@@ -78,19 +83,19 @@ func checkBranch(searchDir string, inputReader io.Reader) error {
 		msg := fmt.Sprintf("Do you want to run the scanner for this branch?")
 		useCurrentBranch, err := goinp.AskForBoolFromReaderWithDefaultValue(msg, true, inputReader)
 		if err != nil {
-			return err
+			return "", err
 		}
 
 		if !useCurrentBranch {
 			log.Printf("Check out an other branch then press Enter.")
 			if _, err := bufio.NewReader(inputReader).ReadString('\n'); err != nil {
-				return fmt.Errorf("failed to read line from input, error: %s", err)
+				return "", fmt.Errorf("failed to read line from input, error: %s", err)
 			}
 			continue
 		}
 		break
 	}
-	return nil
+	return branch.tracking, nil
 }
 
 // ParseBitriseYMLFile parses a bitrise.yml and returns a data model
@@ -179,10 +184,10 @@ func selectWorkflow(buildBitriseYML models.BitriseDataModel, inputReader io.Read
 	return workflow, nil
 }
 
-func getBitriseYML(searchDir string, inputReader io.Reader) (models.BitriseDataModel, error) {
+func getBitriseYML(searchDir string, inputReader io.Reader) (models.BitriseDataModel, string, error) {
 	potentialBitriseYMLFilePath := filepath.Join(searchDir, bitriseYMLName)
 	if exist, err := pathutil.IsPathExists(potentialBitriseYMLFilePath); err != nil {
-		return models.BitriseDataModel{}, fmt.Errorf("failed to check if file (%s) exists, error: %s", potentialBitriseYMLFilePath, err)
+		return models.BitriseDataModel{}, "", fmt.Errorf("failed to check if file (%s) exists, error: %s", potentialBitriseYMLFilePath, err)
 	} else if exist {
 		log.Printf("Found bitrise.yml in current directory.")
 	} else {
@@ -198,19 +203,31 @@ func getBitriseYML(searchDir string, inputReader io.Reader) (models.BitriseDataM
 	}
 	answer, err := goinp.SelectFromStringsFromReaderWithDefault(msg, 1, options, inputReader)
 	if err != nil {
-		return models.BitriseDataModel{}, fmt.Errorf("failed to get bitrise.yml, error: %s", err)
+		return models.BitriseDataModel{}, "", fmt.Errorf("failed to get bitrise.yml, error: %s", err)
 	}
 
 	if answer == optionAlreadyExisting {
 		bitriseYML, err := selectBitriseYMLFile(inputReader, potentialBitriseYMLFilePath)
 		if err != nil {
-			return models.BitriseDataModel{}, fmt.Errorf("failed to select bitrise.yml, error: %s", err)
+			return models.BitriseDataModel{}, "", fmt.Errorf("failed to select bitrise.yml, error: %s", err)
 		}
-		return bitriseYML, nil
+
+		branch, err := currentBranch(searchDir)
+		if err != nil {
+			return models.BitriseDataModel{}, "", fmt.Errorf("failed to get current branch, error: %s", err)
+		}
+
+		branchName, err := askBranch(branch.tracking, inputReader)
+		if err != nil {
+			return models.BitriseDataModel{}, "", fmt.Errorf("failed to ask for primary branch, error: %s", err)
+		}
+
+		return bitriseYML, branchName, nil
 	}
 
-	if err := checkBranch(searchDir, os.Stdin); err != nil {
-		return models.BitriseDataModel{}, fmt.Errorf("failed to check repository branch: %s", err)
+	branch, err := checkBranch(searchDir, os.Stdin)
+	if err != nil {
+		return models.BitriseDataModel{}, "", fmt.Errorf("failed to check repository branch: %s", err)
 	}
 
 	scanResult, found := scanner.GenerateScanResult(searchDir)
@@ -218,28 +235,28 @@ func getBitriseYML(searchDir string, inputReader io.Reader) (models.BitriseDataM
 		log.Infof("Projects not found in repository. Select manual configuration.")
 		scanResult, err = scanner.ManualConfig()
 		if err != nil {
-			return models.BitriseDataModel{}, fmt.Errorf("failed to get manual configurations, error: %s", err)
+			return models.BitriseDataModel{}, "", fmt.Errorf("failed to get manual configurations, error: %s", err)
 		}
 	} else {
 		log.Infof("Projects found in repository.")
 	}
 	bitriseYML, err := scanner.AskForConfig(scanResult)
 	if err != nil {
-		return models.BitriseDataModel{}, fmt.Errorf("failed to get exact configuration from scanner result, error: %s", err)
+		return models.BitriseDataModel{}, "", fmt.Errorf("failed to get exact configuration from scanner result, error: %s", err)
 	}
-	return bitriseYML, nil
+	return bitriseYML, branch, nil
 }
 
 // BitriseYML ...
-func BitriseYML(searchDir string) (models.BitriseDataModel, string, error) {
-	bitriseYML, err := getBitriseYML(searchDir, os.Stdin)
+func BitriseYML(searchDir string) (models.BitriseDataModel, string, string, error) {
+	bitriseYML, branch, err := getBitriseYML(searchDir, os.Stdin)
 	if err != nil {
-		return models.BitriseDataModel{}, "", err
+		return models.BitriseDataModel{}, "", "", err
 	}
 
 	workflow, err := selectWorkflow(bitriseYML, os.Stdin)
 	if err != nil {
-		return models.BitriseDataModel{}, "", fmt.Errorf("failed to select workflow, error: %s", err)
+		return models.BitriseDataModel{}, "", "", fmt.Errorf("failed to select workflow, error: %s", err)
 	}
-	return bitriseYML, workflow, nil
+	return bitriseYML, workflow, branch, nil
 }
