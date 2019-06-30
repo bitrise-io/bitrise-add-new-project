@@ -194,9 +194,9 @@ func getBitriseYML(searchDir string, inputReader io.Reader) (models.BitriseDataM
 		potentialBitriseYMLFilePath = ""
 	}
 
-	const msg = "How do you want to upload a bitrise.yml?"
-	const optionRunScanner = "Run the scanner to generate new bitrise.yml"
-	const optionAlreadyExisting = "Use already existing bitrise.yml"
+	const msg = "What bitrise.yml do you want to upload?"
+	const optionRunScanner = "Run the scanner to generate a new bitrise.yml"
+	const optionAlreadyExisting = "Use an already existing bitrise.yml"
 	options := []string{
 		optionRunScanner,
 		optionAlreadyExisting,
