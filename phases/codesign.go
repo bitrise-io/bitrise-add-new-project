@@ -3,12 +3,13 @@ package phases
 import (
 	"fmt"
 
+	"runtime"
+
 	bitriseModels "github.com/bitrise-io/bitrise/models"
 	"github.com/bitrise-io/codesigndoc/models"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/sliceutil"
 	"github.com/manifoldco/promptui"
-	"runtime"
 )
 
 // CodesignResultsIOS ...
@@ -45,6 +46,9 @@ func isAndroidCodesign(projectType string) bool {
 
 // AutoCodesign ...
 func AutoCodesign(bitriseYML bitriseModels.BitriseDataModel, searchDir string) (CodesignResult, error) {
+	fmt.Println()
+	log.Infof("CODESIGNING")
+
 	if !isIOSCodesign(bitriseYML.ProjectType) && !isAndroidCodesign(bitriseYML.ProjectType) {
 		log.Warnf("Unsupported project type (%s) for exporting codesigning files.", bitriseYML.ProjectType)
 		log.Warnf("Supported project types for exporting codesigning files: 'ios', 'android'.")
@@ -52,7 +56,6 @@ func AutoCodesign(bitriseYML bitriseModels.BitriseDataModel, searchDir string) (
 	}
 
 	log.Debugf("Project type: %s", bitriseYML.ProjectType)
-	fmt.Println()
 
 	const (
 		answerYes = "yes"

@@ -37,6 +37,8 @@ var optionsStacks = []string{
 // Stack returns the selected stack for the project or an error
 // if something went wrong during stack autodetection.
 func Stack(projectType string) (string, error) {
+	fmt.Println()
+	log.Infof("SELECT STACK")
 	stack := defaultStacks[projectType]
 	var err error
 

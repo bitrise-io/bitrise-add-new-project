@@ -17,6 +17,7 @@ const (
 func IsPublic() (bool, error) {
 	items := []string{optPrivate, optPublic}
 
+	fmt.Println()
 	log.Infof("SET THE PRIVACY OF THE APP")
 	prompt := promptui.Select{
 		Label: "Choose who can see you app logs and configs on bitrise.io",

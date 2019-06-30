@@ -14,6 +14,7 @@ import (
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
 	"github.com/bitrise-io/goinp/goinp"
+	"github.com/manifoldco/promptui"
 	"gopkg.in/src-d/go-git.v4"
 )
 
@@ -80,13 +81,20 @@ func checkBranch(searchDir string, inputReader io.Reader) (string, error) {
 			continue
 		}
 
-		msg := fmt.Sprintf("Do you want to run the scanner for this branch?")
-		useCurrentBranch, err := goinp.AskForBoolFromReaderWithDefaultValue(msg, true, inputReader)
+		prompt := promptui.Select{
+			Label: "Do you want to run the scanner for this branch?",
+			Items: []string{"yes", "no"},
+			Templates: &promptui.SelectTemplates{
+				Selected: "run the scanner on the current branch: {{ . | green }}",
+			},
+		}
+
+		_, answer, err := prompt.Run()
 		if err != nil {
 			return "", err
 		}
 
-		if !useCurrentBranch {
+		if answer == "no" {
 			log.Printf("Check out an other branch then press Enter.")
 			if _, err := bufio.NewReader(inputReader).ReadString('\n'); err != nil {
 				return "", fmt.Errorf("failed to read line from input, error: %s", err)
@@ -177,10 +185,19 @@ func selectWorkflow(buildBitriseYML models.BitriseDataModel, inputReader io.Read
 		return workflows[0], nil
 	}
 
-	workflow, err := goinp.SelectFromStringsFromReaderWithDefault("Select workflow to run in the first build:", 1, workflows, inputReader)
+	prompt := promptui.Select{
+		Label: "Select workflow to run in the first build",
+		Items: workflows,
+		Templates: &promptui.SelectTemplates{
+			Selected: "selected workflow: {{ . }}",
+		},
+	}
+
+	_, workflow, err := prompt.Run()
 	if err != nil {
 		return "", err
 	}
+
 	return workflow, nil
 }
 
@@ -201,7 +218,16 @@ func getBitriseYML(searchDir string, inputReader io.Reader) (models.BitriseDataM
 		optionRunScanner,
 		optionAlreadyExisting,
 	}
-	answer, err := goinp.SelectFromStringsFromReaderWithDefault(msg, 1, options, inputReader)
+
+	prompt := promptui.Select{
+		Label: msg,
+		Items: options,
+		Templates: &promptui.SelectTemplates{
+			Selected: "{{ . }}",
+		},
+	}
+
+	_, answer, err := prompt.Run()
 	if err != nil {
 		return models.BitriseDataModel{}, "", fmt.Errorf("failed to get bitrise.yml, error: %s", err)
 	}
@@ -249,6 +275,8 @@ func getBitriseYML(searchDir string, inputReader io.Reader) (models.BitriseDataM
 
 // BitriseYML ...
 func BitriseYML(searchDir string) (models.BitriseDataModel, string, string, error) {
+	fmt.Println()
+	log.Infof("SETUP BITRISE.YML")
 	bitriseYML, branch, err := getBitriseYML(searchDir, os.Stdin)
 	if err != nil {
 		return models.BitriseDataModel{}, "", "", err

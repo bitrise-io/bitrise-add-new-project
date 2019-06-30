@@ -9,8 +9,7 @@ import (
 
 // AddWebhook phase interrogates the user whether to create a webhook or not.
 func AddWebhook() (bool, error) {
-	var registerWebhook bool
-
+	fmt.Println()
 	log.Infof("WEBHOOK SETUP")
 	log.Printf(`To let Bitrise automatically start a build every time you:
 - push code
@@ -33,6 +32,7 @@ into your repository, you can set up a webhook at your code hosting service.`)
 		return false, fmt.Errorf("scan user input: %s", err)
 	}
 
+	var registerWebhook bool
 	if answer == optionYes {
 		registerWebhook = true
 	}
