@@ -75,6 +75,9 @@ func PrivateKey(repoURL RepoDetails) (sshutil.SSHKeyPair, bool, error) {
 	prompt := promptui.Select{
 		Label: methodTitle,
 		Items: []string{methodAuto, methodManual},
+		Templates: &promptui.SelectTemplates{
+			Selected: "Repo access method: {{ . | green }}",
+		},
 	}
 	
 	_, method, err := prompt.Run()
@@ -96,6 +99,9 @@ func PrivateKey(repoURL RepoDetails) (sshutil.SSHKeyPair, bool, error) {
 		prompt := promptui.Select{
 			Label: additionalAccessTitle,
 			Items: []string{additionalAccessNo, additionalAccessYes},
+			Templates: &promptui.SelectTemplates{
+				Selected: "Need to add additional repo: {{ . | green }}",
+			},
 		}
 
 		_, additional, err := prompt.Run()
@@ -127,6 +133,9 @@ func PrivateKey(repoURL RepoDetails) (sshutil.SSHKeyPair, bool, error) {
 	err = retry.Times(3).Try(func(attempt uint) error {
 		prompt := promptui.Prompt{
 			Label: privateKeyPathTitle,
+			Templates: &promptui.PromptTemplates{
+				Success: "Private key path: {{ . | green }}",
+			},
 		}
 		
 		privateKeyPath, err := prompt.Run()

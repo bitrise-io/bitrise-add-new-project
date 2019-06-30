@@ -1,9 +1,10 @@
 package phases
 
 import (
+	"bytes"
 	"fmt"
 	"net/url"
-	"os"
+	// "os"
 	"strings"
 
 	"github.com/bitrise-io/go-utils/log"
@@ -34,15 +35,6 @@ type RepoDetails struct {
 	Slug        string
 	Scheme      RepoScheme
 	SSHUsername string
-}
-
-func logRepoDetailsResult(repoURL RepoDetails) {
-	log.Debugf("REPOSITORY SCANNED. DETAILS:")
-	log.Debugf("- url: %s", repoURL.URL)
-	log.Debugf("- provider: %s", repoURL.Provider)
-	log.Debugf("- owner: %s", repoURL.Owner)
-	log.Debugf("- slug: %s", repoURL.Slug)
-	log.Debugf("- username: %s", repoURL.SSHUsername)
 }
 
 const urlPathSeperator = "/"
@@ -138,7 +130,7 @@ func validateRepositoryAvailablePublic(url string) error {
 	if _, err := git.Clone(memory.NewStorage(), nil, &git.CloneOptions{
 		Auth:              nil,
 		URL:               url,
-		Progress:          os.Stdout,
+		Progress:          bytes.NewBuffer([]byte{}),
 		NoCheckout:        true,
 		RecurseSubmodules: git.NoRecurseSubmodules,
 	}); err != nil {
@@ -159,7 +151,7 @@ func Repo(searchDir string, isPublicApp bool) (RepoDetails, error) {
 		return RepoDetails{}, fmt.Errorf("failed to open git repository (%s), error: %s", searchDir, err)
 	}
 
-	log.Donef("Found git repository: %s", searchDir)
+	log.Debugf("Found git repository: %s", searchDir)
 
 	// Get remote URL
 	origin, err := repo.Remote("origin")
@@ -172,7 +164,7 @@ func Repo(searchDir string, isPublicApp bool) (RepoDetails, error) {
 	}
 	remoteURL := origin.Config().URLs[0]
 
-	log.Donef("Remote URL: %s", remoteURL)
+	log.Debugf("Remote URL: %s", remoteURL)
 
 	// Parse remote URL
 	URL, err := parseURL(remoteURL)
@@ -189,7 +181,7 @@ func Repo(searchDir string, isPublicApp bool) (RepoDetails, error) {
 	var alternateSSHRepoDetails *RepoDetails
 	if repoDetails.Scheme == HTTPS {
 		if err := validateRepositoryAvailablePublic(URL.String()); err != nil {
-			log.Donef("Repository (%s) is not public, error: %s", URL.String(), err)
+			log.Warnf("Repository (%s) is not public, error: %s", URL.String(), err)
 
 			var err error
 			if alternateSSHRepoDetails, err = splitURL(schemeToSSH(URL)); err != nil {
@@ -202,10 +194,10 @@ func Repo(searchDir string, isPublicApp bool) (RepoDetails, error) {
 	var alternatePublicRepoDetails *RepoDetails
 	if repoDetails.Scheme == SSH {
 		alternatePublicURL := schemeToHTTPS(URL)
-		log.Infof("Checking if repository %s is public.", alternatePublicURL.String())
+		log.Debugf("Checking if repository %s is public.", alternatePublicURL.String())
 
 		if err := validateRepositoryAvailablePublic(alternatePublicURL.String()); err != nil {
-			log.Infof("Alternate public URL is not available, error: %s", err)
+			log.Warnf("Alternate public URL is not available, error: %s", err)
 		} else {
 			var err error
 			if alternatePublicRepoDetails, err = splitURL(alternatePublicURL); err != nil {
@@ -242,11 +234,9 @@ func Repo(searchDir string, isPublicApp bool) (RepoDetails, error) {
 	if isPublicApp {
 		switch auth {
 		case HTTPSPublic:
-			logRepoDetailsResult(*repoDetails)
 			return *repoDetails, nil
 		case SSHWithPublicAlternate:
-			log.Donef("Using alternate public URL: %s", alternatePublicRepoDetails.URL)
-			logRepoDetailsResult(*repoDetails)
+			log.Debugf("Using alternate public URL: %s", alternatePublicRepoDetails.URL)
 			return *alternatePublicRepoDetails, nil
 		case HTTPSAuth:
 			fallthrough
@@ -261,12 +251,14 @@ func Repo(searchDir string, isPublicApp bool) (RepoDetails, error) {
 	// Private Bitrise app
 	switch auth {
 	case HTTPSPublic:
-		logRepoDetailsResult(*repoDetails)
 		return *repoDetails, nil
 	case SSHWithPublicAlternate:
 		prompt := promptui.Select{
 			Label: "Select repository URL:",
 			Items: []string{alternatePublicRepoDetails.URL, repoDetails.URL},
+			Templates: &promptui.SelectTemplates{
+				Selected: "Selected repository: {{ . | green }}",
+			},
 		}
 
 		_, result, err := prompt.Run()
@@ -275,16 +267,12 @@ func Repo(searchDir string, isPublicApp bool) (RepoDetails, error) {
 		}
 		
 		if result == repoDetails.URL {
-			logRepoDetailsResult(*repoDetails)
 			return *repoDetails, nil
 		}
-		logRepoDetailsResult(*alternatePublicRepoDetails)
 		return *alternatePublicRepoDetails, nil
 	case HTTPSAuth:
-		logRepoDetailsResult(*alternatePublicRepoDetails)
 		return *alternateSSHRepoDetails, nil
 	case SSH:
-		logRepoDetailsResult(*repoDetails)
 		return *repoDetails, nil
 	default:
 		return RepoDetails{}, fmt.Errorf("invalid state")

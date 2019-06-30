@@ -21,6 +21,9 @@ func IsPublic() (bool, error) {
 	prompt := promptui.Select{
 		Label: "Choose who can see you app logs and configs on bitrise.io",
 		Items: items,
+		Templates: &promptui.SelectTemplates{
+			Selected: "Selected visibility: {{ . | green }}",
+		},
 	}
 	
 	_, visibility, err := prompt.Run()

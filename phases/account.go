@@ -98,6 +98,9 @@ func Account(apiToken string) (string, error) {
 	prompt := promptui.Select{
 		Label: "Select account to use",
 		Items: items,
+		Templates: &promptui.SelectTemplates{
+			Selected: "Selected account: {{ . | green }}",
+		},
 	}
 
 	_, acc, err := prompt.Run()

@@ -43,14 +43,20 @@ func Stack(projectType string) (string, error) {
 	if stack == "" {
 		log.Warnf("Could not identify default stack for project. Falling back to manual stack selection.")
 		
-		prompt := promptui.Prompt{
+		prompt := promptui.Select{
 			Label: "Please choose from the available stacks", 
+			Items: optionsStacks,
+			Templates: &promptui.SelectTemplates{
+				Selected: "Stack: {{ . | green }}",
+			},
 		}
 		
-		stack, err = prompt.Run()
+		_, stack, err = prompt.Run()
 		if err != nil {
 			return "", fmt.Errorf("scan user input: %s", err)
 		}
+
+		return stack, nil
 	}
 
 	systemReportURL := fmt.Sprintf("https://github.com/bitrise-io/bitrise.io/blob/master/system_reports/%s.log", stack)
@@ -65,6 +71,9 @@ func Stack(projectType string) (string, error) {
 	prompt := promptui.Select{
 		Label: "Do you wish to keep this stack?",
 		Items: []string{optionYes, optionNo},
+		Templates: &promptui.SelectTemplates{
+			Selected: "Keep default stack: {{ . | green }}",
+		},
 	}
 	
 	
@@ -81,6 +90,9 @@ func Stack(projectType string) (string, error) {
 		stackPrompt := promptui.Select{
 			Label: "Choose stack",
 			Items: optionsStacks,
+			Templates: &promptui.SelectTemplates{
+				Selected: "Stack: {{ . | green }}",
+			},
 		}
 		_, stack, err = stackPrompt.Run()
 		if err != nil {

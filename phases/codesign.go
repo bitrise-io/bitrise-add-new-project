@@ -51,7 +51,7 @@ func AutoCodesign(bitriseYML bitriseModels.BitriseDataModel, searchDir string) (
 		return CodesignResult{}, nil
 	}
 
-	log.Donef("Project type: %s", bitriseYML.ProjectType)
+	log.Debugf("Project type: %s", bitriseYML.ProjectType)
 	fmt.Println()
 
 	const (
@@ -64,6 +64,9 @@ func AutoCodesign(bitriseYML bitriseModels.BitriseDataModel, searchDir string) (
 		prompt := promptui.Select{
 			Label: "Do you want to export and upload iOS codesigning files?",
 			Items: []string{answerYes, answerNo},
+			Templates: &promptui.SelectTemplates{
+				Selected: "Export and upload iOS codesigning files: {{ . | green }}",
+			},
 		}
 		_, uploadIOS, err := prompt.Run()
 		if err != nil {
@@ -71,7 +74,7 @@ func AutoCodesign(bitriseYML bitriseModels.BitriseDataModel, searchDir string) (
 		}
 
 		if uploadIOS == answerYes {
-			log.Infof("Exporting iOS codesigning files.")
+			log.Debugf("Exporting iOS codesigning files.")
 
 			var err error
 			for { // The retry is needed as codesign flow contains questions which can not be retried
@@ -81,6 +84,9 @@ func AutoCodesign(bitriseYML bitriseModels.BitriseDataModel, searchDir string) (
 					prompt := promptui.Select{
 						Label: "Retry exporting iOS codesigning files?",
 						Items: []string{answerYes, answerNo},
+						Templates: &promptui.SelectTemplates{
+							Selected: "",
+						},
 					}
 					_, isRetry, err := prompt.Run()
 					if err != nil {
@@ -99,6 +105,9 @@ func AutoCodesign(bitriseYML bitriseModels.BitriseDataModel, searchDir string) (
 		prmpt := promptui.Select{
 			Label: "Do you want to upload an Android keystore file?",
 			Items: []string{answerYes, answerNo},
+			Templates: &promptui.SelectTemplates{
+				Selected: "Upload Android keystore file: {{ . | green }}",
+			},
 		}
 		_, uploadAndroid, err := prmpt.Run()
 		if err != nil {
@@ -107,7 +116,10 @@ func AutoCodesign(bitriseYML bitriseModels.BitriseDataModel, searchDir string) (
 
 		if uploadAndroid == answerYes{
 			prompt := promptui.Prompt{
-				Label: "Enter key store path",
+				Label: "Enter keystore path",
+				Templates: &promptui.PromptTemplates{
+					Success: "Keystore path: {{ . | green }}",
+				},
 			}
 
 			result.Android.KeystorePath, err = prompt.Run()
@@ -117,6 +129,10 @@ func AutoCodesign(bitriseYML bitriseModels.BitriseDataModel, searchDir string) (
 
 			prompt = promptui.Prompt{
 				Label: "Enter key store password",
+				Mask: '*',
+				Templates: &promptui.PromptTemplates{
+					Success: "keystore password: [REDACTED]",
+				},
 			}
 			result.Android.Password, err = prompt.Run()
 			if err != nil {
@@ -125,6 +141,9 @@ func AutoCodesign(bitriseYML bitriseModels.BitriseDataModel, searchDir string) (
 
 			prompt = promptui.Prompt{
 				Label: "Enter key alias",
+				Templates: &promptui.PromptTemplates{
+					Success: "key alias: {{ . | green }}",
+				},
 			}
 			result.Android.Alias, err = prompt.Run()
 			if err != nil {

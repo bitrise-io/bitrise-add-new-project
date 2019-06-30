@@ -1,6 +1,7 @@
 package sshutil
 
 import (
+	"bytes"
 	"bufio"
 	"fmt"
 	"os"
@@ -22,7 +23,7 @@ func ValidatePrivateKey(privateKey []byte, username string, url string) (bool, e
 	if _, err = git.Clone(memory.NewStorage(), nil, &git.CloneOptions{
 		Auth:              SSHAuth,
 		URL:               url,
-		Progress:          os.Stdout,
+		Progress:          bytes.NewBuffer([]byte{}),
 		NoCheckout:        true,
 		RecurseSubmodules: git.NoRecurseSubmodules,
 	}); err != nil {

@@ -84,12 +84,15 @@ func evniromentsToMap(envs []envmanModels.EnvironmentItemModel) (map[string]stri
 
 func askXcodeProjectPath() (string, error) {
 	for {
-		log.Infof("Provide the project file manually")
+		log.Printf("Provide the project file manually")
 		askText := `Please drag-and-drop your Xcode Project (` + colorstring.Green(".xcodeproj") + `) or Workspace (` + colorstring.Green(".xcworkspace") + `) file, 
 the one you usually open in Xcode, then hit Enter.
 (Note: if you have a Workspace file you should most likely use that)`
 		prompt := promptui.Prompt{
 			Label: askText,
+			Templates: &promptui.PromptTemplates{
+				Success: "Project file: {{ . | green }}",
+			},
 		}
 		path, err := prompt.Run()
 		if err != nil {
@@ -121,6 +124,9 @@ the one you usually open in Xcode, then hit Enter.
 			prompt := promptui.Select{
 				Label: "Input Xcode project or workspace path again?",
 				Items: []string{answerYes, answerNo},
+				Templates: &promptui.SelectTemplates{
+					Selected: "",
+				},
 			}
 			_, retry, err := prompt.Run()
 			if err != nil {
@@ -184,6 +190,9 @@ func askXcodeProjectScheme(path string) (string, error) {
 	prompt := promptui.Select{
 		Label: "Select scheme:",
 		Items: schemeNames,
+		Templates: &promptui.SelectTemplates{
+			Selected: "Scheme: {{ . | green }}",
+		},
 	}
 	_, selectedScheme, err := prompt.Run()
 	if err != nil {
