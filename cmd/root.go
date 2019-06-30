@@ -101,7 +101,7 @@ func executePhases(cmd cobra.Command) (phases.Progress, error) {
 	}
 
 	// bitrise.yml
-	branch, bitriseYML, primaryWorkflow, err := phases.BitriseYML(currentDir)
+	bitriseYML, primaryWorkflow, branch, err := phases.BitriseYML(currentDir)
 	if err != nil {
 		return phases.Progress{}, err
 	}
