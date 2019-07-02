@@ -3,6 +3,7 @@ package phases
 import (
 	"fmt"
 
+	"github.com/bitrise-io/go-utils/colorstring"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/manifoldco/promptui"
 )
@@ -62,8 +63,8 @@ func Stack(projectType string) (string, error) {
 	}
 
 	systemReportURL := fmt.Sprintf("https://github.com/bitrise-io/bitrise.io/blob/master/system_reports/%s.log", stack)
-	log.Printf("A(n) %s project has been detected based on the bitrise.yml", projectType)
-	log.Printf("The default stack for your project type is %s. You can check the preinstalled tools at %s", stack, systemReportURL)
+	log.Printf("Default stack for your project type: %s.", colorstring.Green(stack))
+	fmt.Printf("You can check the preinstalled tools at: %s", systemReportURL)
 
 	const (
 		optionYes = "Yes"
@@ -74,6 +75,7 @@ func Stack(projectType string) (string, error) {
 		Label: "Do you wish to keep this stack?",
 		Items: []string{optionYes, optionNo},
 		Templates: &promptui.SelectTemplates{
+			Label:    fmt.Sprintf("%s {{.}} ", promptui.IconInitial),
 			Selected: "Keep default stack: {{ . | green }}",
 		},
 	}

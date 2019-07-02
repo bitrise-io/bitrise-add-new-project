@@ -32,8 +32,6 @@ func (s *AppService) registerSSHKeyRequest(params RegisterSSHKeyParams) error {
 
 // RegisterSSHKey ...
 func (s *AppService) RegisterSSHKey(params RegisterSSHKeyParams, repoURL string) error {
-	fmt.Println("called", params, repoURL)
-
 	if err := s.registerSSHKeyRequest(params); err != nil {
 		if !params.IsRegisterKeyIntoProviderService {
 			return err

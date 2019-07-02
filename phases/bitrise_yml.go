@@ -7,10 +7,12 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/bitrise-io/bitrise-init/scanner"
 	"github.com/bitrise-io/bitrise/bitrise"
 	"github.com/bitrise-io/bitrise/models"
+	"github.com/bitrise-io/go-utils/colorstring"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
 	"github.com/bitrise-io/goinp/goinp"
@@ -72,7 +74,7 @@ func checkBranch(searchDir string, inputReader io.Reader) (string, error) {
 			return "", fmt.Errorf("failed to get current branch, error: %s", err)
 		}
 
-		log.Donef("The current branch is: %s (tracking: %s %s).", branch.local, branch.remote, branch.tracking)
+		log.Printf("The current branch is: %s (tracking: %s %s).", colorstring.Green(branch.local), branch.remote, branch.tracking)
 		if branch.tracking == "" {
 			log.Errorf("No tracking branch is set for the current branch. Check out an other branch then press Enter.")
 			if _, err := bufio.NewReader(inputReader).ReadString('\n'); err != nil {
@@ -83,9 +85,10 @@ func checkBranch(searchDir string, inputReader io.Reader) (string, error) {
 
 		prompt := promptui.Select{
 			Label: "Do you want to run the scanner for this branch?",
-			Items: []string{"yes", "no"},
+			Items: []string{"Yes", "No"},
 			Templates: &promptui.SelectTemplates{
-				Selected: "run the scanner on the current branch: {{ . | green }}",
+				Label:    fmt.Sprintf("%s {{.}} ", promptui.IconInitial),
+				Selected: "Run the scanner on the current branch: {{ . | green }}",
 			},
 		}
 
@@ -223,6 +226,7 @@ func getBitriseYML(searchDir string, inputReader io.Reader) (models.BitriseDataM
 		Label: msg,
 		Items: options,
 		Templates: &promptui.SelectTemplates{
+			Label:    fmt.Sprintf("%s {{.}} ", promptui.IconInitial),
 			Selected: "{{ . }}",
 		},
 	}
@@ -256,6 +260,8 @@ func getBitriseYML(searchDir string, inputReader io.Reader) (models.BitriseDataM
 		return models.BitriseDataModel{}, "", fmt.Errorf("failed to check repository branch: %s", err)
 	}
 
+	fmt.Println()
+
 	scanResult, found := scanner.GenerateScanResult(searchDir)
 	if !found {
 		log.Infof("Projects not found in repository. Select manual configuration.")
@@ -264,7 +270,11 @@ func getBitriseYML(searchDir string, inputReader io.Reader) (models.BitriseDataM
 			return models.BitriseDataModel{}, "", fmt.Errorf("failed to get manual configurations, error: %s", err)
 		}
 	} else {
-		log.Infof("Projects found in repository.")
+		var platforms []string
+		for scanner := range scanResult.ScannerToOptionRoot {
+			platforms = append(platforms, scanner)
+		}
+		log.Printf("Project(s) found in the repository: %s", colorstring.Green(strings.Join(platforms, ", ")))
 	}
 	bitriseYML, err := scanner.AskForConfig(scanResult)
 	if err != nil {

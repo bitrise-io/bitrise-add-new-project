@@ -7,6 +7,7 @@ import (
 	// "os"
 	"strings"
 
+	"github.com/bitrise-io/go-utils/colorstring"
 	"github.com/bitrise-io/go-utils/log"
 	git "gopkg.in/src-d/go-git.v4"
 )
@@ -142,7 +143,7 @@ func getProvider(hostName string) string {
 // https clone url will be used.
 func Repo(searchDir string, isPublicApp bool) (RepoDetails, error) {
 	fmt.Println()
-	log.Infof("SCANNING WORKDIR FOR GIT REPO")
+	log.Infof("SCANNING GIT REPOSITORY")
 
 	// Open local git repository
 	repo, err := git.PlainOpen(searchDir)
@@ -163,7 +164,7 @@ func Repo(searchDir string, isPublicApp bool) (RepoDetails, error) {
 	}
 	remoteURL := origin.Config().URLs[0]
 
-	log.Debugf("Remote URL: %s", remoteURL)
+	log.Printf("Remote URL: %s", colorstring.Green(remoteURL))
 
 	// Parse remote URL
 	URL, err := parseURL(remoteURL)

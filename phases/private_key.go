@@ -57,8 +57,9 @@ func generateSSHKey() (sshutil.SSHKeyPair, error) {
 
 // PrivateKey ...
 func PrivateKey(repoURL RepoDetails) (sshutil.SSHKeyPair, bool, error) {
-	log.Infof("SETUP REPOSITORY ACCESS")
 	fmt.Println()
+	log.Infof("SETUP REPOSITORY ACCESS")
+	log.Printf("For automatic ssh key registration git provider must be connected at: https://app.bitrise.io/me/profile")
 
 	var (
 		err      error
@@ -68,7 +69,7 @@ func PrivateKey(repoURL RepoDetails) (sshutil.SSHKeyPair, bool, error) {
 
 	const (
 		methodTitle  = "Specify how Bitrise will be able to access the source code"
-		methodAuto   = "Automatic (Git provider must be connected at: https://app.bitrise.io/me/profile or will fall back to manual registration.)"
+		methodAuto   = "Automatic"
 		methodManual = "Add own SSH"
 	)
 
@@ -100,6 +101,7 @@ func PrivateKey(repoURL RepoDetails) (sshutil.SSHKeyPair, bool, error) {
 			Label: additionalAccessTitle,
 			Items: []string{additionalAccessNo, additionalAccessYes},
 			Templates: &promptui.SelectTemplates{
+				Label:    fmt.Sprintf("%s {{.}} ", promptui.IconInitial),
 				Selected: "Need to add additional repo: {{ . | green }}",
 			},
 		}

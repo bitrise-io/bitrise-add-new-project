@@ -73,8 +73,6 @@ func executePhases(cmd cobra.Command) (phases.Progress, error) {
 		return phases.Progress{}, fmt.Errorf("failed to get current directory, error: %s", err)
 	}
 
-	fmt.Println("REPO?????")
-
 	// repo
 	repoURL, err := phases.Repo(currentDir, progress.Public)
 	if err != nil {
@@ -91,8 +89,6 @@ func executePhases(cmd cobra.Command) (phases.Progress, error) {
 		progress.SSHKeys = SSHKeys
 		progress.RegisterSSHKey = register
 	}
-
-	fmt.Printf("%+v", progress.RepoDetails)
 
 	// bitrise.yml
 	bitriseYML, primaryWorkflow, branch, err := phases.BitriseYML(currentDir)
@@ -135,18 +131,18 @@ func executePhases(cmd cobra.Command) (phases.Progress, error) {
 func run(cmd *cobra.Command, args []string) {
 	log.SetEnableDebugLog(cmdFlagVerbose)
 
-	progress, err := executePhases(*cmd)
+	_, err := executePhases(*cmd)
 	if err != nil {
 		fmt.Println("failed to execute phases, error:", err)
 		os.Exit(1)
 	}
 
-	fmt.Printf("prgrs: %+v %v", progress.RepoDetails, progress.RegisterSSHKey)
-
-	if err := phases.Register(cmdFlagAPIToken, progress, os.Stdin); err != nil {
-		fmt.Println("failed to add Bitrise app, error:", err)
-		os.Exit(1)
-	}
+	/*
+		if err := phases.Register(cmdFlagAPIToken, progress, os.Stdin); err != nil {
+			fmt.Println("failed to add Bitrise app, error:", err)
+			os.Exit(1)
+		}
+	*/
 }
 
 // Execute ...

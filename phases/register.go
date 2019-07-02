@@ -111,7 +111,7 @@ func Register(token string, progress Progress, inputReader io.Reader) error {
 	if err != nil {
 		return err
 	}
-	if !params.Repository.IsPublic { //&& params.SSHKey.AuthSSHPrivateKey != "" {
+	if !params.Repository.IsPublic && params.SSHKey.AuthSSHPrivateKey != "" {
 		if err := app.RegisterSSHKey(params.SSHKey, params.Repository.RepoURL); err != nil {
 			return err
 		}

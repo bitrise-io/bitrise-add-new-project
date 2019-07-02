@@ -11,20 +11,20 @@ import (
 func AddWebhook() (bool, error) {
 	fmt.Println()
 	log.Infof("WEBHOOK SETUP")
-	log.Printf(`To let Bitrise automatically start a build every time you:
-- push code
-- open a pull request
-into your repository, you can set up a webhook at your code hosting service.`)
-	log.Printf("We can automatically register a Webhook for you if you have administrator rights for this repository.")
+	log.Printf("For automatic webhook setup for push and PR git events you need administrator rights for your repository")
 
 	const (
-		optionYes = "yes"
-		optionNo  = "no"
+		optionYes = "Yes"
+		optionNo  = "No"
 	)
 
 	prompt := promptui.Select{
 		Label: "Would you like us to register a webhook for you?",
 		Items: []string{optionYes, optionNo},
+		Templates: &promptui.SelectTemplates{
+			Label:    fmt.Sprintf("%s {{.}} ", promptui.IconInitial),
+			Selected: "Auto register webhook: {{ . | green }}",
+		},
 	}
 
 	_, answer, err := prompt.Run()

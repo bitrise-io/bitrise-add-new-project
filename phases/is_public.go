@@ -18,12 +18,12 @@ func IsPublic() (bool, error) {
 	items := []string{optPrivate, optPublic}
 
 	fmt.Println()
-	log.Infof("SET THE PRIVACY OF THE APP")
+	log.Infof("SET PRIVACY OF THE PROJECT")
 	prompt := promptui.Select{
-		Label: "Choose who can see you app logs and configs on bitrise.io",
+		Label: "Select privacy",
 		Items: items,
 		Templates: &promptui.SelectTemplates{
-			Selected: "Selected visibility: {{ . | green }}",
+			Selected: "Selected privacy: {{ . | green }}",
 		},
 	}
 
