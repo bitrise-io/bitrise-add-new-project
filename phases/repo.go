@@ -93,22 +93,6 @@ func splitURL(URL *url.URL) (*RepoDetails, error) {
 	}, nil
 }
 
-func schemeToHTTPS(URL *url.URL) *url.URL {
-	httpsURL := &url.URL{}
-	*httpsURL = *URL
-	httpsURL.Scheme = "https"
-	httpsURL.User = nil
-	return httpsURL
-}
-
-func schemeToSSH(URL *url.URL) *url.URL {
-	sshURL := &url.URL{}
-	*sshURL = *URL
-	sshURL.Scheme = "ssh"
-	sshURL.User = url.User("git")
-	return sshURL
-}
-
 func getProvider(hostName string) string {
 	hostParts := strings.Split(hostName, ".")
 	if len(hostParts) < 2 {
@@ -124,19 +108,6 @@ func getProvider(hostName string) string {
 	}
 	return "other"
 }
-
-// func validateRepositoryAvailablePublic(url string) error {
-// 	if _, err := git.Clone(memory.NewStorage(), nil, &git.CloneOptions{
-// 		Auth:              nil,
-// 		URL:               url,
-// 		Progress:          bytes.NewBuffer([]byte{}),
-// 		NoCheckout:        true,
-// 		RecurseSubmodules: git.NoRecurseSubmodules,
-// 	}); err != nil {
-// 		return err
-// 	}
-// 	return nil
-// }
 
 // Repo returns repository details extracted from the working
 // directory. If the Project visibility was set to public, the
@@ -177,92 +148,5 @@ func Repo(searchDir string, isPublicApp bool) (RepoDetails, error) {
 		return RepoDetails{}, err
 	}
 
-	// Validate https repositoy
-	// var alternateSSHRepoDetails *RepoDetails
-	// if repoDetails.Scheme == HTTPS {
-	// 	if err := validateRepositoryAvailablePublic(URL.String()); err != nil {
-	// 		log.Warnf("Repository (%s) is not public, error: %s", URL.String(), err)
-
-	// 		var err error
-	// 		if alternateSSHRepoDetails, err = splitURL(schemeToSSH(URL)); err != nil {
-	// 			return RepoDetails{}, err
-	// 		}
-	// 	}
-	// }
-
-	// If ssh repository is provided, check the alternate availability with https scheme
-	// var alternatePublicRepoDetails *RepoDetails
-	// if repoDetails.Scheme == SSH {
-	// 	alternatePublicURL := schemeToHTTPS(URL)
-	// 	log.Debugf("Checking if repository %s is public.", alternatePublicURL.String())
-
-	// 	if err := validateRepositoryAvailablePublic(alternatePublicURL.String()); err != nil {
-	// 		log.Warnf("Alternate public URL is not available, error: %s", err)
-	// 	} else {
-	// 		var err error
-	// 		if alternatePublicRepoDetails, err = splitURL(alternatePublicURL); err != nil {
-	// 			return RepoDetails{}, err
-	// 		}
-	// 	}
-	// }
-
-	// type repoAuth int
-	// const (
-	// 	Invalid repoAuth = iota
-	// 	HTTPSPublic
-	// 	HTTPSAuth
-	// 	SSHWithPublicAlternate
-	// 	SSH
-	// )
-
-	// var auth repoAuth
-	// if repoDetails.Scheme == HTTPS {
-	// 	// if alternateSSHRepoDetails != nil {
-	// 	// 	auth = HTTPSAuth
-	// 	// } else {
-	// 	auth = HTTPSPublic
-	// 	// }
-	// } else {
-	// 	// if alternatePublicRepoDetails != nil {
-	// 	// auth = SSHWithPublicAlternate
-	// 	// } else {
-	// 	auth = SSH
-	// 	// }
-	// }
-
-	// Public Bitrise app
-	// if isPublicApp {
 	return *repoDetails, nil
-
-	// }
-
-	// Private Bitrise app
-	// switch auth {
-	// case HTTPSPublic:
-	// 	return *repoDetails, nil
-	// case SSHWithPublicAlternate:
-	// 	prompt := promptui.Select{
-	// 		Label: "Select repository URL:",
-	// 		Items: []string{alternatePublicRepoDetails.URL, repoDetails.URL},
-	// 		Templates: &promptui.SelectTemplates{
-	// 			Selected: "Selected repository: {{ . | green }}",
-	// 		},
-	// 	}
-
-	// 	_, result, err := prompt.Run()
-	// 	if err != nil {
-	// 		return RepoDetails{}, fmt.Errorf("scan user input: %s", err)
-	// 	}
-
-	// 	if result == repoDetails.URL {
-	// 		return *repoDetails, nil
-	// 	}
-	// 	return *alternatePublicRepoDetails, nil
-	// case HTTPSAuth:
-	// 	return *alternateSSHRepoDetails, nil
-	// case SSH:
-	// 	return *repoDetails, nil
-	// default:
-	// 	return RepoDetails{}, fmt.Errorf("invalid state")
-	// }
 }
