@@ -9,6 +9,7 @@ import (
 	"github.com/bitrise-io/bitrise-add-new-project/httputil"
 	codesigndocBitriseio "github.com/bitrise-io/codesigndoc/bitriseio"
 	"github.com/bitrise-io/codesigndoc/bitriseio/bitrise"
+	"github.com/bitrise-io/go-utils/colorstring"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/xcode-project/pretty"
 	"gopkg.in/yaml.v2"
@@ -94,7 +95,8 @@ func registerWebhook(app *bitriseio.AppService, inputReader io.Reader) error {
 
 // Register ...
 func Register(token string, progress Progress, inputReader io.Reader) error {
-	log.Infof("Register")
+	fmt.Println()
+	log.Infof("REGISTERING THE PROJECT")
 
 	params, err := toRegistrationParams(progress)
 	if err != nil {
@@ -168,6 +170,6 @@ bash -l -c "$(curl -sfL https://raw.githubusercontent.com/bitrise-io/codesigndoc
 		return err
 	}
 
-	log.Donef("Project created: https://app.bitrise.io/app/%s", app.Slug)
+	log.Printf("Project created: %s", colorstring.Greenf("https://app.bitrise.io/app/"+app.Slug))
 	return nil
 }

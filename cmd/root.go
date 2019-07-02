@@ -131,18 +131,16 @@ func executePhases(cmd cobra.Command) (phases.Progress, error) {
 func run(cmd *cobra.Command, args []string) {
 	log.SetEnableDebugLog(cmdFlagVerbose)
 
-	_, err := executePhases(*cmd)
+	progress, err := executePhases(*cmd)
 	if err != nil {
 		fmt.Println("failed to execute phases, error:", err)
 		os.Exit(1)
 	}
 
-	/*
-		if err := phases.Register(cmdFlagAPIToken, progress, os.Stdin); err != nil {
-			fmt.Println("failed to add Bitrise app, error:", err)
-			os.Exit(1)
-		}
-	*/
+	if err := phases.Register(cmdFlagAPIToken, progress, os.Stdin); err != nil {
+		fmt.Println("failed to add Bitrise app, error:", err)
+		os.Exit(1)
+	}
 }
 
 // Execute ...
