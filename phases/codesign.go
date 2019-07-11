@@ -216,9 +216,8 @@ func validateAndroidCodesignParams(codesign CodesignResultAndroid) error {
 		"-J-Dfile.encoding=utf-8",
 		"-J-Duser.language=en-US",
 	}
-	cmd := command.New("keytool", params...)
 
-	out, err := cmd.RunAndReturnTrimmedCombinedOutput()
+	out, err := command.New("keytool", params...).RunAndReturnTrimmedCombinedOutput()
 	if err != nil {
 		if errorutil.IsExitStatusError(err) {
 			return errors.New(out)
@@ -226,7 +225,7 @@ func validateAndroidCodesignParams(codesign CodesignResultAndroid) error {
 		return fmt.Errorf("failed to run keytool command, error: %s", err)
 	}
 	if out == "" {
-		return fmt.Errorf("failed to read keystore, maybe alias (%s) or password (%s) is not correct", codesign.Alias, "****")
+		return fmt.Errorf("failed to read keystore, maybe alias (%s) or keystore password is not correct", codesign.Alias)
 	}
 	return nil
 }
