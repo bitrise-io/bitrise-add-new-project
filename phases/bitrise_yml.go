@@ -27,6 +27,31 @@ type branchConfiguration struct {
 	remote   string
 }
 
+func askBitriseYMLFile(defaultPath string) (string, error) {
+	prompt := promptui.Prompt{
+		Label: "Enter the path of your bitrise.yml file (you can also drag & drop the file here)",
+	}
+
+	if defaultPath != "" {
+		prompt.Default = defaultPath
+	}
+
+	filePath, err := prompt.Run()
+	if err != nil {
+		return "", fmt.Errorf("prompt user: %s", err)
+	}
+
+	if filePath == "" {
+		if defaultPath == "" {
+			return "", fmt.Errorf("empty path read")
+		}
+		log.Warnf("Empty path read, falling back to default (%s)", defaultPath)
+		return defaultPath, nil
+	}
+
+	return filePath, nil
+}
+
 func askBranch(currentBranch string) (string, error) {
 	prompt := promptui.Prompt{
 		Label:   "Which branch would you like to be the default?",
@@ -137,36 +162,9 @@ func ParseBitriseYMLFile(inputReader io.Reader) (models.BitriseDataModel, []stri
 
 func selectBitriseYMLFile(inputReader io.Reader, potentialBitriseYMLFilePath string) (models.BitriseDataModel, error) {
 	for {
-		var filePath string
-		var err error
-		if potentialBitriseYMLFilePath != "" {
-			prompt := promptui.Prompt{
-				Label: "Enter the path of your bitrise.yml file (you can also drag & drop the file here)",
-				Default: potentialBitriseYMLFilePath,
-			}
-		
-			filePath, err := prompt.Run()
-			if err != nil {
-				return models.BitriseDataModel{}, fmt.Errorf("prompt user: %s", err)
-			}
-		
-			if filePath == "" {
-				log.Warnf("Empty path read, falling back to default (%s)", potentialBitriseYMLFilePath)
-				filePath = potentialBitriseYMLFilePath
-			}
-		} else {
-			prompt := promptui.Prompt{
-				Label: "Enter the path of your bitrise.yml file (you can also drag & drop the file here)",
-			}
-		
-			filePath, err := prompt.Run()
-			if err != nil {
-				return models.BitriseDataModel{}, fmt.Errorf("prompt user: %s", err)
-			}
-		
-			if filePath == "" {
-				return models.BitriseDataModel{}, fmt.Errorf("empty path read")
-			}
+		filePath, err := askBitriseYMLFile(potentialBitriseYMLFilePath)
+		if err != nil {
+			return models.BitriseDataModel{}, fmt.Errorf("prompt user: %s", err)
 		}
 
 		bitriseYMLFile, err := os.Open(filePath)
