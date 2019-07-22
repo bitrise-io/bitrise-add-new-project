@@ -117,8 +117,8 @@ the one you usually open in Xcode, then hit Enter.
 
 		if !validProject {
 			const (
-				answerYes = "yes"
-				answerNo  = "no"
+				answerYes = "Yes"
+				answerNo  = "No"
 			)
 
 			prompt := promptui.Select{

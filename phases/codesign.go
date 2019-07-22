@@ -58,8 +58,8 @@ func AutoCodesign(bitriseYML bitriseModels.BitriseDataModel, searchDir string) (
 	log.Debugf("Project type: %s", bitriseYML.ProjectType)
 
 	const (
-		answerYes = "yes"
-		answerNo  = "no"
+		answerYes = "Yes"
+		answerNo  = "No"
 	)
 
 	var result CodesignResult
@@ -68,6 +68,7 @@ func AutoCodesign(bitriseYML bitriseModels.BitriseDataModel, searchDir string) (
 			Label: "Do you want to export and upload iOS codesigning files?",
 			Items: []string{answerYes, answerNo},
 			Templates: &promptui.SelectTemplates{
+				Label:    fmt.Sprintf("%s {{.}} ", promptui.IconInitial),
 				Selected: "Export and upload iOS codesigning files: {{ . | green }}",
 			},
 		}
@@ -106,9 +107,10 @@ func AutoCodesign(bitriseYML bitriseModels.BitriseDataModel, searchDir string) (
 
 	if isAndroidCodesign(bitriseYML.ProjectType) {
 		prmpt := promptui.Select{
-			Label: "Do you want to upload an Android keystore file?",
+			Label: "Do you want to upload an Android keystore file",
 			Items: []string{answerYes, answerNo},
 			Templates: &promptui.SelectTemplates{
+				Label:    fmt.Sprintf("%s {{.}} ", promptui.IconInitial),
 				Selected: "Upload Android keystore file: {{ . | green }}",
 			},
 		}
@@ -134,7 +136,7 @@ func AutoCodesign(bitriseYML bitriseModels.BitriseDataModel, searchDir string) (
 				Label: "Enter key store password",
 				Mask:  '*',
 				Templates: &promptui.PromptTemplates{
-					Success: "keystore password: [REDACTED]",
+					Success: "Keystore password: [REDACTED]",
 				},
 			}
 			result.Android.Password, err = prompt.Run()
@@ -145,7 +147,7 @@ func AutoCodesign(bitriseYML bitriseModels.BitriseDataModel, searchDir string) (
 			prompt = promptui.Prompt{
 				Label: "Enter key alias",
 				Templates: &promptui.PromptTemplates{
-					Success: "key alias: {{ . | green }}",
+					Success: "Key alias: {{ . | green }}",
 				},
 			}
 			result.Android.Alias, err = prompt.Run()
@@ -156,6 +158,9 @@ func AutoCodesign(bitriseYML bitriseModels.BitriseDataModel, searchDir string) (
 			prompt = promptui.Prompt{
 				Label: "Enter key password",
 				Mask:  '*',
+				Templates: &promptui.PromptTemplates{
+					Success: "Key password: [REDACTED]",
+				},
 			}
 
 			result.Android.KeyPassword, err = prompt.Run()
