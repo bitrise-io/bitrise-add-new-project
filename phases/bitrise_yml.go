@@ -15,7 +15,6 @@ import (
 	"github.com/bitrise-io/go-utils/colorstring"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
-	"github.com/bitrise-io/goinp/goinp"
 	"github.com/manifoldco/promptui"
 	"gopkg.in/src-d/go-git.v4"
 )
@@ -28,9 +27,23 @@ type branchConfiguration struct {
 	remote   string
 }
 
-func askBranch(currentBranch string, inputReader io.Reader) (string, error) {
-	const msg = "Which branch would you like to be the default?"
-	return goinp.AskForStringFromReaderWithDefault(msg, currentBranch, inputReader)
+func askBranch(currentBranch string) (string, error) {
+	prompt := promptui.Prompt{
+		Label:   "Which branch would you like to be the default?",
+		Default: currentBranch,
+	}
+
+	branch, err := prompt.Run()
+	if err != nil {
+		return "", fmt.Errorf("prompt user: %s", err)
+	}
+
+	if branch == "" {
+		log.Warnf("Empty branch name read, falling back to default (%s)", currentBranch)
+		return currentBranch, nil
+	}
+
+	return branch, nil
 }
 
 func currentBranch(searchDir string) (branchConfiguration, error) {
@@ -124,19 +137,35 @@ func ParseBitriseYMLFile(inputReader io.Reader) (models.BitriseDataModel, []stri
 
 func selectBitriseYMLFile(inputReader io.Reader, potentialBitriseYMLFilePath string) (models.BitriseDataModel, error) {
 	for {
-		const msgBitriseYml = "Enter the path of your bitrise.yml file (you can also drag & drop the file here)"
-
 		var filePath string
 		var err error
 		if potentialBitriseYMLFilePath != "" {
-			filePath, err = goinp.AskForPathFromReaderWithDefault(msgBitriseYml, potentialBitriseYMLFilePath, inputReader)
+			prompt := promptui.Prompt{
+				Label: "Enter the path of your bitrise.yml file (you can also drag & drop the file here)",
+				Default: potentialBitriseYMLFilePath,
+			}
+		
+			filePath, err := prompt.Run()
 			if err != nil {
-				return models.BitriseDataModel{}, err
+				return models.BitriseDataModel{}, fmt.Errorf("prompt user: %s", err)
+			}
+		
+			if filePath == "" {
+				log.Warnf("Empty path read, falling back to default (%s)", potentialBitriseYMLFilePath)
+				filePath = potentialBitriseYMLFilePath
 			}
 		} else {
-			filePath, err = goinp.AskForPathFromReader(msgBitriseYml, inputReader)
+			prompt := promptui.Prompt{
+				Label: "Enter the path of your bitrise.yml file (you can also drag & drop the file here)",
+			}
+		
+			filePath, err := prompt.Run()
 			if err != nil {
-				return models.BitriseDataModel{}, err
+				return models.BitriseDataModel{}, fmt.Errorf("prompt user: %s", err)
+			}
+		
+			if filePath == "" {
+				return models.BitriseDataModel{}, fmt.Errorf("empty path read")
 			}
 		}
 
@@ -247,7 +276,7 @@ func getBitriseYML(searchDir string, inputReader io.Reader) (models.BitriseDataM
 			return models.BitriseDataModel{}, "", fmt.Errorf("failed to get current branch, error: %s", err)
 		}
 
-		branchName, err := askBranch(branch.tracking, inputReader)
+		branchName, err := askBranch(branch.tracking)
 		if err != nil {
 			return models.BitriseDataModel{}, "", fmt.Errorf("failed to ask for primary branch, error: %s", err)
 		}
