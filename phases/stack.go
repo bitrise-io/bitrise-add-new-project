@@ -3,59 +3,33 @@ package phases
 import (
 	"fmt"
 
+	"github.com/bitrise-io/bitrise-init/stack"
 	"github.com/bitrise-io/go-utils/log"
 )
 
-var defaultStacks = map[string]string{
-	"xamarin":      "osx-vs4mac-stable",
-	"cordova":      "osx-xcode-10.2.x",
-	"react-native": "osx-xcode-10.2.x",
-	"ionic":        "osx-xcode-10.2.x",
-	"flutter":      "osx-xcode-10.2.x",
-	"android":      "linux-docker-android",
-	"macos":        "osx-xcode-10.2.x",
-	"ios":          "osx-xcode-10.2.x",
-}
-
-var optionsStacks = []string{
-	"linux-docker-android-lts",
-	"linux-docker-android",
-	"osx-vs4mac-beta",
-	"osx-vs4mac-previous-stable",
-	"osx-vs4mac-stable",
-	"osx-xamarin-stable",
-	"osx-xcode-10.0.x",
-	"osx-xcode-10.1.x",
-	"osx-xcode-10.2.x",
-	"osx-xcode-8.3.x",
-	"osx-xcode-9.2.x",
-	"osx-xcode-9.4.x",
-	"osx-xcode-edge",
-}
-
 // Stack returns the selected stack for the project or an error
-// if something went wrong during stack autodetection.
+// if something went wrong during stack auto-detection.
 func Stack(projectType string) (string, error) {
-	stack := defaultStacks[projectType]
+	selectedStack := stack.DefaultStacks[projectType]
 	var manualStackSelection = option{
 		title:        "Please choose from the available stacks",
-		valueOptions: optionsStacks,
+		valueOptions: stack.OptionsStacks,
 		action: func(answer string) *option {
-			stack = answer
+			selectedStack = answer
 			return nil
 		},
 	}
 
-	if stack == "" {
+	if selectedStack == "" {
 		log.Warnf("Could not identify default stack for project. Falling back to manual stack selection.")
 		(&manualStackSelection).run()
 
-		return stack, nil
+		return selectedStack, nil
 	}
 
-	systemReportURL := fmt.Sprintf("https://github.com/bitrise-io/bitrise.io/blob/master/system_reports/%s.log", stack)
+	systemReportURL := fmt.Sprintf("https://github.com/bitrise-io/bitrise.io/blob/master/system_reports/%s.log", selectedStack)
 	log.Printf("A(n) %s project has been detected based on the bitrise.yml", projectType)
-	log.Printf("The default stack for your project type is %s. You can check the preinstalled tools at %s", stack, systemReportURL)
+	log.Printf("The default stack for your project type is %s. You can check the preinstalled tools at %s", selectedStack, systemReportURL)
 
 	const (
 		optionYes = "Yes"
@@ -73,6 +47,6 @@ func Stack(projectType string) (string, error) {
 			return nil
 		},
 	}).run()
-	return stack, nil
+	return selectedStack, nil
 
 }
