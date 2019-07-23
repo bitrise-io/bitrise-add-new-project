@@ -92,7 +92,7 @@ func splitURL(URL *url.URL) (*RepoDetails, error) {
 		Owner:       pathParts[0],
 		Slug:        strings.TrimRight(pathParts[len(pathParts)-1], ".git"),
 		SSHUsername: URL.User.Username(),
-		Provider:    getProvider(URL.Hostname()),
+		Provider:    "custom",
 	}, nil
 }
 
@@ -112,21 +112,6 @@ func schemeToSSH(URL *url.URL) *url.URL {
 	return sshURL
 }
 
-func getProvider(hostName string) string {
-	hostParts := strings.Split(hostName, ".")
-	if len(hostParts) < 2 {
-		return "custom"
-	}
-
-	if hostParts[len(hostParts)-1] == "com" && hostParts[len(hostParts)-2] == "github" {
-		return "github"
-	} else if hostParts[len(hostParts)-1] == "com" && hostParts[len(hostParts)-2] == "gitlab" {
-		return "gitlab"
-	} else if hostParts[len(hostParts)-1] == "org" && hostParts[len(hostParts)-2] == "bitbucket" {
-		return "bitbucket"
-	}
-	return "custom"
-}
 
 func validateRepositoryAvailablePublic(url string) error {
 	if _, err := git.Clone(memory.NewStorage(), nil, &git.CloneOptions{
