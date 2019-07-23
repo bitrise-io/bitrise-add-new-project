@@ -115,7 +115,7 @@ func schemeToSSH(URL *url.URL) *url.URL {
 func getProvider(hostName string) string {
 	hostParts := strings.Split(hostName, ".")
 	if len(hostParts) < 2 {
-		return "other"
+		return "custom"
 	}
 
 	if hostParts[len(hostParts)-1] == "com" && hostParts[len(hostParts)-2] == "github" {
@@ -125,7 +125,7 @@ func getProvider(hostName string) string {
 	} else if hostParts[len(hostParts)-1] == "org" && hostParts[len(hostParts)-2] == "bitbucket" {
 		return "bitbucket"
 	}
-	return "other"
+	return "custom"
 }
 
 func validateRepositoryAvailablePublic(url string) error {

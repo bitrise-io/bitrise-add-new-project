@@ -32,11 +32,11 @@ func Test_getProvider(t *testing.T) {
 		},
 		{
 			hostName: "github.com.unknown.com",
-			want:     "other",
+			want:     "custom",
 		},
 		{
 			hostName: "unknowngithub.com",
-			want:     "other",
+			want:     "custom",
 		},
 	}
 	for _, tt := range tests {
