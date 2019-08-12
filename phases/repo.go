@@ -112,7 +112,6 @@ func schemeToSSH(URL *url.URL) *url.URL {
 	return sshURL
 }
 
-
 func validateRepositoryAvailablePublic(url string) error {
 	if _, err := git.Clone(memory.NewStorage(), nil, &git.CloneOptions{
 		Auth:              nil,

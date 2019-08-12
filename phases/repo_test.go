@@ -6,48 +6,6 @@ import (
 	"testing"
 )
 
-func Test_getProvider(t *testing.T) {
-	type args struct {
-	}
-	tests := []struct {
-		name     string
-		hostName string
-		want     string
-	}{
-		{
-			hostName: "github.com",
-			want:     "github",
-		},
-		{
-			hostName: "d.github.com",
-			want:     "github",
-		},
-		{
-			hostName: "gitlab.com",
-			want:     "gitlab",
-		},
-		{
-			hostName: "bitbucket.org",
-			want:     "bitbucket",
-		},
-		{
-			hostName: "github.com.unknown.com",
-			want:     "custom",
-		},
-		{
-			hostName: "unknowngithub.com",
-			want:     "custom",
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := getProvider(tt.hostName); got != tt.want {
-				t.Errorf("getProvider() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
 func Test_parseURL(t *testing.T) {
 	const httpsURL = "https://github.com/bitrise-io/go-utils.git"
 	const sshURL = "ssh://git@github.com/bitrise-io/go-utils.git"
@@ -144,7 +102,7 @@ func Test_splitURL(t *testing.T) {
 				Owner:       "bitrise-io",
 				Slug:        "go-utils",
 				SSHUsername: "git",
-				Provider:    "github",
+				Provider:    "custom",
 			},
 		},
 		{
@@ -156,7 +114,7 @@ func Test_splitURL(t *testing.T) {
 				Owner:       "bitrise-io",
 				Slug:        "go-utils",
 				SSHUsername: "",
-				Provider:    "github",
+				Provider:    "custom",
 			},
 		},
 		{
@@ -168,7 +126,7 @@ func Test_splitURL(t *testing.T) {
 				Owner:       "bitrise-io",
 				Slug:        "go-utils",
 				SSHUsername: "token",
-				Provider:    "github",
+				Provider:    "custom",
 			},
 		},
 		{
@@ -186,7 +144,7 @@ func Test_splitURL(t *testing.T) {
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("splitURL() = %v, want %v", got, tt.want)
+				t.Errorf("splitURL() = %#v, want %#v", got, tt.want)
 			}
 		})
 	}

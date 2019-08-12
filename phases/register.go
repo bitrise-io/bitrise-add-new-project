@@ -141,7 +141,7 @@ func Register(token string, progress Progress, inputReader io.Reader) error {
 			log.Errorf("Webhook registration is not possible right now, see options at: https://app.bitrise.io/app/%s#/code", app.Slug)
 		}
 	} else {
-		log.Warnf("Skipping webhook registration.")
+		log.Printf("Skipping webhook registration.")
 	}
 
 	if params.KeystorePth != "" {
