@@ -10,13 +10,13 @@ import (
 
 var defaultStacks = map[string]string{
 	"xamarin":      "osx-vs4mac-stable",
-	"cordova":      "osx-vs4mac-stable",
-	"react-native": "osx-vs4mac-stable",
-	"ionic":        "osx-vs4mac-stable",
-	"flutter":      "osx-vs4mac-stable",
+	"cordova":      "osx-xcode-10.2.x",
+	"react-native": "osx-xcode-10.2.x",
+	"ionic":        "osx-xcode-10.2.x",
+	"flutter":      "osx-xcode-10.2.x",
 	"android":      "linux-docker-android",
-	"macos":        "osx-xcode-10.0.x",
-	"ios":          "osx-xcode-10.0.x",
+	"macos":        "osx-xcode-10.2.x",
+	"ios":          "osx-xcode-10.2.x",
 }
 
 var optionsStacks = []string{

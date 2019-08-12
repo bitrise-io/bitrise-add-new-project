@@ -520,7 +520,7 @@
     "go/types/typeutil",
   ]
   pruneopts = "UT"
-  revision = "212fb13d595e5faf79425c78ae101012873a81a1"
+  revision = "286818132824cc7a932bc972207f079caafd739f"
 
 [[projects]]
   branch = "v3-unstable"
@@ -632,6 +632,8 @@
     "github.com/bitrise-io/codesigndoc/xcode",
     "github.com/bitrise-io/envman/models",
     "github.com/bitrise-io/go-utils/colorstring",
+    "github.com/bitrise-io/go-utils/command",
+    "github.com/bitrise-io/go-utils/errorutil",
     "github.com/bitrise-io/go-utils/fileutil",
     "github.com/bitrise-io/go-utils/log",
     "github.com/bitrise-io/go-utils/pathutil",

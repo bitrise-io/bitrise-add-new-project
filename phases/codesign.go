@@ -1,13 +1,17 @@
 package phases
 
 import (
+	"errors"
 	"fmt"
-
+	"os"
 	"runtime"
 
 	bitriseModels "github.com/bitrise-io/bitrise/models"
 	"github.com/bitrise-io/codesigndoc/models"
+	"github.com/bitrise-io/go-utils/command"
+	"github.com/bitrise-io/go-utils/errorutil"
 	"github.com/bitrise-io/go-utils/log"
+	"github.com/bitrise-io/go-utils/pathutil"
 	"github.com/bitrise-io/go-utils/sliceutil"
 	"github.com/manifoldco/promptui"
 )
@@ -106,69 +110,139 @@ func AutoCodesign(bitriseYML bitriseModels.BitriseDataModel, searchDir string) (
 	}
 
 	if isAndroidCodesign(bitriseYML.ProjectType) {
-		prmpt := promptui.Select{
-			Label: "Do you want to upload an Android keystore file",
-			Items: []string{answerYes, answerNo},
-			Templates: &promptui.SelectTemplates{
-				Label:    fmt.Sprintf("%s {{.}} ", promptui.IconInitial),
-				Selected: "Upload Android keystore file: {{ . | green }}",
-			},
-		}
-		_, uploadAndroid, err := prmpt.Run()
-		if err != nil {
-			return CodesignResult{}, fmt.Errorf("scan user input: %s", err)
-		}
-
-		if uploadAndroid == answerYes {
-			prompt := promptui.Prompt{
-				Label: "Enter keystore path",
-				Templates: &promptui.PromptTemplates{
-					Success: "Keystore path: {{ . | green }}",
+		for {
+			prmpt := promptui.Select{
+				Label: "Do you want to upload an Android keystore file",
+				Items: []string{answerYes, answerNo},
+				Templates: &promptui.SelectTemplates{
+					Label:    fmt.Sprintf("%s {{.}} ", promptui.IconInitial),
+					Selected: "Upload Android keystore file: {{ . | green }}",
 				},
 			}
-
-			result.Android.KeystorePath, err = prompt.Run()
+			_, uploadAndroid, err := prmpt.Run()
 			if err != nil {
 				return CodesignResult{}, fmt.Errorf("scan user input: %s", err)
 			}
 
-			prompt = promptui.Prompt{
-				Label: "Enter key store password",
-				Mask:  '*',
-				Templates: &promptui.PromptTemplates{
-					Success: "Keystore password: [REDACTED]",
-				},
-			}
-			result.Android.Password, err = prompt.Run()
-			if err != nil {
-				return CodesignResult{}, fmt.Errorf("scan user input: %s", err)
+			if uploadAndroid == answerNo {
+				break
 			}
 
-			prompt = promptui.Prompt{
-				Label: "Enter key alias",
-				Templates: &promptui.PromptTemplates{
-					Success: "Key alias: {{ . | green }}",
-				},
-			}
-			result.Android.Alias, err = prompt.Run()
+			result.Android, err = getAndroidKeystoreSettings()
 			if err != nil {
-				return CodesignResult{}, fmt.Errorf("scan user input: %s", err)
+				log.Errorf("%s", err)
+				continue
 			}
 
-			prompt = promptui.Prompt{
-				Label: "Enter key password",
-				Mask:  '*',
-				Templates: &promptui.PromptTemplates{
-					Success: "Key password: [REDACTED]",
-				},
-			}
-
-			result.Android.KeyPassword, err = prompt.Run()
-			if err != nil {
-				return CodesignResult{}, fmt.Errorf("scan user input: %s", err)
-			}
+			break
 		}
 	}
 
 	return result, nil
+}
+
+func getAndroidKeystoreSettings() (CodesignResultAndroid, error) {
+	prompt := promptui.Prompt{
+		Label: "Enter keystore path",
+		Templates: &promptui.PromptTemplates{
+			Success: "Keystore path: {{ . | green }}",
+		},
+	}
+
+	var absKeystorePath string
+	{
+		keystorePath, err := prompt.Run()
+		if err != nil {
+			return CodesignResultAndroid{}, fmt.Errorf("scan user input: %s", err)
+		}
+
+		absKeystorePath, err = pathutil.AbsPath(keystorePath)
+		if err != nil {
+			return CodesignResultAndroid{}, fmt.Errorf("failed to get absolute keystore path, error: %s", err)
+		}
+		if _, err := os.Stat(absKeystorePath); os.IsNotExist(err) {
+			return CodesignResultAndroid{}, fmt.Errorf("keystore file does not exist, error: %s", err)
+		}
+	}
+
+	prompt = promptui.Prompt{
+		Label: "Enter key store password",
+		Mask:  '*',
+		Templates: &promptui.PromptTemplates{
+			Success: "Keystore password: [REDACTED]",
+		},
+	}
+	keystorePassword, err := prompt.Run()
+	if err != nil {
+		return CodesignResultAndroid{}, fmt.Errorf("scan user input: %s", err)
+	}
+
+	prompt = promptui.Prompt{
+		Label: "Enter key alias",
+		Templates: &promptui.PromptTemplates{
+			Success: "Key alias: {{ . | green }}",
+		},
+	}
+	alias, err := prompt.Run()
+	if err != nil {
+		return CodesignResultAndroid{}, fmt.Errorf("scan user input: %s", err)
+	}
+
+	prompt = promptui.Prompt{
+		Label: "Enter key password",
+		Mask:  '*',
+		Templates: &promptui.PromptTemplates{
+			Success: "Key password: [REDACTED]",
+		},
+	}
+
+	keyPassword, err := prompt.Run()
+	if err != nil {
+		return CodesignResultAndroid{}, fmt.Errorf("scan user input: %s", err)
+	}
+
+	keystoreSettings := CodesignResultAndroid{
+		KeystorePath: absKeystorePath,
+		Password:     keystorePassword,
+		Alias:        alias,
+		KeyPassword:  keyPassword,
+	}
+
+	if err := validateAndroidCodesignParams(keystoreSettings); err != nil {
+		return CodesignResultAndroid{}, fmt.Errorf("Invalid keystore parameters, error: %s", err)
+	}
+
+	return keystoreSettings, nil
+}
+
+func validateAndroidCodesignParams(codesign CodesignResultAndroid) error {
+	params := []string{
+		"-certreq",
+		"-v",
+
+		"-keystore",
+		codesign.KeystorePath,
+		"-storepass",
+		codesign.Password,
+
+		"-alias",
+		codesign.Alias,
+		"-keypass",
+		codesign.KeyPassword,
+
+		"-J-Dfile.encoding=utf-8",
+		"-J-Duser.language=en-US",
+	}
+
+	out, err := command.New("keytool", params...).RunAndReturnTrimmedCombinedOutput()
+	if err != nil {
+		if errorutil.IsExitStatusError(err) {
+			return errors.New(out)
+		}
+		return fmt.Errorf("failed to run keytool command, error: %s", err)
+	}
+	if out == "" {
+		return fmt.Errorf("failed to read keystore, maybe alias (%s) or keystore password is not correct", codesign.Alias)
+	}
+	return nil
 }
