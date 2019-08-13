@@ -4,8 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"net/url"
-
-	// "os"
 	"strings"
 
 	"github.com/bitrise-io/go-utils/colorstring"

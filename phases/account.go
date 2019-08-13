@@ -87,10 +87,10 @@ func Account(apiToken string) (string, error) {
 		return "", fmt.Errorf("fetch authenticated user: %s", err)
 	}
 
-	accMap := map[string]string{}
+	orgNameToSlug := map[string]string{}
 	items := []string{user.Data.Username}
 	for _, data := range orgs.Data {
-		accMap[data.Name] = data.Slug
+		orgNameToSlug[data.Name] = data.Slug
 		items = append(items, data.Name)
 	}
 
@@ -108,5 +108,5 @@ func Account(apiToken string) (string, error) {
 		return "", fmt.Errorf("scan user input: %s", err)
 	}
 
-	return accMap[acc], nil
+	return orgNameToSlug[acc], nil
 }
