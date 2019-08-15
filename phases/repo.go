@@ -111,15 +111,17 @@ func schemeToSSH(URL *url.URL) *url.URL {
 }
 
 func validateRepositoryAvailablePublic(url string) error {
+	var b bytes.Buffer
 	if _, err := git.Clone(memory.NewStorage(), nil, &git.CloneOptions{
 		Auth:              nil,
 		URL:               url,
-		Progress:          bytes.NewBuffer([]byte{}),
+		Progress:          &b,
 		NoCheckout:        true,
 		RecurseSubmodules: git.NoRecurseSubmodules,
 	}); err != nil {
 		return err
 	}
+	log.Debugf(b.String())
 	return nil
 }
 

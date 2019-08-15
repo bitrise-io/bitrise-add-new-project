@@ -19,17 +19,17 @@ func ValidatePrivateKey(privateKey []byte, username string, url string) (bool, e
 	if err != nil {
 		return false, err
 	}
-
+	var b bytes.Buffer
 	if _, err = git.Clone(memory.NewStorage(), nil, &git.CloneOptions{
 		Auth:              SSHAuth,
 		URL:               url,
-		Progress:          bytes.NewBuffer([]byte{}),
+		Progress:          &b,
 		NoCheckout:        true,
 		RecurseSubmodules: git.NoRecurseSubmodules,
 	}); err != nil {
 		return false, err
 	}
-
+	log.Debugf(b.String())
 	return true, nil
 }
 
