@@ -161,6 +161,9 @@ func Register(token string, progress Progress, inputReader io.Reader) error {
 		if _, _, err := codesigndocBitriseio.UploadCodesigningFiles(codesignIOSClient, params.CodesignIOS.certificates, params.CodesignIOS.provisioningProfiles); err != nil {
 			return err
 		}
+	} else if isIOSCodesign(params.Project.ProjectType) {
+		log.Warnf(`To upload iOS code signing files, paste this script into a terminal on macOS and follow the instructions:	
+bash -l -c "$(curl -sfL https://raw.githubusercontent.com/bitrise-io/codesigndoc/master/_scripts/install_wrap.sh)"`)
 	}
 
 	if err := app.TriggerBuild(params.WorkflowID, params.Branch); err != nil {
