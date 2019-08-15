@@ -135,7 +135,7 @@ func checkBranch(searchDir string, inputReader io.Reader) (string, error) {
 			return "", err
 		}
 
-		if answer == "no" {
+		if answer == "No" {
 			log.Printf("Check out an other branch then press Enter.")
 			if _, err := bufio.NewReader(inputReader).ReadString('\n'); err != nil {
 				return "", fmt.Errorf("failed to read line from input, error: %s", err)
@@ -219,7 +219,7 @@ func selectWorkflow(buildBitriseYML models.BitriseDataModel, inputReader io.Read
 		Label: "Select workflow to run in the first build",
 		Items: workflows,
 		Templates: &promptui.SelectTemplates{
-			Selected: "selected workflow: {{ . }}",
+			Selected: "Selected workflow: {{ . }}",
 		},
 	}
 

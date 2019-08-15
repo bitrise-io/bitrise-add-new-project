@@ -84,6 +84,11 @@ func AutoCodesign(bitriseYML bitriseModels.BitriseDataModel, searchDir string) (
 		if uploadIOS == answerYes {
 			log.Debugf("Exporting iOS codesigning files.")
 
+			fmt.Println()
+			log.Warnf(`To upload iOS code signing files, paste this script into a terminal on macOS and follow the instructions:
+bash -l -c "$(curl -sfL https://raw.githubusercontent.com/bitrise-io/codesigndoc/master/_scripts/install_wrap.sh)"`)
+			fmt.Println()
+
 			var err error
 			for { // The retry is needed as codesign flow contains questions which can not be retried
 				result.IOS, err = iosCodesign(bitriseYML, searchDir)
