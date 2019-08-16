@@ -3,7 +3,9 @@ package phases
 import (
 	"fmt"
 
+	"github.com/bitrise-io/go-utils/colorstring"
 	"github.com/bitrise-io/go-utils/log"
+	"github.com/manifoldco/promptui"
 )
 
 var defaultStacks = map[string]string{
@@ -36,43 +38,73 @@ var optionsStacks = []string{
 // Stack returns the selected stack for the project or an error
 // if something went wrong during stack autodetection.
 func Stack(projectType string) (string, error) {
+	fmt.Println()
+	log.Infof("SELECT STACK")
 	stack := defaultStacks[projectType]
-	var manualStackSelection = option{
-		title:        "Please choose from the available stacks",
-		valueOptions: optionsStacks,
-		action: func(answer string) *option {
-			stack = answer
-			return nil
-		},
-	}
+	var err error
 
 	if stack == "" {
 		log.Warnf("Could not identify default stack for project. Falling back to manual stack selection.")
-		(&manualStackSelection).run()
+
+		prompt := promptui.Select{
+			Label: "Please choose from the available stacks",
+			Items: optionsStacks,
+			Templates: &promptui.SelectTemplates{
+				Selected: "Stack: {{ . | green }}",
+			},
+		}
+
+		_, stack, err = prompt.Run()
+		if err != nil {
+			return "", fmt.Errorf("scan user input: %s", err)
+		}
 
 		return stack, nil
 	}
 
 	systemReportURL := fmt.Sprintf("https://github.com/bitrise-io/bitrise.io/blob/master/system_reports/%s.log", stack)
-	log.Printf("A(n) %s project has been detected based on the bitrise.yml", projectType)
-	log.Printf("The default stack for your project type is %s. You can check the preinstalled tools at %s", stack, systemReportURL)
+	log.Printf("Project type: %s", colorstring.Green(projectType))
+	log.Printf("Default stack for your project type: %s", colorstring.Green(stack))
+	log.Printf("You can check the preinstalled tools at: %s", systemReportURL)
 
 	const (
 		optionYes = "Yes"
 		optionNo  = "No, I will select the stack manually"
 	)
-	(&option{
-		title:        "Do you wish to keep this stack?",
-		valueOptions: []string{optionYes, optionNo},
-		action: func(answer string) *option {
-			if answer == optionNo {
-				log.Printf("Bitrise stack infos: https://github.com/bitrise-io/bitrise.io/tree/master/system_reports")
-				(&manualStackSelection).run()
-			}
 
-			return nil
+	prompt := promptui.Select{
+		Label: "Do you wish to keep this stack?",
+		Items: []string{optionYes, optionNo},
+		Templates: &promptui.SelectTemplates{
+			Label:    fmt.Sprintf("%s {{.}} ", promptui.IconInitial),
+			Selected: "Keep default stack: {{ . | green }}",
 		},
-	}).run()
-	return stack, nil
+	}
 
+	for {
+		_, keep, err := prompt.Run()
+		if err != nil {
+			return "", fmt.Errorf("scan user input: %s", err)
+		}
+
+		if keep == optionYes {
+			return stack, nil
+		}
+
+		stackPrompt := promptui.Select{
+			Label: "Choose stack",
+			Items: optionsStacks,
+			Templates: &promptui.SelectTemplates{
+				Selected: "Stack: {{ . | green }}",
+			},
+		}
+		_, stack, err = stackPrompt.Run()
+		if err != nil {
+			return "", fmt.Errorf("user input: %s", err)
+		}
+
+		return stack, nil
+	}
+
+	return "", fmt.Errorf("invalid state")
 }

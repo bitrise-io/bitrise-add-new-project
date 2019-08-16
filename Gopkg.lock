@@ -639,7 +639,6 @@
     "github.com/bitrise-io/go-utils/pathutil",
     "github.com/bitrise-io/go-utils/retry",
     "github.com/bitrise-io/go-utils/sliceutil",
-    "github.com/bitrise-io/goinp/goinp",
     "github.com/bitrise-io/xcode-project/pretty",
     "github.com/bitrise-io/xcode-project/xcodeproj",
     "github.com/bitrise-io/xcode-project/xcscheme",

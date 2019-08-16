@@ -4,11 +4,13 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"runtime"
 
 	"github.com/bitrise-io/bitrise-add-new-project/bitriseio"
 	"github.com/bitrise-io/bitrise-add-new-project/httputil"
 	codesigndocBitriseio "github.com/bitrise-io/codesigndoc/bitriseio"
 	"github.com/bitrise-io/codesigndoc/bitriseio/bitrise"
+	"github.com/bitrise-io/go-utils/colorstring"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/xcode-project/pretty"
 	"gopkg.in/yaml.v2"
@@ -94,7 +96,8 @@ func registerWebhook(app *bitriseio.AppService, inputReader io.Reader) error {
 
 // Register ...
 func Register(token string, progress Progress, inputReader io.Reader) error {
-	log.Infof("Register")
+	fmt.Println()
+	log.Infof("REGISTERING THE PROJECT")
 
 	params, err := toRegistrationParams(progress)
 	if err != nil {
@@ -138,7 +141,8 @@ func Register(token string, progress Progress, inputReader io.Reader) error {
 		} else {
 			log.Errorf("Webhook registration is not possible right now, see options at: https://app.bitrise.io/app/%s#/code", app.Slug)
 		}
-		log.Warnf("Skipping webhook registration.")
+	} else {
+		log.Printf("Skipping webhook registration.")
 	}
 
 	if params.KeystorePth != "" {
@@ -158,8 +162,8 @@ func Register(token string, progress Progress, inputReader io.Reader) error {
 		if _, _, err := codesigndocBitriseio.UploadCodesigningFiles(codesignIOSClient, params.CodesignIOS.certificates, params.CodesignIOS.provisioningProfiles); err != nil {
 			return err
 		}
-	} else if isIOSCodesign(params.Project.ProjectType) {
-		log.Warnf(`To upload iOS code signing files, paste this script into a terminal on macOS and follow the instructions:
+	} else if runtime.GOOS == "darwin" && isIOSCodesign(params.Project.ProjectType) {
+		log.Printf(`To upload additional iOS code signing files, paste this script into a terminal on macOS and follow the instructions:	
 bash -l -c "$(curl -sfL https://raw.githubusercontent.com/bitrise-io/codesigndoc/master/_scripts/install_wrap.sh)"`)
 	}
 
@@ -167,6 +171,6 @@ bash -l -c "$(curl -sfL https://raw.githubusercontent.com/bitrise-io/codesigndoc
 		return err
 	}
 
-	log.Donef("Project created: https://app.bitrise.io/app/%s", app.Slug)
+	log.Printf("Project created: %s", colorstring.Greenf("https://app.bitrise.io/app/"+app.Slug))
 	return nil
 }

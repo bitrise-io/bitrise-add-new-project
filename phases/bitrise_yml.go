@@ -7,13 +7,15 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/bitrise-io/bitrise-init/scanner"
 	"github.com/bitrise-io/bitrise/bitrise"
 	"github.com/bitrise-io/bitrise/models"
+	"github.com/bitrise-io/go-utils/colorstring"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
-	"github.com/bitrise-io/goinp/goinp"
+	"github.com/manifoldco/promptui"
 	"gopkg.in/src-d/go-git.v4"
 )
 
@@ -25,9 +27,48 @@ type branchConfiguration struct {
 	remote   string
 }
 
-func askBranch(currentBranch string, inputReader io.Reader) (string, error) {
-	const msg = "Which branch would you like to be the default?"
-	return goinp.AskForStringFromReaderWithDefault(msg, currentBranch, inputReader)
+func askBitriseYMLFile(defaultPath string) (string, error) {
+	prompt := promptui.Prompt{
+		Label: "Enter the path of your bitrise.yml file (you can also drag & drop the file here)",
+	}
+
+	if defaultPath != "" {
+		prompt.Default = defaultPath
+	}
+
+	filePath, err := prompt.Run()
+	if err != nil {
+		return "", fmt.Errorf("prompt user: %s", err)
+	}
+
+	if filePath == "" {
+		if defaultPath == "" {
+			return "", fmt.Errorf("empty path read")
+		}
+		log.Warnf("Empty path read, falling back to default (%s)", defaultPath)
+		return defaultPath, nil
+	}
+
+	return filePath, nil
+}
+
+func askBranch(currentBranch string) (string, error) {
+	prompt := promptui.Prompt{
+		Label:   "Which branch would you like to be the default?",
+		Default: currentBranch,
+	}
+
+	branch, err := prompt.Run()
+	if err != nil {
+		return "", fmt.Errorf("prompt user: %s", err)
+	}
+
+	if branch == "" {
+		log.Warnf("Empty branch name read, falling back to default (%s)", currentBranch)
+		return currentBranch, nil
+	}
+
+	return branch, nil
 }
 
 func currentBranch(searchDir string) (branchConfiguration, error) {
@@ -71,7 +112,7 @@ func checkBranch(searchDir string, inputReader io.Reader) (string, error) {
 			return "", fmt.Errorf("failed to get current branch, error: %s", err)
 		}
 
-		log.Donef("The current branch is: %s (tracking: %s %s).", branch.local, branch.remote, branch.tracking)
+		log.Printf("The current branch is: %s (tracking: %s %s).", colorstring.Green(branch.local), branch.remote, branch.tracking)
 		if branch.tracking == "" {
 			log.Errorf("No tracking branch is set for the current branch. Check out an other branch then press Enter.")
 			if _, err := bufio.NewReader(inputReader).ReadString('\n'); err != nil {
@@ -80,13 +121,21 @@ func checkBranch(searchDir string, inputReader io.Reader) (string, error) {
 			continue
 		}
 
-		msg := fmt.Sprintf("Do you want to run the scanner for this branch?")
-		useCurrentBranch, err := goinp.AskForBoolFromReaderWithDefaultValue(msg, true, inputReader)
+		prompt := promptui.Select{
+			Label: "Do you want to run the scanner for this branch?",
+			Items: []string{"Yes", "No"},
+			Templates: &promptui.SelectTemplates{
+				Label:    fmt.Sprintf("%s {{.}} ", promptui.IconInitial),
+				Selected: "Run the scanner on the current branch: {{ . | green }}",
+			},
+		}
+
+		_, answer, err := prompt.Run()
 		if err != nil {
 			return "", err
 		}
 
-		if !useCurrentBranch {
+		if answer == "No" {
 			log.Printf("Check out an other branch then press Enter.")
 			if _, err := bufio.NewReader(inputReader).ReadString('\n'); err != nil {
 				return "", fmt.Errorf("failed to read line from input, error: %s", err)
@@ -113,20 +162,9 @@ func ParseBitriseYMLFile(inputReader io.Reader) (models.BitriseDataModel, []stri
 
 func selectBitriseYMLFile(inputReader io.Reader, potentialBitriseYMLFilePath string) (models.BitriseDataModel, error) {
 	for {
-		const msgBitriseYml = "Enter the path of your bitrise.yml file (you can also drag & drop the file here)"
-
-		var filePath string
-		var err error
-		if potentialBitriseYMLFilePath != "" {
-			filePath, err = goinp.AskForPathFromReaderWithDefault(msgBitriseYml, potentialBitriseYMLFilePath, inputReader)
-			if err != nil {
-				return models.BitriseDataModel{}, err
-			}
-		} else {
-			filePath, err = goinp.AskForPathFromReader(msgBitriseYml, inputReader)
-			if err != nil {
-				return models.BitriseDataModel{}, err
-			}
+		filePath, err := askBitriseYMLFile(potentialBitriseYMLFilePath)
+		if err != nil {
+			return models.BitriseDataModel{}, fmt.Errorf("prompt user: %s", err)
 		}
 
 		bitriseYMLFile, err := os.Open(filePath)
@@ -177,10 +215,19 @@ func selectWorkflow(buildBitriseYML models.BitriseDataModel, inputReader io.Read
 		return workflows[0], nil
 	}
 
-	workflow, err := goinp.SelectFromStringsFromReaderWithDefault("Select workflow to run in the first build:", 1, workflows, inputReader)
+	prompt := promptui.Select{
+		Label: "Select workflow to run in the first build",
+		Items: workflows,
+		Templates: &promptui.SelectTemplates{
+			Selected: "Selected workflow: {{ . }}",
+		},
+	}
+
+	_, workflow, err := prompt.Run()
 	if err != nil {
 		return "", err
 	}
+
 	return workflow, nil
 }
 
@@ -196,12 +243,22 @@ func getBitriseYML(searchDir string, inputReader io.Reader) (models.BitriseDataM
 
 	const msg = "What bitrise.yml do you want to upload?"
 	const optionRunScanner = "Run the scanner to generate a new bitrise.yml"
-	const optionAlreadyExisting = "Use an already existing bitrise.yml"
+	const optionAlreadyExisting = "Use the bitrise.yml found in the current directory or specify manually"
 	options := []string{
 		optionRunScanner,
 		optionAlreadyExisting,
 	}
-	answer, err := goinp.SelectFromStringsFromReaderWithDefault(msg, 1, options, inputReader)
+
+	prompt := promptui.Select{
+		Label: msg,
+		Items: options,
+		Templates: &promptui.SelectTemplates{
+			Label:    fmt.Sprintf("%s {{.}} ", promptui.IconInitial),
+			Selected: "{{ . }}",
+		},
+	}
+
+	_, answer, err := prompt.Run()
 	if err != nil {
 		return models.BitriseDataModel{}, "", fmt.Errorf("failed to get bitrise.yml, error: %s", err)
 	}
@@ -217,7 +274,7 @@ func getBitriseYML(searchDir string, inputReader io.Reader) (models.BitriseDataM
 			return models.BitriseDataModel{}, "", fmt.Errorf("failed to get current branch, error: %s", err)
 		}
 
-		branchName, err := askBranch(branch.tracking, inputReader)
+		branchName, err := askBranch(branch.tracking)
 		if err != nil {
 			return models.BitriseDataModel{}, "", fmt.Errorf("failed to ask for primary branch, error: %s", err)
 		}
@@ -230,6 +287,8 @@ func getBitriseYML(searchDir string, inputReader io.Reader) (models.BitriseDataM
 		return models.BitriseDataModel{}, "", fmt.Errorf("failed to check repository branch: %s", err)
 	}
 
+	fmt.Println()
+
 	scanResult, found := scanner.GenerateScanResult(searchDir)
 	if !found {
 		log.Infof("Projects not found in repository. Select manual configuration.")
@@ -238,7 +297,11 @@ func getBitriseYML(searchDir string, inputReader io.Reader) (models.BitriseDataM
 			return models.BitriseDataModel{}, "", fmt.Errorf("failed to get manual configurations, error: %s", err)
 		}
 	} else {
-		log.Infof("Projects found in repository.")
+		var platforms []string
+		for scanner := range scanResult.ScannerToOptionRoot {
+			platforms = append(platforms, scanner)
+		}
+		log.Printf("Project(s) found in the repository: %s", colorstring.Green(strings.Join(platforms, ", ")))
 	}
 	bitriseYML, err := scanner.AskForConfig(scanResult)
 	if err != nil {
@@ -249,6 +312,8 @@ func getBitriseYML(searchDir string, inputReader io.Reader) (models.BitriseDataM
 
 // BitriseYML ...
 func BitriseYML(searchDir string) (models.BitriseDataModel, string, string, error) {
+	fmt.Println()
+	log.Infof("SETUP BITRISE.YML")
 	bitriseYML, branch, err := getBitriseYML(searchDir, os.Stdin)
 	if err != nil {
 		return models.BitriseDataModel{}, "", "", err

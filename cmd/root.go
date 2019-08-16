@@ -74,9 +74,6 @@ func executePhases(cmd cobra.Command) (phases.Progress, error) {
 	}
 
 	// repo
-	log.Infof("SCANNING WORKDIR FOR GIT REPO")
-	log.Infof("=============================")
-
 	repoURL, err := phases.Repo(currentDir, progress.Public)
 	if err != nil {
 		return phases.Progress{}, err

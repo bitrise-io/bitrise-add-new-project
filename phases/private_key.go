@@ -14,8 +14,8 @@ import (
 	"github.com/bitrise-io/bitrise-add-new-project/sshutil"
 	"github.com/bitrise-io/go-utils/fileutil"
 	"github.com/bitrise-io/go-utils/log"
-	"github.com/bitrise-io/go-utils/pathutil"
 	"github.com/bitrise-io/go-utils/retry"
+	"github.com/manifoldco/promptui"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -57,8 +57,9 @@ func generateSSHKey() (sshutil.SSHKeyPair, error) {
 
 // PrivateKey ...
 func PrivateKey(repoURL RepoDetails) (sshutil.SSHKeyPair, bool, error) {
-	log.Infof("Setup repository access")
 	fmt.Println()
+	log.Infof("SETUP REPOSITORY ACCESS")
+	log.Printf("For automatic ssh key registration git provider must be connected at: https://app.bitrise.io/me/profile")
 
 	var (
 		err      error
@@ -68,80 +69,93 @@ func PrivateKey(repoURL RepoDetails) (sshutil.SSHKeyPair, bool, error) {
 
 	const (
 		methodTitle  = "Specify how Bitrise will be able to access the source code"
-		methodAuto   = "Automatic (Git provider must be connected at: https://app.bitrise.io/me/profile or will fall back to manual registration.)"
+		methodAuto   = "Automatic"
 		methodManual = "Add own SSH"
 	)
-	(&option{
-		title:        methodTitle,
-		valueOptions: []string{methodAuto, methodManual},
-		action: func(answer string) *option {
-			const (
-				privateKeyPathTitle   = "Enter the path of your RSA SSH private key file (you can also drag & drop the file here)"
-				additionalAccessTitle = "Do you need to use an additional private repository?"
-				additionalAccessNo    = "No, auto-add SSH key"
-				additionalAccessYes   = "I need to"
-			)
-			switch answer {
-			case methodAuto:
-				register = true
-				if SSHKeys, err = generateSSHKey(); err != nil {
-					return nil
-				}
 
-				return &option{
-					title:        additionalAccessTitle,
-					valueOptions: []string{additionalAccessNo, additionalAccessYes},
-					action: func(answer string) *option {
-						switch answer {
-						case additionalAccessNo:
-							return nil
-						case additionalAccessYes:
-							log.Warnf("Copy this SSH public key to your clipboard and add it to any additional Git repository or account!")
-							fmt.Println(string(SSHKeys.PublicKey))
-
-							log.Printf("Hit enter if you have finished with the setup")
-							if _, err := bufio.NewReader(os.Stdin).ReadString('\n'); err != nil {
-								err = fmt.Errorf("failed to read line from input, error: %s", err)
-								return nil
-							}
-							return nil
-						}
-						return nil
-					},
-				}
-			case methodManual:
-				register = false
-				SSHKeys.PublicKey = nil
-
-				err = retry.Times(3).Try(func(attempt uint) error {
-					var privateKeyPath string
-					(&option{
-						title: privateKeyPathTitle,
-						action: func(answer string) *option {
-							privateKeyPath, err = pathutil.AbsPath(answer)
-							if err != nil {
-								log.Errorf("could not expand path (%s) to full path: %s", answer, err)
-							}
-							return nil
-						},
-					}).run()
-
-					SSHKeys.PrivateKey, err = readPrivateKey(privateKeyPath)
-					if err != nil {
-						return err
-					}
-
-					var valid bool
-					if valid, err = sshutil.ValidatePrivateKey(SSHKeys.PrivateKey, repoURL.SSHUsername, repoURL.URL); !valid {
-						log.Errorf("Could not connect to repository with private key, error: %s", err)
-						return err
-					}
-					return nil
-				})
-			}
-			return nil
+	prompt := promptui.Select{
+		Label: methodTitle,
+		Items: []string{methodAuto, methodManual},
+		Templates: &promptui.SelectTemplates{
+			Selected: "Repo access method: {{ . | green }}",
 		},
-	}).run()
+	}
+
+	_, method, err := prompt.Run()
+	if err != nil {
+		return SSHKeys, false, fmt.Errorf("scan user input: %s", err)
+	}
+
+	if method == methodAuto {
+		register = true
+		if SSHKeys, err = generateSSHKey(); err != nil {
+			return SSHKeys, false, err
+		}
+
+		const (
+			additionalAccessTitle = "Do you need to use an additional private repository?"
+			additionalAccessNo    = "No, auto-add SSH key"
+			additionalAccessYes   = "I need to"
+		)
+		prompt := promptui.Select{
+			Label: additionalAccessTitle,
+			Items: []string{additionalAccessNo, additionalAccessYes},
+			Templates: &promptui.SelectTemplates{
+				Label:    fmt.Sprintf("%s {{.}} ", promptui.IconInitial),
+				Selected: "Need to add additional repo: {{ . | green }}",
+			},
+		}
+
+		_, additional, err := prompt.Run()
+		if err != nil {
+			return SSHKeys, false, fmt.Errorf("scan user input: %s", err)
+		}
+
+		if additional == additionalAccessNo {
+			return SSHKeys, true, nil
+		}
+
+		log.Warnf("Copy this SSH public key to your clipboard and add it to any additional Git repository or account!")
+		fmt.Println(string(SSHKeys.PublicKey))
+
+		log.Printf("Hit enter if you have finished with the setup")
+		if _, err := bufio.NewReader(os.Stdin).ReadString('\n'); err != nil {
+			return SSHKeys, false, fmt.Errorf("failed to read line from input, error: %s", err)
+		}
+
+		return SSHKeys, true, nil
+	}
+
+	const privateKeyPathTitle = "Enter the path of your RSA SSH private key file (you can also drag & drop the file here)"
+
+	register = false
+	SSHKeys.PublicKey = nil
+
+	err = retry.Times(3).Try(func(attempt uint) error {
+		prompt := promptui.Prompt{
+			Label: privateKeyPathTitle,
+			Templates: &promptui.PromptTemplates{
+				Success: "Private key path: {{ . | green }}",
+			},
+		}
+
+		privateKeyPath, err := prompt.Run()
+		if err != nil {
+			return fmt.Errorf("scan user input: %s", err)
+		}
+
+		SSHKeys.PrivateKey, err = readPrivateKey(privateKeyPath)
+		if err != nil {
+			return err
+		}
+
+		var valid bool
+		if valid, err = sshutil.ValidatePrivateKey(SSHKeys.PrivateKey, repoURL.SSHUsername, repoURL.URL); !valid {
+			log.Errorf("Could not connect to repository with private key, error: %s", err)
+			return err
+		}
+		return nil
+	})
 
 	return SSHKeys, register, err
 }

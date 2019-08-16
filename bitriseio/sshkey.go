@@ -45,8 +45,8 @@ func (s *AppService) RegisterSSHKey(params RegisterSSHKeyParams, repoURL string)
 				PublicKey:  []byte(params.AuthSSHPublicKey),
 				PrivateKey: []byte(params.AuthSSHPrivateKey),
 			},
-			URL:        repoURL,
-			Username:   params.Username,
+			URL:      repoURL,
+			Username: params.Username,
 		}); err != nil {
 			return err
 		}

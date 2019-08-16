@@ -13,7 +13,6 @@ import (
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
 	"github.com/bitrise-io/go-utils/sliceutil"
-	"github.com/bitrise-io/goinp/goinp"
 	"github.com/manifoldco/promptui"
 )
 
@@ -51,13 +50,16 @@ func isAndroidCodesign(projectType string) bool {
 
 // AutoCodesign ...
 func AutoCodesign(bitriseYML bitriseModels.BitriseDataModel, searchDir string) (CodesignResult, error) {
+	fmt.Println()
+	log.Infof("CODESIGNING")
+
 	if !isIOSCodesign(bitriseYML.ProjectType) && !isAndroidCodesign(bitriseYML.ProjectType) {
 		log.Warnf("Unsupported project type (%s) for exporting codesigning files.", bitriseYML.ProjectType)
 		log.Warnf("Supported project types for exporting codesigning files: 'ios', 'android'.")
 		return CodesignResult{}, nil
 	}
 
-	log.Donef("Project type: %s", bitriseYML.ProjectType)
+	log.Debugf("Project type: %s", bitriseYML.ProjectType)
 
 	const (
 		answerYes = "Yes"
@@ -66,24 +68,39 @@ func AutoCodesign(bitriseYML bitriseModels.BitriseDataModel, searchDir string) (
 
 	var result CodesignResult
 	if runtime.GOOS == "darwin" && isIOSCodesign(bitriseYML.ProjectType) {
-		uploadIOS, err := goinp.AskForBoolWithDefault("Do you want to export and upload iOS codesigning files?", true)
+		prompt := promptui.Select{
+			Label: "Do you want to export and upload iOS codesigning files?",
+			Items: []string{answerYes, answerNo},
+			Templates: &promptui.SelectTemplates{
+				Label:    fmt.Sprintf("%s {{.}} ", promptui.IconInitial),
+				Selected: "Export and upload iOS codesigning files: {{ . | green }}",
+			},
+		}
+		_, uploadIOS, err := prompt.Run()
 		if err != nil {
-			return CodesignResult{}, err
+			return CodesignResult{}, fmt.Errorf("scan user input: %s", err)
 		}
 
-		if uploadIOS {
-			log.Infof("Exporting iOS codesigning files.")
+		if uploadIOS == answerYes {
+			log.Debugf("Exporting iOS codesigning files.")
 
 			var err error
 			for { // The retry is needed as codesign flow contains questions which can not be retried
 				result.IOS, err = iosCodesign(bitriseYML, searchDir)
 				if err != nil {
 					log.Warnf("Failed to export iOS codesigning files, error: %s", err)
-					isRetry, err := goinp.AskForBoolWithDefault("Retry exporting iOS codesigning files?", true)
-					if err != nil {
-						return CodesignResult{}, err
+					prompt := promptui.Select{
+						Label: "Retry exporting iOS codesigning files?",
+						Items: []string{answerYes, answerNo},
+						Templates: &promptui.SelectTemplates{
+							Selected: "",
+						},
 					}
-					if isRetry {
+					_, isRetry, err := prompt.Run()
+					if err != nil {
+						return CodesignResult{}, fmt.Errorf("scan user input: %s", err)
+					}
+					if isRetry == answerYes {
 						continue
 					}
 				}
