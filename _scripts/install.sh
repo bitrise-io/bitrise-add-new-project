@@ -44,7 +44,7 @@ if [ "${VERSION}" != "" ] ; then
 fi
 echo " => Downloading version: ${version}"
 
-download_url="https://github.com/bitrise-io/bitrise-add-new-project/releases/download/${version}/banp-Darwin-x86_64"
+download_url="https://github.com/bitrise-io/bitrise-add-new-project/releases/download/${version}/banp-$(uname -s)-$(uname -m)"
 echo " => Downloading banp from (${download_url}) to (${bin_path}) ..."
 curl -fL --progress-bar --output "${bin_path}" "${download_url}"
 echo " => Making it executable ..."
