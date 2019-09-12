@@ -13,7 +13,7 @@ case $key in
     shift # past value
     ;;
     --api-token)
-    API_TOKEN="$2"
+    TOKEN="$2"
     shift # past argument
     shift # past value
     ;;
@@ -25,7 +25,6 @@ case $key in
     --public)
     PUBLIC="$2"
     shift # past argument
-    shift # past value
     ;;
     *)    # unknown option
     POSITIONAL+=("$1") # save it in an array for later
@@ -50,7 +49,6 @@ echo " => Downloading banp from (${download_url}) to (${bin_path}) ..."
 curl -fL --progress-bar --output "${bin_path}" "${download_url}"
 echo " => Making it executable ..."
 chmod +x "${bin_path}"
-echo " => banp version: $(${bin_path} version)"
 echo " => Running banp ..."
 echo
-${bin_path} --api-token "${API_TOKEN}" --org "${ORG}" --public "${PUBLIC}"
+${bin_path} --api-token "${TOKEN}" --org "${ORG}" --public "${PUBLIC}"
