@@ -7,11 +7,6 @@ do
 key="$1"
 
 case $key in
-    --version)
-    VERSION="$2"
-    shift # past argument
-    shift # past value
-    ;;
     --api-token)
     TOKEN="$2"
     shift # past argument
@@ -38,13 +33,7 @@ echo " => Creating a temporary directory for banp (bitrise-add-new-project) ..."
 temp_dir="$(mktemp -d -t banpXXXXXX)"
 bin_path="${temp_dir}/banp"
 
-version="0.2.1"
-if [ "${VERSION}" != "" ] ; then
-    version="${VERSION}"
-fi
-echo " => Downloading version: ${version}"
-
-download_url="https://github.com/bitrise-io/bitrise-add-new-project/releases/download/${version}/banp-$(uname -s)-$(uname -m)"
+download_url="https://github.com/bitrise-io/bitrise-add-new-project/releases/latest/download/banp-$(uname -s)-$(uname -m)"
 echo " => Downloading banp from (${download_url}) to (${bin_path}) ..."
 curl -fL --progress-bar --output "${bin_path}" "${download_url}"
 echo " => Making it executable ..."
