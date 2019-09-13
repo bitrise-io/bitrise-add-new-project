@@ -40,4 +40,10 @@ echo " => Making it executable ..."
 chmod +x "${bin_path}"
 echo " => Running banp ..."
 echo
-${bin_path} --api-token "${TOKEN}" --org "${ORG}" --public "${PUBLIC}"
+
+if [ -z "$ORG" ]
+then
+    ${bin_path} --api-token "${TOKEN}" --public="${PUBLIC}"
+else
+    ${bin_path} --api-token "${TOKEN}" --org "${ORG}" --public="${PUBLIC}"
+fi
