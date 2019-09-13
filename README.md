@@ -9,13 +9,13 @@ Copy and Paste the above commands in your terminal on macOS and Linux.
 ### Create a Bitrise project under an organization
 
 ```BASH
-bash <(curl -sfL https://raw.githubusercontent.com/bitrise-io/bitrise-add-new-project/master/_scripts/run.sh) --api-token "<Bitrise personal access token>" --org "<organisation slug>" --public "<true|false>"
+bash <(curl -sfL https://raw.githubusercontent.com/bitrise-io/bitrise-add-new-project/master/_scripts/run.sh) --api-token "<Bitrise personal access token>" --org "<organisation slug>" --public="<true|false>"
 ```
 
 ### Create a personal Bitrise project
 
 ```BASH
-bash <(curl -sfL https://raw.githubusercontent.com/bitrise-io/bitrise-add-new-project/master/_scripts/run.sh) --api-token "<Bitrise personal access token>" --public "<true|false>"
+bash <(curl -sfL https://raw.githubusercontent.com/bitrise-io/bitrise-add-new-project/master/_scripts/run.sh) --api-token "<Bitrise personal access token>" --public="<true|false>"
 ```
 
 ## Install or upgrade
