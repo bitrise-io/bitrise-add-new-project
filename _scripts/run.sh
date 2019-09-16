@@ -50,9 +50,9 @@ if [ -z "$ORG" ]
 then
     if [ -z "$PERSONAL" ]
     then
-        ${bin_path} --api-token "${TOKEN}" --public="${PUBLIC}" --personal="${PERSONAL}"
-    else
         ${bin_path} --api-token "${TOKEN}" --public="${PUBLIC}"
+    else
+        ${bin_path} --api-token "${TOKEN}" --public="${PUBLIC}" --personal="${PERSONAL}"
     fi
 else
     ${bin_path} --api-token "${TOKEN}" --org "${ORG}" --public="${PUBLIC}"
