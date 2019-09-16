@@ -77,7 +77,7 @@ func fetchUser(apiToken string) (*meResponse, error) {
 
 // Account returns the slug of the selected account. If the user selects
 // the personal account, the slug is empty.
-func Account(apiToken string, personal bool) (string, error) {
+func Account(apiToken string, personal bool, orgSlug string) (string, error) {
 	user, err := fetchUser(apiToken)
 	if err != nil {
 		return "", fmt.Errorf("fetch authenticated user: %s", err)
@@ -103,6 +103,25 @@ func Account(apiToken string, personal bool) (string, error) {
 	}
 
 	log.Infof("CHOOSE ACCOUNT")
+
+	if len(orgSlug) > 0 {
+		var orgFound string
+		for _, data := range orgs.Data {
+			if data.Slug == orgSlug {
+				orgFound = data.Name
+				break
+			}
+		}
+
+		if orgFound == "" {
+			return "", fmt.Errorf("has no access to the organization with slug: %s", orgSlug)
+		}
+
+		log.Donef(colorstring.Greenf("Selected account: ") + orgFound)
+		fmt.Println()
+
+		return orgSlug, nil
+	}
 
 	prompt := promptui.Select{
 		Label: "Select account to use",

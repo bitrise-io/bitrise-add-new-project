@@ -50,15 +50,11 @@ func init() {
 func executePhases(cmd cobra.Command) (phases.Progress, error) {
 	progress := phases.Progress{}
 
-	if cmd.Flags().Changed(cmdFlagKeyOrganisation) {
-		progress.OrganizationSlug = cmdFlagOrganisation
-	} else {
-		account, err := phases.Account(cmdFlagAPIToken, cmdFlagPersonal)
-		if err != nil {
-			return phases.Progress{}, err
-		}
-		progress.OrganizationSlug = account
+	account, err := phases.Account(cmdFlagAPIToken, cmdFlagPersonal, cmdFlagOrganisation)
+	if err != nil {
+		return phases.Progress{}, err
 	}
+	progress.OrganizationSlug = account
 
 	if cmd.Flags().Changed(cmdFlagKeyPublic) {
 		progress.Public = cmdFlagPublic
