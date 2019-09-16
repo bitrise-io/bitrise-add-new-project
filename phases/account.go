@@ -77,13 +77,13 @@ func fetchUser(apiToken string) (*meResponse, error) {
 // Account returns the slug of the selected account. If the user selects
 // the personal account, the slug is empty.
 func Account(apiToken string, personal bool) (string, error) {
+	if personal {
+		return "", nil
+	}
+
 	user, err := fetchUser(apiToken)
 	if err != nil {
 		return "", fmt.Errorf("fetch authenticated user: %s", err)
-	}
-
-	if personal {
-		return user.Data.Username, nil
 	}
 
 	orgs, err := fetchOrgs(apiToken)
