@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/bitrise-io/go-utils/colorstring"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/manifoldco/promptui"
 )
@@ -77,13 +78,17 @@ func fetchUser(apiToken string) (*meResponse, error) {
 // Account returns the slug of the selected account. If the user selects
 // the personal account, the slug is empty.
 func Account(apiToken string, personal bool) (string, error) {
-	if personal {
-		return "", nil
-	}
-
 	user, err := fetchUser(apiToken)
 	if err != nil {
 		return "", fmt.Errorf("fetch authenticated user: %s", err)
+	}
+
+	log.Infof("CHOOSE ACCOUNT")
+
+	if personal {
+		log.Donef(colorstring.Greenf("Selected account: ") + user.Data.Username)
+		fmt.Println()
+		return "", nil
 	}
 
 	orgs, err := fetchOrgs(apiToken)
@@ -98,7 +103,6 @@ func Account(apiToken string, personal bool) (string, error) {
 		items = append(items, data.Name)
 	}
 
-	log.Infof("CHOOSE ACCOUNT")
 	prompt := promptui.Select{
 		Label: "Select account to use",
 		Items: items,
