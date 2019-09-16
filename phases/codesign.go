@@ -50,14 +50,12 @@ func isAndroidCodesign(projectType string) bool {
 
 // AutoCodesign ...
 func AutoCodesign(bitriseYML bitriseModels.BitriseDataModel, searchDir string) (CodesignResult, error) {
-	fmt.Println()
-	log.Infof("CODESIGNING")
-
 	if !isIOSCodesign(bitriseYML.ProjectType) && !isAndroidCodesign(bitriseYML.ProjectType) {
-		log.Warnf("Unsupported project type (%s) for exporting codesigning files.", bitriseYML.ProjectType)
-		log.Warnf("Supported project types for exporting codesigning files: 'ios', 'android'.")
 		return CodesignResult{}, nil
 	}
+
+	fmt.Println()
+	log.Infof("CODESIGNING")
 
 	log.Debugf("Project type: %s", bitriseYML.ProjectType)
 
