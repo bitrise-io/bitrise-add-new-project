@@ -16,6 +16,7 @@ const (
 	cmdFlagKeyPublic       = "public"
 	cmdFlagKeyAPIToken     = "api-token"
 	cmdFlagKeyVerbose      = "verbose"
+	cmdFlagKeyPersonal     = "personal"
 )
 
 var (
@@ -23,6 +24,7 @@ var (
 	cmdFlagOrganisation string
 	cmdFlagVerbose      bool
 	cmdFlagPublic       bool
+	cmdFlagPersonal     bool
 	rootCmd             = &cobra.Command{
 		Run:   run,
 		Use:   "bitrise-add-new-project",
@@ -42,20 +44,17 @@ func init() {
 	rootCmd.Flags().BoolVar(&cmdFlagPublic, cmdFlagKeyPublic, false, "Create a public app")
 	rootCmd.Flags().StringVar(&cmdFlagAPIToken, cmdFlagKeyAPIToken, "", "Bitrise personal access token")
 	rootCmd.Flags().BoolVar(&cmdFlagVerbose, cmdFlagKeyVerbose, false, "Enable verbose logging")
+	rootCmd.Flags().BoolVar(&cmdFlagPersonal, cmdFlagKeyPersonal, false, "Assign the project to the owner of the personal access token")
 }
 
 func executePhases(cmd cobra.Command) (phases.Progress, error) {
 	progress := phases.Progress{}
 
-	if cmd.Flags().Changed(cmdFlagKeyOrganisation) {
-		progress.OrganizationSlug = cmdFlagOrganisation
-	} else {
-		account, err := phases.Account(cmdFlagAPIToken)
-		if err != nil {
-			return phases.Progress{}, err
-		}
-		progress.OrganizationSlug = account
+	account, err := phases.Account(cmdFlagAPIToken, cmdFlagPersonal, cmdFlagOrganisation)
+	if err != nil {
+		return phases.Progress{}, err
 	}
+	progress.OrganizationSlug = account
 
 	if cmd.Flags().Changed(cmdFlagKeyPublic) {
 		progress.Public = cmdFlagPublic

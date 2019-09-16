@@ -129,7 +129,6 @@ func validateRepositoryAvailablePublic(url string) error {
 // directory. If the Project visibility was set to public, the
 // https clone url will be used.
 func Repo(searchDir string, isPublicApp bool) (RepoDetails, error) {
-	fmt.Println()
 	log.Infof("SCANNING GIT REPOSITORY")
 
 	// Open local git repository

@@ -15,7 +15,7 @@ bash <(curl -sfL https://raw.githubusercontent.com/bitrise-io/bitrise-add-new-pr
 ### Create a personal Bitrise project
 
 ```BASH
-bash <(curl -sfL https://raw.githubusercontent.com/bitrise-io/bitrise-add-new-project/master/_scripts/run.sh) --api-token "<Bitrise personal access token>" --public "<true|false>"
+bash <(curl -sfL https://raw.githubusercontent.com/bitrise-io/bitrise-add-new-project/master/_scripts/run.sh) --api-token "<Bitrise personal access token>" --public "<true|false>" --personal "true"
 ```
 
 ## Install or upgrade

@@ -12,6 +12,11 @@ case $key in
     shift # past argument
     shift # past value
     ;;
+    --personal)
+    PERSONAL="$2"
+    shift # past argument
+    shift # past value
+    ;;
     --org)
     ORG="$2"
     shift # past argument
@@ -43,7 +48,12 @@ echo
 
 if [ -z "$ORG" ]
 then
-    ${bin_path} --api-token "${TOKEN}" --public="${PUBLIC}"
+    if [ -z "$PERSONAL" ]
+    then
+        ${bin_path} --api-token "${TOKEN}" --public="${PUBLIC}"
+    else
+        ${bin_path} --api-token "${TOKEN}" --public="${PUBLIC}" --personal="${PERSONAL}"
+    fi
 else
     ${bin_path} --api-token "${TOKEN}" --org "${ORG}" --public="${PUBLIC}"
 fi
