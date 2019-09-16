@@ -76,15 +76,19 @@ func fetchUser(apiToken string) (*meResponse, error) {
 
 // Account returns the slug of the selected account. If the user selects
 // the personal account, the slug is empty.
-func Account(apiToken string) (string, error) {
-	orgs, err := fetchOrgs(apiToken)
-	if err != nil {
-		return "", fmt.Errorf("fetch orgs for authenticated user: %s", err)
-	}
-
+func Account(apiToken string, personal bool) (string, error) {
 	user, err := fetchUser(apiToken)
 	if err != nil {
 		return "", fmt.Errorf("fetch authenticated user: %s", err)
+	}
+
+	if personal {
+		return user.Data.Username, nil
+	}
+
+	orgs, err := fetchOrgs(apiToken)
+	if err != nil {
+		return "", fmt.Errorf("fetch orgs for authenticated user: %s", err)
 	}
 
 	orgNameToSlug := map[string]string{}
@@ -107,6 +111,8 @@ func Account(apiToken string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("scan user input: %s", err)
 	}
+
+	fmt.Println()
 
 	return orgNameToSlug[acc], nil
 }
