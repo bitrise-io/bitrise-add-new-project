@@ -44,7 +44,7 @@ func init() {
 	rootCmd.Flags().BoolVar(&cmdFlagPublic, cmdFlagKeyPublic, false, "Create a public app")
 	rootCmd.Flags().StringVar(&cmdFlagAPIToken, cmdFlagKeyAPIToken, "", "Bitrise personal access token")
 	rootCmd.Flags().BoolVar(&cmdFlagVerbose, cmdFlagKeyVerbose, false, "Enable verbose logging")
-	rootCmd.Flags().BoolVar(&cmdFlagPersonal, cmdFlagKeyPersonal, false, "Assign the project for the owner of the personal access token")
+	rootCmd.Flags().BoolVar(&cmdFlagPersonal, cmdFlagKeyPersonal, false, "Assign the project to the owner of the personal access token")
 }
 
 func executePhases(cmd cobra.Command) (phases.Progress, error) {
