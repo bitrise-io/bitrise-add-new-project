@@ -83,9 +83,8 @@ func Account(apiToken string, personal bool) (string, error) {
 		return "", fmt.Errorf("fetch authenticated user: %s", err)
 	}
 
-	log.Infof("CHOOSE ACCOUNT")
-
 	if personal {
+		log.Infof("CHOOSE ACCOUNT")
 		log.Donef(colorstring.Greenf("Selected account: ") + user.Data.Username)
 		fmt.Println()
 		return "", nil
@@ -102,6 +101,8 @@ func Account(apiToken string, personal bool) (string, error) {
 		orgNameToSlug[data.Name] = data.Slug
 		items = append(items, data.Name)
 	}
+
+	log.Infof("CHOOSE ACCOUNT")
 
 	prompt := promptui.Select{
 		Label: "Select account to use",
