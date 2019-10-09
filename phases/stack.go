@@ -3,6 +3,7 @@ package phases
 import (
 	"fmt"
 
+	"github.com/bitrise-io/bitrise-add-new-project/config"
 	"github.com/bitrise-io/go-utils/colorstring"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/manifoldco/promptui"
@@ -19,21 +20,7 @@ var defaultStacks = map[string]string{
 	"ios":          "osx-xcode-10.2.x",
 }
 
-var optionsStacks = []string{
-	"linux-docker-android-lts",
-	"linux-docker-android",
-	"osx-vs4mac-beta",
-	"osx-vs4mac-previous-stable",
-	"osx-vs4mac-stable",
-	"osx-xamarin-stable",
-	"osx-xcode-10.0.x",
-	"osx-xcode-10.1.x",
-	"osx-xcode-10.2.x",
-	"osx-xcode-8.3.x",
-	"osx-xcode-9.2.x",
-	"osx-xcode-9.4.x",
-	"osx-xcode-edge",
-}
+var optionsStacks = config.Stacks
 
 // Stack returns the selected stack for the project or an error
 // if something went wrong during stack autodetection.
