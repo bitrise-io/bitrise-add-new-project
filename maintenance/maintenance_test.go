@@ -19,18 +19,18 @@ type DirectoryEntry struct {
 func TestStackChange(t *testing.T) {
 	resp, err := http.Get("https://api.github.com/repos/bitrise-io/bitrise.io/contents/system_reports")
 	if err != nil {
-
+		t.Fatalf("Error getting current stack list from GitHub: %s", err)
 	}
 	defer resp.Body.Close()
 
 	bytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-
+		t.Fatalf("Error reading stack info from GitHub response: %s", err)
 	}
 
 	var rb ResponseBody
 	if err := json.Unmarshal(bytes, &rb); err != nil {
-
+		t.Fatalf("Error unmarshalling stack data from string (%s): %s", bytes, err)
 	}
 
 	changed := false
@@ -42,7 +42,7 @@ func TestStackChange(t *testing.T) {
 	}
 
 	if changed {
-		t.Logf("Stack list changed.")
+		t.Fatalf("Stack list changed.")
 	}
 
 }
