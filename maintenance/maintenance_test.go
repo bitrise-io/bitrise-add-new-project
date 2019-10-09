@@ -33,16 +33,15 @@ func TestStackChange(t *testing.T) {
 		t.Fatalf("Error unmarshalling stack data from string (%s): %s", bytes, err)
 	}
 
-	changed := false
+	if len(config.Stacks) != len(rb) {
+		t.Fatalf("Stack list changed")
+	}
+
 	for _, e := range rb {
 		trimmed := strings.TrimSuffix(e.Name, ".log")
 		if !sliceutil.IsStringInSlice(trimmed, config.Stacks) {
-			changed = true
+			t.Fatalf("Stack list changed")
 		}
-	}
-
-	if changed {
-		t.Fatalf("Stack list changed.")
 	}
 
 }
