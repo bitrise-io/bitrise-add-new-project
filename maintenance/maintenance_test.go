@@ -37,8 +37,8 @@ func TestStackChange(t *testing.T) {
 		t.Fatalf("Stack list changed")
 	}
 
-	for _, e := range rb {
-		trimmed := strings.TrimSuffix(e.Name, ".log")
+	for _, de := range rb {
+		trimmed := strings.TrimSuffix(de.Name, ".log")
 		if !sliceutil.IsStringInSlice(trimmed, config.Stacks) {
 			t.Fatalf("Stack list changed")
 		}
