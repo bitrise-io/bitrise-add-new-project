@@ -1,5 +1,9 @@
 package config
 
+// Stacks contains the current stack IDs
+// known by the BANP tool. The slice should
+// be updated whenever the list of supported
+// stacks are modified.
 var Stacks = []string{
 	"linux-docker-android-lts",
 	"linux-docker-android",
