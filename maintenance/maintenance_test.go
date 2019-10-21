@@ -21,7 +21,11 @@ func TestStackChange(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Error getting current stack list from GitHub: %s", err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			t.Fatalf("Error closing response body")
+		}
+	}()
 
 	bytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
