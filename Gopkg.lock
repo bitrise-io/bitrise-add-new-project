@@ -229,17 +229,6 @@
   revision = "d7302db945fa6ea264fb79d8e13e931ea514a602"
 
 [[projects]]
-  branch = "travis-1.9"
-  digest = "1:e8f5d9c09a7209c740e769713376abda388c41b777ba8e9ed52767e21acf379f"
-  name = "github.com/golang/lint"
-  packages = [
-    ".",
-    "golint",
-  ]
-  pruneopts = "UT"
-  revision = "883fe33ffc4344bad1ecd881f61afd5ec5d80e0a"
-
-[[projects]]
   branch = "master"
   digest = "1:473e7c5cbc58c538bce66e0ca2a033d31a3e7d9c6d5d96c6df1657b588bddac3"
   name = "github.com/google/shlex"
@@ -315,7 +304,8 @@
   version = "v1.0.0"
 
 [[projects]]
-  digest = "1:2a2a76072bd413b3484a0b5bb2fbb078b0b7dd8950e9276c900e14dce2354679"
+  branch = "master"
+  digest = "1:e0a0ea2d2c1fe2ce57c7d8433fbbd8520adbb5b5695bc3147cf4761f325996c1"
   name = "github.com/manifoldco/promptui"
   packages = [
     ".",
@@ -323,8 +313,7 @@
     "screenbuf",
   ]
   pruneopts = "UT"
-  revision = "20f2a94120aa14a334121a6de66616a7fa89a5cd"
-  version = "v0.3.2"
+  revision = "748542ed5f25c8bc3207759215f349c0fe2ae4c4"
 
 [[projects]]
   digest = "1:7c084e0e780596dd2a7e20d25803909a9a43689c153de953520dfbc0b0e51166"
@@ -473,6 +462,17 @@
   ]
   pruneopts = "UT"
   revision = "5c40567a22f818bd14a1ea7245dad9f8ef0691aa"
+
+[[projects]]
+  branch = "master"
+  digest = "1:21d7bad9b7da270fd2d50aba8971a041bd691165c95096a2a4c68db823cbc86a"
+  name = "golang.org/x/lint"
+  packages = [
+    ".",
+    "golint",
+  ]
+  pruneopts = "UT"
+  revision = "16217165b5de779cb6a5e4fc81fa9c1166fda457"
 
 [[projects]]
   branch = "master"
