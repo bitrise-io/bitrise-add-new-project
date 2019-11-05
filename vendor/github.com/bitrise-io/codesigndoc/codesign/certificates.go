@@ -19,14 +19,18 @@ const (
 
 var (
 	iOSCertificateNames = []string{
-		"iPhone Developer",    //type: "iOS Development"
+		"iPhone Developer",    // type: "iOS Development"
 		"iPhone Distribution", // type: "iOS Distribution"
+		"Apple Development",   // type: "Apple Development"
+		"Apple Distribution",  // type: "Apple Distribution"
 	}
 
 	macOSCertificateNames = []string{
 		"Mac Developer",                       // type: "Mac Development"
 		"3rd Party Mac Developer Application", // type: "Mac App Distribution"
 		"Developer ID Application",            // type: "Developer ID Application"
+		"Apple Development",                   // type: "Apple Development"
+		"Apple Distribution",                  // type: "Apple Distribution"
 	}
 
 	macOSInstallerCertificateNames = []string{
@@ -64,7 +68,7 @@ func InstalledCertificates(certType certificateType) ([]certificateutil.Certific
 		}
 	}
 
-	return certificateutil.FilterValidCertificateInfos(certs), nil
+	return certificateutil.FilterValidCertificateInfos(certs).ValidCertificates, nil
 }
 
 // IsDistributionCertificate returns true if the given certificate
