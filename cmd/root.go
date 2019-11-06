@@ -13,22 +13,22 @@ import (
 )
 
 const (
-	cmdFlagKeyOrganisation = "org"
-	cmdFlagKeyPublic       = "public"
-	cmdFlagKeyAPIToken     = "api-token"
-	cmdFlagKeyVerbose      = "verbose"
-	cmdFlagKeyPersonal     = "personal"
-	cmdFlagKeySource       = "website"
+	cmdFlagKeyOrganisation    = "org"
+	cmdFlagKeyPublic          = "public"
+	cmdFlagKeyAPIToken        = "api-token"
+	cmdFlagKeyVerbose         = "verbose"
+	cmdFlagKeyPersonal        = "personal"
+	cmdFlagKeyIsWebsiteSource = "website"
 )
 
 var (
-	cmdFlagAPIToken     string
-	cmdFlagOrganisation string
-	cmdFlagVerbose      bool
-	cmdFlagPublic       bool
-	cmdFlagPersonal     bool
-	cmdFlagSource       bool
-	rootCmd             = &cobra.Command{
+	cmdFlagAPIToken        string
+	cmdFlagOrganisation    string
+	cmdFlagVerbose         bool
+	cmdFlagPublic          bool
+	cmdFlagPersonal        bool
+	cmdFlagIsWebsiteSource bool
+	rootCmd                = &cobra.Command{
 		Run:   run,
 		Use:   "bitrise-add-new-project",
 		Short: "Register a new Bitrise Project on bitrise.io",
@@ -48,7 +48,7 @@ func init() {
 	rootCmd.Flags().StringVar(&cmdFlagAPIToken, cmdFlagKeyAPIToken, "", "Bitrise personal access token")
 	rootCmd.Flags().BoolVar(&cmdFlagVerbose, cmdFlagKeyVerbose, false, "Enable verbose logging")
 	rootCmd.Flags().BoolVar(&cmdFlagPersonal, cmdFlagKeyPersonal, false, "Assign the project to the owner of the personal access token")
-	rootCmd.Flags().BoolVar(&cmdFlagSource, cmdFlagKeySource, false, "Add this flag if the app creation is happening on the website")
+	rootCmd.Flags().BoolVar(&cmdFlagIsWebsiteSource, cmdFlagKeyIsWebsiteSource, false, "Add this flag if the app creation is happening on the website")
 }
 
 func executePhases(cmd cobra.Command) (phases.Progress, error) {
@@ -148,7 +148,7 @@ func run(cmd *cobra.Command, args []string) {
 	}
 
 	source := bitriseio.SourceBanp
-	if cmdFlagSource {
+	if cmdFlagIsWebsiteSource {
 		source = "banp-website"
 	}
 
