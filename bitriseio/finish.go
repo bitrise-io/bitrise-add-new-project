@@ -55,9 +55,8 @@ func (s *AppService) RegisterFinish(params RegisterFinishParams) (*RegisterFinis
 
 	type Params struct {
 		RegisterFinishParams
-		Config string         `json:"config"`
-		Mode   string         `json:"mode"`
-		Source RegisterSource `json:"source"`
+		Config string `json:"config"`
+		Mode   string `json:"mode"`
 	}
 	p := Params{RegisterFinishParams: params}
 	p.Mode = "manual"
@@ -67,6 +66,7 @@ func (s *AppService) RegisterFinish(params RegisterFinishParams) (*RegisterFinis
 	if err != nil {
 		return nil, err
 	}
+
 	var resp RegisterFinishResponse
 	if err := s.client.do(req, &resp); err != nil {
 		return nil, err
