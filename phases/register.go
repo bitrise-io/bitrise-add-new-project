@@ -95,7 +95,7 @@ func registerWebhook(app *bitriseio.AppService, inputReader io.Reader) error {
 }
 
 // Register ...
-func Register(token string, progress Progress, inputReader io.Reader) error {
+func Register(token string, source bitriseio.RegisterSource, progress Progress, inputReader io.Reader) error {
 	fmt.Println()
 	log.Infof("REGISTERING THE PROJECT")
 
@@ -122,6 +122,7 @@ func Register(token string, progress Progress, inputReader io.Reader) error {
 		log.Printf("Skipping SSH key registration.")
 	}
 
+	params.Project.Source = source
 	resp, err := app.RegisterFinish(params.Project)
 	if err != nil {
 		return err

@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/bitrise-io/bitrise-add-new-project/bitriseio"
 	"github.com/bitrise-io/bitrise-add-new-project/phases"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/spf13/cobra"
@@ -146,7 +147,12 @@ func run(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	if err := phases.Register(cmdFlagAPIToken, progress, os.Stdin); err != nil {
+	source := bitriseio.SourceBanp
+	if cmdFlagSource {
+		source = "banp-website"
+	}
+
+	if err := phases.Register(cmdFlagAPIToken, source, progress, os.Stdin); err != nil {
 		fmt.Println("failed to add Bitrise app, error:", err)
 		os.Exit(1)
 	}
