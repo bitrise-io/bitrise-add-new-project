@@ -7,7 +7,7 @@ import (
 // RegisterURL ...
 const RegisterURL = AppsServiceURL + "register"
 
-// RegisterSource is where the app creatio is happening (banp, or oneliner from website)
+// RegisterSource is where the app registration is happening (banp, or one-liner from website)
 type RegisterSource string
 
 //
