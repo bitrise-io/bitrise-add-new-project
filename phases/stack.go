@@ -20,8 +20,6 @@ var defaultStacks = map[string]string{
 	"ios":          "osx-xcode-10.2.x",
 }
 
-var optionsStacks = config.Stacks
-
 // Stack returns the selected stack for the project or an error
 // if something went wrong during stack autodetection.
 func Stack(projectType string) (string, error) {
@@ -35,7 +33,7 @@ func Stack(projectType string) (string, error) {
 
 		prompt := promptui.Select{
 			Label: "Please choose from the available stacks",
-			Items: optionsStacks,
+			Items: config.Stacks(),
 			Templates: &promptui.SelectTemplates{
 				Selected: "Stack: {{ . | green }}",
 			},
@@ -80,7 +78,7 @@ func Stack(projectType string) (string, error) {
 
 		stackPrompt := promptui.Select{
 			Label: "Choose stack",
-			Items: optionsStacks,
+			Items: config.Stacks(),
 			Templates: &promptui.SelectTemplates{
 				Selected: "Stack: {{ . | green }}",
 			},
@@ -92,6 +90,4 @@ func Stack(projectType string) (string, error) {
 
 		return stack, nil
 	}
-
-	return "", fmt.Errorf("invalid state")
 }

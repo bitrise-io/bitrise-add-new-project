@@ -4,16 +4,24 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+	"reflect"
 	"strings"
 	"testing"
 
 	"github.com/bitrise-io/bitrise-add-new-project/config"
-	"github.com/bitrise-io/go-utils/sliceutil"
 )
 
-type ResponseBody []DirectoryEntry
-type DirectoryEntry struct {
+type report struct {
 	Name string `json:"name"`
+}
+
+type systemReports []report
+
+func (reports systemReports) Stacks() (s []string) {
+	for _, report := range reports {
+		s = append(s, strings.TrimSuffix(report.Name, ".log"))
+	}
+	return
 }
 
 func TestStackChange(t *testing.T) {
@@ -32,20 +40,12 @@ func TestStackChange(t *testing.T) {
 		t.Fatalf("Error reading stack info from GitHub response: %s", err)
 	}
 
-	var rb ResponseBody
-	if err := json.Unmarshal(bytes, &rb); err != nil {
+	var reports systemReports
+	if err := json.Unmarshal(bytes, &reports); err != nil {
 		t.Fatalf("Error unmarshalling stack data from string (%s): %s", bytes, err)
 	}
 
-	if len(config.Stacks) != len(rb) {
-		t.Fatalf("Stack list changed")
+	if expected := reports.Stacks(); !reflect.DeepEqual(expected, config.Stacks()) {
+		t.Fatalf("Stack list changed, current: %v, expecting: %v", config.Stacks(), expected)
 	}
-
-	for _, de := range rb {
-		trimmed := strings.TrimSuffix(de.Name, ".log")
-		if !sliceutil.IsStringInSlice(trimmed, config.Stacks) {
-			t.Fatalf("Stack list changed")
-		}
-	}
-
 }
