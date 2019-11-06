@@ -32,6 +32,12 @@ workflows:
             docker build --tag bitrise-add-new-project-test docker_ci_linux/
             docker run --rm bitrise-add-new-project-test
 
+  maintenance:
+    steps:
+    - go-test:
+        inputs:
+          - packages: "./maintenance"
+  
   dep-update:
     steps:
     - script:

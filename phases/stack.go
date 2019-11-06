@@ -3,6 +3,7 @@ package phases
 import (
 	"fmt"
 
+	"github.com/bitrise-io/bitrise-add-new-project/config"
 	"github.com/bitrise-io/go-utils/colorstring"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/manifoldco/promptui"
@@ -19,22 +20,6 @@ var defaultStacks = map[string]string{
 	"ios":          "osx-xcode-10.2.x",
 }
 
-var optionsStacks = []string{
-	"linux-docker-android-lts",
-	"linux-docker-android",
-	"osx-vs4mac-beta",
-	"osx-vs4mac-previous-stable",
-	"osx-vs4mac-stable",
-	"osx-xamarin-stable",
-	"osx-xcode-10.0.x",
-	"osx-xcode-10.1.x",
-	"osx-xcode-10.2.x",
-	"osx-xcode-8.3.x",
-	"osx-xcode-9.2.x",
-	"osx-xcode-9.4.x",
-	"osx-xcode-edge",
-}
-
 // Stack returns the selected stack for the project or an error
 // if something went wrong during stack autodetection.
 func Stack(projectType string) (string, error) {
@@ -48,7 +33,7 @@ func Stack(projectType string) (string, error) {
 
 		prompt := promptui.Select{
 			Label: "Please choose from the available stacks",
-			Items: optionsStacks,
+			Items: config.Stacks(),
 			Templates: &promptui.SelectTemplates{
 				Selected: "Stack: {{ . | green }}",
 			},
@@ -93,7 +78,7 @@ func Stack(projectType string) (string, error) {
 
 		stackPrompt := promptui.Select{
 			Label: "Choose stack",
-			Items: optionsStacks,
+			Items: config.Stacks(),
 			Templates: &promptui.SelectTemplates{
 				Selected: "Stack: {{ . | green }}",
 			},
