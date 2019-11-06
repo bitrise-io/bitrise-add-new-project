@@ -90,4 +90,6 @@ func Stack(projectType string) (string, error) {
 
 		return stack, nil
 	}
+
+	return "", fmt.Errorf("invalid state")
 }
