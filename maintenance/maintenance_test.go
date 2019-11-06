@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"reflect"
 	"strings"
 	"testing"
@@ -25,7 +26,7 @@ func (reports systemReports) Stacks() (s []string) {
 }
 
 func TestStackChange(t *testing.T) {
-	resp, err := http.Get("https://api.github.com/repos/bitrise-io/bitrise.io/contents/system_reports")
+	resp, err := http.Get("https://api.github.com/repos/bitrise-io/bitrise.io/contents/system_reports?access_token=" + os.Getenv("GIT_BOT_USER_ACCESS_TOKEN"))
 	if err != nil {
 		t.Fatalf("Error getting current stack list from GitHub: %s", err)
 	}
