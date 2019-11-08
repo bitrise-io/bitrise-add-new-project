@@ -7,6 +7,15 @@ import (
 // RegisterURL ...
 const RegisterURL = AppsServiceURL + "register"
 
+// RegisterSource describes from where did the registration start
+type RegisterSource string
+
+//
+const (
+	SourceBanp        RegisterSource = "banp"
+	SourceBanpWebsite RegisterSource = "banp-website"
+)
+
 // RegisterParams ...
 type RegisterParams struct {
 	GitOwner    string `json:"git_owner"`

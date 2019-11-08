@@ -6,26 +6,29 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/bitrise-io/bitrise-add-new-project/bitriseio"
 	"github.com/bitrise-io/bitrise-add-new-project/phases"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/spf13/cobra"
 )
 
 const (
-	cmdFlagKeyOrganisation = "org"
-	cmdFlagKeyPublic       = "public"
-	cmdFlagKeyAPIToken     = "api-token"
-	cmdFlagKeyVerbose      = "verbose"
-	cmdFlagKeyPersonal     = "personal"
+	cmdFlagKeyOrganisation    = "org"
+	cmdFlagKeyPublic          = "public"
+	cmdFlagKeyAPIToken        = "api-token"
+	cmdFlagKeyVerbose         = "verbose"
+	cmdFlagKeyPersonal        = "personal"
+	cmdFlagKeyIsWebsiteSource = "website"
 )
 
 var (
-	cmdFlagAPIToken     string
-	cmdFlagOrganisation string
-	cmdFlagVerbose      bool
-	cmdFlagPublic       bool
-	cmdFlagPersonal     bool
-	rootCmd             = &cobra.Command{
+	cmdFlagAPIToken        string
+	cmdFlagOrganisation    string
+	cmdFlagVerbose         bool
+	cmdFlagPublic          bool
+	cmdFlagPersonal        bool
+	cmdFlagIsWebsiteSource bool
+	rootCmd                = &cobra.Command{
 		Run:   run,
 		Use:   "bitrise-add-new-project",
 		Short: "Register a new Bitrise Project on bitrise.io",
@@ -45,6 +48,7 @@ func init() {
 	rootCmd.Flags().StringVar(&cmdFlagAPIToken, cmdFlagKeyAPIToken, "", "Bitrise personal access token")
 	rootCmd.Flags().BoolVar(&cmdFlagVerbose, cmdFlagKeyVerbose, false, "Enable verbose logging")
 	rootCmd.Flags().BoolVar(&cmdFlagPersonal, cmdFlagKeyPersonal, false, "Assign the project to the owner of the personal access token")
+	rootCmd.Flags().BoolVar(&cmdFlagIsWebsiteSource, cmdFlagKeyIsWebsiteSource, false, "Set this flag if the registration started from the Bitrise.io website")
 }
 
 func executePhases(cmd cobra.Command) (phases.Progress, error) {
@@ -143,7 +147,12 @@ func run(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	if err := phases.Register(cmdFlagAPIToken, progress, os.Stdin); err != nil {
+	source := bitriseio.SourceBanp
+	if cmdFlagIsWebsiteSource {
+		source = bitriseio.SourceBanpWebsite
+	}
+
+	if err := phases.Register(cmdFlagAPIToken, source, progress, os.Stdin); err != nil {
 		fmt.Println("failed to add Bitrise app, error:", err)
 		os.Exit(1)
 	}

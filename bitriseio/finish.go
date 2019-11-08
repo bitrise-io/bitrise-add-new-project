@@ -27,9 +27,10 @@ var configByProjectType = map[string]string{
 
 // RegisterFinishParams ...
 type RegisterFinishParams struct {
-	OrganizationSlug string `json:"organization_slug"`
-	ProjectType      string `json:"project_type"`
-	StackID          string `json:"stack_id"`
+	OrganizationSlug string         `json:"organization_slug"`
+	ProjectType      string         `json:"project_type"`
+	StackID          string         `json:"stack_id"`
+	Source           RegisterSource `json:"source"`
 }
 
 // RegisterFinishResponse ...
@@ -65,6 +66,7 @@ func (s *AppService) RegisterFinish(params RegisterFinishParams) (*RegisterFinis
 	if err != nil {
 		return nil, err
 	}
+
 	var resp RegisterFinishResponse
 	if err := s.client.do(req, &resp); err != nil {
 		return nil, err
