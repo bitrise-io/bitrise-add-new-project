@@ -149,7 +149,7 @@ func run(cmd *cobra.Command, args []string) {
 
 	source := bitriseio.SourceBanp
 	if cmdFlagIsWebsiteSource {
-		source = "banp-website"
+		source = bitriseio.SourceBanpWebsite
 	}
 
 	if err := phases.Register(cmdFlagAPIToken, source, progress, os.Stdin); err != nil {
