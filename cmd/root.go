@@ -48,7 +48,7 @@ func init() {
 	rootCmd.Flags().StringVar(&cmdFlagAPIToken, cmdFlagKeyAPIToken, "", "Bitrise personal access token")
 	rootCmd.Flags().BoolVar(&cmdFlagVerbose, cmdFlagKeyVerbose, false, "Enable verbose logging")
 	rootCmd.Flags().BoolVar(&cmdFlagPersonal, cmdFlagKeyPersonal, false, "Assign the project to the owner of the personal access token")
-	rootCmd.Flags().BoolVar(&cmdFlagIsWebsiteSource, cmdFlagKeyIsWebsiteSource, false, "Add this flag if the app creation is happening on the website")
+	rootCmd.Flags().BoolVar(&cmdFlagIsWebsiteSource, cmdFlagKeyIsWebsiteSource, false, "Set this flag if the registration started from the Bitrise.io website")
 }
 
 func executePhases(cmd cobra.Command) (phases.Progress, error) {
