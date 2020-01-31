@@ -18,6 +18,7 @@ func Stacks() []string {
 		"osx-xcode-11.0.x",
 		"osx-xcode-11.1.x",
 		"osx-xcode-11.2.x",
+		"osx-xcode-11.3.x",
 		"osx-xcode-8.3.x",
 		"osx-xcode-9.4.x",
 		"osx-xcode-edge",
