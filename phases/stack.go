@@ -11,13 +11,13 @@ import (
 
 var defaultStacks = map[string]string{
 	"xamarin":      "osx-vs4mac-stable",
-	"cordova":      "osx-xcode-10.2.x",
-	"react-native": "osx-xcode-10.2.x",
-	"ionic":        "osx-xcode-10.2.x",
-	"flutter":      "osx-xcode-10.2.x",
+	"cordova":      "osx-xcode-11.1.x",
+	"react-native": "osx-xcode-11.1.x",
+	"ionic":        "osx-xcode-11.1.x",
+	"flutter":      "osx-xcode-11.1.x",
 	"android":      "linux-docker-android",
-	"macos":        "osx-xcode-10.2.x",
-	"ios":          "osx-xcode-10.2.x",
+	"macos":        "osx-xcode-11.1.x",
+	"ios":          "osx-xcode-11.1.x",
 }
 
 // Stack returns the selected stack for the project or an error
