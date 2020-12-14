@@ -51,7 +51,7 @@ const (
 
 // Scanner ...
 type Scanner struct {
-	ionicConfigPath     string
+	cordovaConfigPth    string
 	relCordovaConfigDir string
 	searchDir           string
 	hasKarmaJasmineTest bool
@@ -75,28 +75,56 @@ func (scanner *Scanner) DetectPlatform(searchDir string) (bool, error) {
 		return false, fmt.Errorf("failed to search for files in (%s), error: %s", searchDir, err)
 	}
 
-	// Ensure it is an ionic project
-	ionicConfigPath, err := FilterRootFile(fileList, "ionic.config.json")
+	// Search for config.xml file
+	log.TInfof("Searching for config.xml file")
+
+	configXMLPth, err := cordova.FilterRootConfigXMLFile(fileList)
+	if err != nil {
+		return false, fmt.Errorf("failed to search for config.xml file, error: %s", err)
+	}
+
+	log.TPrintf("config.xml: %s", configXMLPth)
+
+	if configXMLPth == "" {
+		log.TPrintf("platform not detected")
+		return false, nil
+	}
+
+	widget, err := cordova.ParseConfigXML(configXMLPth)
+	if err != nil {
+		log.TPrintf("can not parse config.xml as a Cordova widget, error: %s", err)
+		log.TPrintf("platform not detected")
+		return false, nil
+	}
+
+	// ensure it is a cordova widget
+	if !strings.Contains(widget.XMLNSCDV, "cordova.apache.org") {
+		log.TPrintf("config.xml propert: xmlns:cdv does not contain cordova.apache.org")
+		log.TPrintf("platform not detected")
+		return false, nil
+	}
+
+	// ensure it is an ionic project
+	projectBaseDir := filepath.Dir(configXMLPth)
+
+	ionicProjectExist, err := pathutil.IsPathExists(filepath.Join(projectBaseDir, "ionic.project"))
 	if err != nil {
 		return false, fmt.Errorf("failed to check if project is an ionic project, error: %s", err)
 	}
 
-	// Check the existence of the old ionic.project file
-	if ionicConfigPath == "" {
-		ionicConfigPath, err = FilterRootFile(fileList, "ionic.project")
-		if err != nil {
-			return false, fmt.Errorf("failed to check if project is an ionic project, error: %s", err)
-		}
+	ionicConfigExist, err := pathutil.IsPathExists(filepath.Join(projectBaseDir, "ionic.config.json"))
+	if err != nil {
+		return false, fmt.Errorf("failed to check if project is an ionic project, error: %s", err)
 	}
 
-	if ionicConfigPath == "" {
-		log.Printf("No ionic.project file nor ionic.config.json found.")
+	if !ionicProjectExist && !ionicConfigExist {
+		log.Printf("no ionic.project file nor ionic.config.json found, seems to be a cordova project")
 		return false, nil
 	}
 
 	log.TSuccessf("Platform detected")
 
-	scanner.ionicConfigPath = ionicConfigPath
+	scanner.cordovaConfigPth = configXMLPth
 	scanner.searchDir = searchDir
 
 	return true, nil
@@ -115,8 +143,7 @@ func (Scanner) ExcludedScannerNames() []string {
 // Options ...
 func (scanner *Scanner) Options() (models.OptionNode, models.Warnings, models.Icons, error) {
 	warnings := models.Warnings{}
-
-	projectRootDir := filepath.Dir(scanner.ionicConfigPath)
+	projectRootDir := filepath.Dir(scanner.cordovaConfigPth)
 
 	packagesJSONPth := filepath.Join(projectRootDir, "package.json")
 	packages, err := utility.ParsePackagesJSON(packagesJSONPth)
@@ -195,24 +222,8 @@ func (scanner *Scanner) Options() (models.OptionNode, models.Warnings, models.Ic
 	}
 	// ---
 
-	// Configure Cordova
-	cordovaConfigExist, err := pathutil.IsPathExists(filepath.Join(projectRootDir, "config.xml"))
-	if err != nil {
-		return models.OptionNode{},
-			warnings,
-			nil,
-			fmt.Errorf("failed to search for config.xml file: %s", err)
-	}
-
-	log.TPrintf("config.xml: %s", filepath.Join(projectRootDir, "config.xml"))
-
-	if !cordovaConfigExist {
-		warning := fmt.Sprintf("Cordova config.xml not found.")
-		warnings = append(warnings, warning)
-	}
-
 	// Get relative config.xml dir
-	cordovaConfigDir := filepath.Dir(scanner.ionicConfigPath)
+	cordovaConfigDir := filepath.Dir(scanner.cordovaConfigPth)
 	relCordovaConfigDir, err := utility.RelPath(scanner.searchDir, cordovaConfigDir)
 	if err != nil {
 		return models.OptionNode{},

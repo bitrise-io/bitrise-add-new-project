@@ -1,9 +1,6 @@
 package promptui
 
-import (
-	"fmt"
-	"strings"
-)
+import "fmt"
 
 // Pointer is A specific type that translates a given set of runes into a given
 // set of runes pointed at by the cursor.
@@ -103,7 +100,7 @@ func format(a []rune, c *Cursor) string {
 
 	out := make([]rune, 0)
 	if i < len(a) {
-		b = c.Cursor(a[i : i+1])
+		b = c.Cursor([]rune(a[i : i+1]))
 		out = append(out, a[:i]...)   // does not include i
 		out = append(out, b...)       // add the cursor
 		out = append(out, a[i+1:]...) // add the rest after i
@@ -124,10 +121,6 @@ func (c *Cursor) Format() string {
 
 // FormatMask replaces all input runes with the mask rune.
 func (c *Cursor) FormatMask(mask rune) string {
-	if mask == ' ' {
-		return format([]rune{}, c)
-	}
-
 	r := make([]rune, len(c.input))
 	for i := range r {
 		r[i] = mask
@@ -149,11 +142,6 @@ func (c *Cursor) Update(newinput string) {
 // Get returns a copy of the input
 func (c *Cursor) Get() string {
 	return string(c.input)
-}
-
-// GetMask returns a mask string with length equal to the input
-func (c *Cursor) GetMask(mask rune) string {
-	return strings.Repeat(string(mask), len(c.input))
 }
 
 // Replace replaces the previous input with whatever is specified, and moves the
@@ -207,7 +195,7 @@ func (c *Cursor) Listen(line []rune, pos int, key rune) ([]rune, int, bool) {
 	case 0: // empty
 	case KeyEnter:
 		return []rune(c.Get()), c.Position, false
-	case KeyBackspace, KeyCtrlH:
+	case KeyBackspace:
 		if c.erase {
 			c.erase = false
 			c.Replace("")

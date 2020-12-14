@@ -6,7 +6,6 @@ import (
 
 	"gopkg.in/yaml.v2"
 
-	"github.com/bitrise-io/bitrise-init/analytics"
 	"github.com/bitrise-io/bitrise-init/models"
 )
 
@@ -37,15 +36,17 @@ func (*Scanner) ExcludedScannerNames() []string {
 func (scanner *Scanner) DetectPlatform(searchDir string) (_ bool, err error) {
 	scanner.SearchDir = searchDir
 
-	projectFiles := fileGroups{
-		{"build.gradle", "build.gradle.kts"},
-		{"settings.gradle", "settings.gradle.kts"},
-	}
-	skipDirs := []string{".git", "CordovaLib", "node_modules"}
-	scanner.ProjectRoots, err = walkMultipleFileGroups(searchDir, projectFiles, skipDirs)
+	scanner.ProjectRoots, err = walkMultipleFiles(searchDir, "build.gradle", "settings.gradle")
 	if err != nil {
 		return false, fmt.Errorf("failed to search for build.gradle files, error: %s", err)
 	}
+
+	kotlinRoots, err := walkMultipleFiles(searchDir, "build.gradle.kts", "settings.gradle.kts")
+	if err != nil {
+		return false, fmt.Errorf("failed to search for build.gradle files, error: %s", err)
+	}
+
+	scanner.ProjectRoots = append(scanner.ProjectRoots, kotlinRoots...)
 
 	return len(scanner.ProjectRoots) > 0, err
 }
@@ -56,23 +57,19 @@ func (scanner *Scanner) Options() (models.OptionNode, models.Warnings, models.Ic
 	warnings := models.Warnings{}
 	appIconsAllProjects := models.Icons{}
 
-	foundOptions := false
-	var lastErr error = nil
 	for _, projectRoot := range scanner.ProjectRoots {
 		if err := checkGradlew(projectRoot); err != nil {
-			lastErr = err
-			continue
+			return models.OptionNode{}, warnings, nil, err
 		}
 
 		relProjectRoot, err := filepath.Rel(scanner.SearchDir, projectRoot)
 		if err != nil {
-			lastErr = err
-			continue
+			return models.OptionNode{}, warnings, nil, err
 		}
 
 		icons, err := LookupIcons(projectRoot, scanner.SearchDir)
 		if err != nil {
-			analytics.LogInfo("android-icon-lookup", analytics.DetectorErrorData("android", err), "Failed to lookup android icon")
+			return models.OptionNode{}, warnings, nil, err
 		}
 		appIconsAllProjects = append(appIconsAllProjects, icons...)
 		iconIDs := make([]string, len(icons))
@@ -87,10 +84,6 @@ func (scanner *Scanner) Options() (models.OptionNode, models.Warnings, models.Ic
 		projectLocationOption.AddOption(relProjectRoot, moduleOption)
 		moduleOption.AddOption("app", variantOption)
 		variantOption.AddConfig("", configOption)
-		foundOptions = true
-	}
-	if !foundOptions && lastErr != nil {
-		return models.OptionNode{}, warnings, nil, lastErr
 	}
 
 	return *projectLocationOption, warnings, appIconsAllProjects, nil

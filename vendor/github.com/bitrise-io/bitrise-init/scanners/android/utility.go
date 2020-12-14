@@ -2,18 +2,14 @@ package android
 
 import (
 	"errors"
+	"os"
+	"path/filepath"
+
 	"github.com/bitrise-io/bitrise-init/models"
 	"github.com/bitrise-io/bitrise-init/steps"
 	envmanModels "github.com/bitrise-io/envman/models"
 	"github.com/bitrise-io/go-utils/pathutil"
-	"os"
-	"path/filepath"
 )
-
-type fileGroups [][]string
-
-var pathUtilIsPathExists = pathutil.IsPathExists
-var filePathWalk = filepath.Walk
 
 // Constants ...
 const (
@@ -44,7 +40,7 @@ const (
 )
 
 func walk(src string, fn func(path string, info os.FileInfo) error) error {
-	return filePathWalk(src, func(path string, info os.FileInfo, err error) error {
+	return filepath.Walk(src, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -55,27 +51,21 @@ func walk(src string, fn func(path string, info os.FileInfo) error) error {
 	})
 }
 
-func checkFileGroups(path string, fileGroups fileGroups) (bool, error) {
-	for _, fileGroup := range fileGroups {
-		found := false
-		for _, file := range fileGroup {
-			exists, err := pathUtilIsPathExists(filepath.Join(path, file))
-			if err != nil {
-				return found, err
-			}
-			if exists {
-				found = true
-			}
+func checkFiles(path string, files ...string) (bool, error) {
+	for _, file := range files {
+		exists, err := pathutil.IsPathExists(filepath.Join(path, file))
+		if err != nil {
+			return false, err
 		}
-		if !found {
+		if !exists {
 			return false, nil
 		}
 	}
 	return true, nil
 }
 
-func walkMultipleFileGroups(searchDir string, fileGroups fileGroups, skipDirs []string) (matches []string, err error) {
-	match, err := checkFileGroups(searchDir, fileGroups)
+func walkMultipleFiles(searchDir string, files ...string) (matches []string, err error) {
+	match, err := checkFiles(searchDir, files...)
 	if err != nil {
 		return nil, err
 	}
@@ -87,10 +77,7 @@ func walkMultipleFileGroups(searchDir string, fileGroups fileGroups, skipDirs []
 			return err
 		}
 		if info.IsDir() {
-			if nameMatchSkipDirs(info.Name(), skipDirs) {
-				return filepath.SkipDir
-			}
-			match, err := checkFileGroups(path, fileGroups)
+			match, err := checkFiles(path, files...)
 			if err != nil {
 				return err
 			}
@@ -100,18 +87,6 @@ func walkMultipleFileGroups(searchDir string, fileGroups fileGroups, skipDirs []
 		}
 		return nil
 	})
-}
-
-func nameMatchSkipDirs(name string, skipDirs []string) bool {
-	for _, skipDir := range skipDirs {
-		if skipDir == "" {
-			continue
-		}
-		if name == skipDir {
-			return true
-		}
-	}
-	return false
 }
 
 func checkGradlew(projectDir string) error {
