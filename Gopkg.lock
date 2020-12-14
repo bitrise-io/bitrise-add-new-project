@@ -53,9 +53,12 @@
   version = "1.31.0"
 
 [[projects]]
-  digest = "1:0fd77d4d8e095975b17f728f305490e3b991cd81017b28df311a50de023a4061"
+  branch = "master"
+  digest = "1:c35326c3d6835f6fc112679611723839b61caf5f5d796a3135a59ff14f21148c"
   name = "github.com/bitrise-io/bitrise-init"
   packages = [
+    "analytics",
+    "errormapper",
     "models",
     "output",
     "scanner",
@@ -69,13 +72,13 @@
     "scanners/macos",
     "scanners/reactnative",
     "scanners/xamarin",
+    "step",
     "steps",
     "toolscanner",
     "utility",
   ]
   pruneopts = "UT"
-  revision = "48e2d53d769f75f092afcb8572648a0e64c6b0bc"
-  version = "2.3.0"
+  revision = "6325a4661a68e0007ac18fb0507335e267665856"
 
 [[projects]]
   branch = "master"
