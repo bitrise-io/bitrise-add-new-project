@@ -41,6 +41,9 @@ type Select struct {
 	// Size is the number of items that should appear on the select before scrolling is necessary. Defaults to 5.
 	Size int
 
+	// CursorPos is the initial position of the cursor.
+	CursorPos int
+
 	// IsVimMode sets whether to use vim mode when using readline in the command prompt. Look at
 	// https://godoc.org/github.com/chzyer/readline#Config for more information on readline.
 	IsVimMode bool
@@ -70,12 +73,13 @@ type Select struct {
 	// For search mode to work, the Search property must be implemented.
 	StartInSearchMode bool
 
-	label string
-
 	list *list.List
 
 	// A function that determines how to render the cursor
 	Pointer Pointer
+
+	Stdin  io.ReadCloser
+	Stdout io.WriteCloser
 }
 
 // SelectKeys defines the available keys used by select mode to enable the user to move around the list
@@ -184,7 +188,7 @@ var SearchPrompt = "Search: "
 // the command prompt or it has received a valid value. It will return the value and an error if any
 // occurred during the select's execution.
 func (s *Select) Run() (int, string, error) {
-	return s.RunCursorAt(0, 0)
+	return s.RunCursorAt(s.CursorPos, 0)
 }
 
 // RunCursorAt executes the select list, initializing the cursor to the given
@@ -216,14 +220,16 @@ func (s *Select) RunCursorAt(cursorPos, scroll int) (int, string, error) {
 }
 
 func (s *Select) innerRun(cursorPos, scroll int, top rune) (int, string, error) {
-	stdin := readline.NewCancelableStdin(os.Stdin)
-	c := &readline.Config{}
+	c := &readline.Config{
+		Stdin:  s.Stdin,
+		Stdout: s.Stdout,
+	}
 	err := c.Init()
 	if err != nil {
 		return 0, "", err
 	}
 
-	c.Stdin = stdin
+	c.Stdin = readline.NewCancelableStdin(c.Stdin)
 
 	if s.IsVimMode {
 		c.VimMode = true
@@ -267,14 +273,14 @@ func (s *Select) innerRun(cursorPos, scroll int, top rune) (int, string, error) 
 			} else {
 				searchMode = true
 			}
-		case key == KeyBackspace:
+		case key == KeyBackspace || key == KeyCtrlH:
 			if !canSearch || !searchMode {
 				break
 			}
 
 			cur.Backspace()
 			if len(cur.Get()) > 0 {
-				s.list.Search(string(cur.Get()))
+				s.list.Search(cur.Get())
 			} else {
 				s.list.CancelSearch()
 			}
@@ -285,7 +291,7 @@ func (s *Select) innerRun(cursorPos, scroll int, top rune) (int, string, error) 
 		default:
 			if canSearch && searchMode {
 				cur.Update(string(line))
-				s.list.Search(string(cur.Get()))
+				s.list.Search(cur.Get())
 			}
 		}
 
