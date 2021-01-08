@@ -39,11 +39,12 @@ func toRegistrationParams(progress Progress) (*CreateProjectParams, error) {
 
 	params := CreateProjectParams{}
 	params.Repository = bitriseio.RegisterParams{
-		GitOwner:    progress.RepoDetails.Owner,
-		GitRepoSlug: progress.RepoDetails.Slug,
-		IsPublic:    progress.Public,
-		Provider:    progress.RepoDetails.Provider,
-		RepoURL:     progress.RepoDetails.URL,
+		GitOwner:         progress.RepoDetails.Owner,
+		GitRepoSlug:      progress.RepoDetails.Slug,
+		IsPublic:         progress.Public,
+		Provider:         progress.RepoDetails.Provider,
+		RepoURL:          progress.RepoDetails.URL,
+		OrganizationSlug: progress.OrganizationSlug,
 	}
 	params.RegisterWebhook = progress.AddWebhook
 
@@ -55,9 +56,8 @@ func toRegistrationParams(progress Progress) (*CreateProjectParams, error) {
 	}
 
 	params.Project = bitriseio.RegisterFinishParams{
-		OrganizationSlug: progress.OrganizationSlug,
-		ProjectType:      progress.ProjectType,
-		StackID:          progress.Stack,
+		ProjectType: progress.ProjectType,
+		StackID:     progress.Stack,
 	}
 	params.CodesignIOS = progress.Codesign.IOS
 	params.KeystorePth = progress.Codesign.Android.KeystorePath

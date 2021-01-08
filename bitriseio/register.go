@@ -18,11 +18,12 @@ const (
 
 // RegisterParams ...
 type RegisterParams struct {
-	GitOwner    string `json:"git_owner"`
-	GitRepoSlug string `json:"git_repo_slug"`
-	IsPublic    bool   `json:"is_public"`
-	Provider    string `json:"provider"`
-	RepoURL     string `json:"repo_url"`
+	GitOwner         string `json:"git_owner"`
+	GitRepoSlug      string `json:"git_repo_slug"`
+	IsPublic         bool   `json:"is_public"`
+	Provider         string `json:"provider"`
+	RepoURL          string `json:"repo_url"`
+	OrganizationSlug string `json:"organization_slug"`
 }
 
 // Register ...
