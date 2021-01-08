@@ -36,15 +36,7 @@
 
 [[constraint]]
   branch = "master"
-  name = "github.com/bitrise-io/goinp"
-
-[[constraint]]
-  branch = "master"
   name = "github.com/bitrise-io/xcode-project"
-
-[[constraint]]
-  name = "github.com/pkg/errors"
-  version = "0.8.1"
 
 [[constraint]]
   name = "github.com/spf13/cobra"
@@ -61,6 +53,11 @@
 [[constraint]]
   name = "github.com/manifoldco/promptui"
   branch = "master"
+
+# needed by promptui
+[[override]]
+  branch = "master"
+  name = "github.com/chzyer/readline"
 
 [prune]
   go-tests = true
