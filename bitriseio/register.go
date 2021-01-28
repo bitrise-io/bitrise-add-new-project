@@ -23,7 +23,7 @@ type RegisterParams struct {
 	IsPublic         bool   `json:"is_public"`
 	Provider         string `json:"provider"`
 	RepoURL          string `json:"repo_url"`
-	OrganizationSlug string `json:"organization_slug"`
+	OrganizationSlug string `json:"organization_slug,omitempty"`
 }
 
 // Register ...
