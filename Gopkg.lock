@@ -194,6 +194,14 @@
   revision = "2972be24d48e78746da79ba8e24e8b488c9880de"
 
 [[projects]]
+  digest = "1:ffe9824d294da03b391f44e1ae8281281b4afc1bdaa9588c9097785e3af10cec"
+  name = "github.com/davecgh/go-spew"
+  packages = ["spew"]
+  pruneopts = "UT"
+  revision = "8991bc29aa16c548c550c7ff78260e27b9ab7c73"
+  version = "v1.1.1"
+
+[[projects]]
   digest = "1:b498b36dbb2b306d1c5205ee5236c9e60352be8f9eea9bf08186723a9f75b4f3"
   name = "github.com/emirpasic/gods"
   packages = [
@@ -312,6 +320,14 @@
   version = "v0.8.1"
 
 [[projects]]
+  digest = "1:0028cb19b2e4c3112225cd871870f2d9cf49b9b4276531f03438a88e94be86fe"
+  name = "github.com/pmezard/go-difflib"
+  packages = ["difflib"]
+  pruneopts = "UT"
+  revision = "792786c7400a136282c1664665ae0a8db921c6c2"
+  version = "v1.0.0"
+
+[[projects]]
   digest = "1:6baa565fe16f8657cf93469b2b8a6c61a277827734400d27e44d589547297279"
   name = "github.com/ryanuber/go-glob"
   packages = ["."]
@@ -355,6 +371,17 @@
   pruneopts = "UT"
   revision = "1ac3a1ac202429a54835fe8408a92880156b489d"
   version = "v1.4.0"
+
+[[projects]]
+  digest = "1:5c7b4a9fefe5b7b160d2cf0ec8457de81db92038c45c88d7d59493568308cc5d"
+  name = "github.com/stretchr/testify"
+  packages = [
+    "assert",
+    "require",
+  ]
+  pruneopts = "UT"
+  revision = "acba37e5db06f0093b465a7d47822bf13644b66c"
+  version = "v1.7.0"
 
 [[projects]]
   digest = "1:efb4da9bc6fd83f937a3e87eaa29801cd6d1720bfbbefbf7b2a1c303597ee3da"
@@ -522,6 +549,14 @@
   version = "v2.4.0"
 
 [[projects]]
+  branch = "v3"
+  digest = "1:107a619d3c3bcca214b2b7db810a5dffcd74b5d0262813cb2986e063fae2722f"
+  name = "gopkg.in/yaml.v3"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "496545a6307b2a7d7a710fd516e5e16e8ab62dbc"
+
+[[projects]]
   branch = "master"
   digest = "1:812d0f78132bbf7731c247b2a3ea54710ecc8fd251a9e4898be9793f25dbdb1a"
   name = "howett.net/plist"
@@ -556,6 +591,8 @@
     "github.com/bitrise-io/xcode-project/xcworkspace",
     "github.com/manifoldco/promptui",
     "github.com/spf13/cobra",
+    "github.com/stretchr/testify/assert",
+    "github.com/stretchr/testify/require",
     "golang.org/x/crypto/ssh",
     "golang.org/x/crypto/ssh/terminal",
     "gopkg.in/src-d/go-git.v4",
