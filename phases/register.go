@@ -12,7 +12,7 @@ import (
 	"github.com/bitrise-io/codesigndoc/bitriseio/bitrise"
 	"github.com/bitrise-io/go-utils/colorstring"
 	"github.com/bitrise-io/go-utils/log"
-	"github.com/bitrise-io/xcode-project/pretty"
+	"github.com/bitrise-io/go-utils/pretty"
 	"gopkg.in/yaml.v2"
 )
 
