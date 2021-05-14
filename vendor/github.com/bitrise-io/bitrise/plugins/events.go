@@ -3,12 +3,17 @@ package plugins
 import (
 	"encoding/json"
 	"fmt"
+
+	"github.com/bitrise-io/go-utils/sliceutil"
 )
 
 // TriggerEventName ...
 type TriggerEventName string
 
 const (
+	// WillStartRun ...
+	WillStartRun TriggerEventName = "WillStartRun"
+
 	// DidFinishRun ...
 	DidFinishRun TriggerEventName = "DidFinishRun"
 )
@@ -21,9 +26,8 @@ func TriggerEvent(name TriggerEventName, payload interface{}) error {
 		return err
 	}
 
-	pluginInput := PluginInput{
-		PluginInputPayloadKey:      string(payloadBytes),
-		PluginInputTriggerEventKey: string(name),
+	pluginConfig := PluginConfig{
+		PluginConfigTriggerEventKey: string(name),
 	}
 
 	// Load plugins
@@ -34,7 +38,7 @@ func TriggerEvent(name TriggerEventName, payload interface{}) error {
 
 	// Run plugins
 	for _, plugin := range plugins {
-		if err := RunPluginByEvent(plugin, pluginInput); err != nil {
+		if err := RunPluginByEvent(plugin, pluginConfig, payloadBytes); err != nil {
 			return err
 		}
 	}
@@ -51,7 +55,8 @@ func LoadPlugins(eventName string) ([]Plugin, error) {
 
 	pluginNames := []string{}
 	for name, route := range routing.RouteMap {
-		if route.TriggerEvent == eventName {
+		if route.TriggerEvent == eventName ||
+			sliceutil.IsStringInSlice(eventName, route.TriggerEvents) {
 			pluginNames = append(pluginNames, name)
 		}
 	}
