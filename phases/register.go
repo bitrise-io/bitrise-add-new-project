@@ -7,10 +7,10 @@ import (
 	"runtime"
 
 	"github.com/bitrise-io/bitrise-add-new-project/bitriseio"
-	"github.com/bitrise-io/bitrise-add-new-project/httputil"
 	codesigndocBitriseio "github.com/bitrise-io/codesigndoc/bitriseio"
 	"github.com/bitrise-io/codesigndoc/bitriseio/bitrise"
 	"github.com/bitrise-io/go-utils/colorstring"
+	"github.com/bitrise-io/go-utils/httputil"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pretty"
 	"gopkg.in/yaml.v2"
