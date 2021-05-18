@@ -61,10 +61,12 @@ github.com/bitrise-io/go-utils/command
 github.com/bitrise-io/go-utils/command/git
 github.com/bitrise-io/go-utils/errorutil
 github.com/bitrise-io/go-utils/fileutil
+github.com/bitrise-io/go-utils/httputil
 github.com/bitrise-io/go-utils/log
 github.com/bitrise-io/go-utils/parseutil
 github.com/bitrise-io/go-utils/pathutil
 github.com/bitrise-io/go-utils/pointers
+github.com/bitrise-io/go-utils/pretty
 github.com/bitrise-io/go-utils/progress
 github.com/bitrise-io/go-utils/retry
 github.com/bitrise-io/go-utils/sliceutil

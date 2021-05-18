@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/bitrise-io/bitrise-add-new-project/httputil"
+	"github.com/bitrise-io/go-utils/httputil"
 	"github.com/bitrise-io/go-utils/log"
 )
 
