@@ -8,9 +8,8 @@ require (
 	github.com/bitrise-io/bitrise-init v0.0.0-20210512085703-71cb279cf605
 	github.com/bitrise-io/codesigndoc v0.0.0-20200723090807-53c14b032dd4
 	github.com/bitrise-io/envman v0.0.0-20200512105748-919e33f391ee
-	github.com/bitrise-io/go-utils v0.0.0-20210507100250-37de47dfa6ce
-	github.com/bitrise-io/go-xcode v0.0.0-20210512084902-047d3c3d372a // indirect
-	github.com/bitrise-io/xcode-project v0.0.0-20210302080829-f3e0bfbcd5cb
+	github.com/bitrise-io/go-utils v0.0.0-20210514083430-4d1fb0330dfe
+	github.com/bitrise-io/go-xcode v0.0.0-20210520114025-bdbec53ee59f
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-retryablehttp v0.7.0 // indirect
 	github.com/kevinburke/ssh_config v1.1.0 // indirect
@@ -23,7 +22,6 @@ require (
 	github.com/xanzy/ssh-agent v0.3.0 // indirect
 	golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a
 	golang.org/x/net v0.0.0-20210510120150-4163338589ed // indirect
-	golang.org/x/sys v0.0.0-20210511113859-b0526f3d8744 // indirect
 	gopkg.in/src-d/go-git.v4 v4.13.1
 	gopkg.in/yaml.v2 v2.4.0
 )

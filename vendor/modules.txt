@@ -54,7 +54,7 @@ github.com/bitrise-io/envman/models
 github.com/bitrise-io/go-plist
 # github.com/bitrise-io/go-steputils v0.0.0-20210507072936-92fde382fb33
 github.com/bitrise-io/go-steputils/command/rubyscript
-# github.com/bitrise-io/go-utils v0.0.0-20210507100250-37de47dfa6ce
+# github.com/bitrise-io/go-utils v0.0.0-20210514083430-4d1fb0330dfe
 ## explicit
 github.com/bitrise-io/go-utils/colorstring
 github.com/bitrise-io/go-utils/command
@@ -74,7 +74,7 @@ github.com/bitrise-io/go-utils/stringutil
 github.com/bitrise-io/go-utils/urlutil
 github.com/bitrise-io/go-utils/versions
 github.com/bitrise-io/go-utils/ziputil
-# github.com/bitrise-io/go-xcode v0.0.0-20210512084902-047d3c3d372a
+# github.com/bitrise-io/go-xcode v0.0.0-20210520114025-bdbec53ee59f
 ## explicit
 github.com/bitrise-io/go-xcode/certificateutil
 github.com/bitrise-io/go-xcode/export
@@ -85,6 +85,11 @@ github.com/bitrise-io/go-xcode/profileutil
 github.com/bitrise-io/go-xcode/utility
 github.com/bitrise-io/go-xcode/xcarchive
 github.com/bitrise-io/go-xcode/xcodeproj
+github.com/bitrise-io/go-xcode/xcodeproject/serialized
+github.com/bitrise-io/go-xcode/xcodeproject/xcodebuild
+github.com/bitrise-io/go-xcode/xcodeproject/xcodeproj
+github.com/bitrise-io/go-xcode/xcodeproject/xcscheme
+github.com/bitrise-io/go-xcode/xcodeproject/xcworkspace
 # github.com/bitrise-io/goinp v0.0.0-20210504152833-8559b0680ab1
 github.com/bitrise-io/goinp/goinp
 # github.com/bitrise-io/gows v0.0.0-20210505125306-dd92ff463938
@@ -95,7 +100,6 @@ github.com/bitrise-io/pkcs12/internal/rc2
 # github.com/bitrise-io/stepman v0.0.0-20210505110307-5c2296bcc558
 github.com/bitrise-io/stepman/models
 # github.com/bitrise-io/xcode-project v0.0.0-20210302080829-f3e0bfbcd5cb
-## explicit
 github.com/bitrise-io/xcode-project/pretty
 github.com/bitrise-io/xcode-project/serialized
 github.com/bitrise-io/xcode-project/xcodebuild
@@ -204,7 +208,6 @@ golang.org/x/net/context
 golang.org/x/net/internal/socks
 golang.org/x/net/proxy
 # golang.org/x/sys v0.0.0-20210511113859-b0526f3d8744
-## explicit
 golang.org/x/sys/cpu
 golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/plan9
