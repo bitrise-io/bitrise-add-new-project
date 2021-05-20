@@ -4,11 +4,11 @@ go 1.16
 
 require (
 	github.com/Microsoft/go-winio v0.5.0 // indirect
-	github.com/bitrise-io/bitrise v0.0.0-20210513161711-09b1442cf3e0
-	github.com/bitrise-io/bitrise-init v0.0.0-20210512085703-71cb279cf605
+	github.com/bitrise-io/bitrise v0.0.0-20210519130014-380842fb41c1
+	github.com/bitrise-io/bitrise-init v0.0.0-20210520122036-d213de321eb8
 	github.com/bitrise-io/codesigndoc v0.0.0-20200723090807-53c14b032dd4
-	github.com/bitrise-io/envman v0.0.0-20200512105748-919e33f391ee
-	github.com/bitrise-io/go-utils v0.0.0-20210514083430-4d1fb0330dfe
+	github.com/bitrise-io/envman v0.0.0-20210517135508-b2b4fe89eac5
+	github.com/bitrise-io/go-utils v0.0.0-20210520073355-367fa34178f5
 	github.com/bitrise-io/go-xcode v0.0.0-20210520114025-bdbec53ee59f
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-retryablehttp v0.7.0 // indirect

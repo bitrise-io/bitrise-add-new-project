@@ -4,7 +4,7 @@ github.com/Microsoft/go-winio
 github.com/Microsoft/go-winio/pkg/guid
 # github.com/beevik/etree v1.1.0
 github.com/beevik/etree
-# github.com/bitrise-io/bitrise v0.0.0-20210513161711-09b1442cf3e0
+# github.com/bitrise-io/bitrise v0.0.0-20210519130014-380842fb41c1
 ## explicit
 github.com/bitrise-io/bitrise/bitrise
 github.com/bitrise-io/bitrise/configs
@@ -16,7 +16,7 @@ github.com/bitrise-io/bitrise/tools/filterwriter
 github.com/bitrise-io/bitrise/tools/timeoutcmd
 github.com/bitrise-io/bitrise/utils
 github.com/bitrise-io/bitrise/version
-# github.com/bitrise-io/bitrise-init v0.0.0-20210512085703-71cb279cf605
+# github.com/bitrise-io/bitrise-init v0.0.0-20210520122036-d213de321eb8
 ## explicit
 github.com/bitrise-io/bitrise-init/analytics
 github.com/bitrise-io/bitrise-init/errormapper
@@ -33,7 +33,6 @@ github.com/bitrise-io/bitrise-init/scanners/ios
 github.com/bitrise-io/bitrise-init/scanners/macos
 github.com/bitrise-io/bitrise-init/scanners/reactnative
 github.com/bitrise-io/bitrise-init/scanners/xamarin
-github.com/bitrise-io/bitrise-init/step
 github.com/bitrise-io/bitrise-init/steps
 github.com/bitrise-io/bitrise-init/toolscanner
 github.com/bitrise-io/bitrise-init/utility
@@ -47,14 +46,15 @@ github.com/bitrise-io/codesigndoc/models
 github.com/bitrise-io/codesigndoc/osxkeychain
 github.com/bitrise-io/codesigndoc/utility
 github.com/bitrise-io/codesigndoc/xcode
-# github.com/bitrise-io/envman v0.0.0-20200512105748-919e33f391ee
+# github.com/bitrise-io/envman v0.0.0-20210517135508-b2b4fe89eac5
 ## explicit
 github.com/bitrise-io/envman/models
 # github.com/bitrise-io/go-plist v0.0.0-20210301100253-4b1a112ccd10
 github.com/bitrise-io/go-plist
-# github.com/bitrise-io/go-steputils v0.0.0-20210507072936-92fde382fb33
+# github.com/bitrise-io/go-steputils v0.0.0-20210514150206-5b6261447e77
 github.com/bitrise-io/go-steputils/command/rubyscript
-# github.com/bitrise-io/go-utils v0.0.0-20210514083430-4d1fb0330dfe
+github.com/bitrise-io/go-steputils/step
+# github.com/bitrise-io/go-utils v0.0.0-20210520073355-367fa34178f5
 ## explicit
 github.com/bitrise-io/go-utils/colorstring
 github.com/bitrise-io/go-utils/command
@@ -80,6 +80,7 @@ github.com/bitrise-io/go-xcode/certificateutil
 github.com/bitrise-io/go-xcode/export
 github.com/bitrise-io/go-xcode/exportoptions
 github.com/bitrise-io/go-xcode/models
+github.com/bitrise-io/go-xcode/pathfilters
 github.com/bitrise-io/go-xcode/plistutil
 github.com/bitrise-io/go-xcode/profileutil
 github.com/bitrise-io/go-xcode/utility
@@ -97,15 +98,8 @@ github.com/bitrise-io/gows/gows
 # github.com/bitrise-io/pkcs12 v0.0.0-20210430063833-0da06eb56630
 github.com/bitrise-io/pkcs12
 github.com/bitrise-io/pkcs12/internal/rc2
-# github.com/bitrise-io/stepman v0.0.0-20210505110307-5c2296bcc558
+# github.com/bitrise-io/stepman v0.0.0-20210517135458-203f7a48d37a
 github.com/bitrise-io/stepman/models
-# github.com/bitrise-io/xcode-project v0.0.0-20210302080829-f3e0bfbcd5cb
-github.com/bitrise-io/xcode-project/pretty
-github.com/bitrise-io/xcode-project/serialized
-github.com/bitrise-io/xcode-project/xcodebuild
-github.com/bitrise-io/xcode-project/xcodeproj
-github.com/bitrise-io/xcode-project/xcscheme
-github.com/bitrise-io/xcode-project/xcworkspace
 # github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e
 github.com/chzyer/readline
 # github.com/davecgh/go-spew v1.1.1
@@ -207,7 +201,7 @@ golang.org/x/crypto/ssh/terminal
 golang.org/x/net/context
 golang.org/x/net/internal/socks
 golang.org/x/net/proxy
-# golang.org/x/sys v0.0.0-20210511113859-b0526f3d8744
+# golang.org/x/sys v0.0.0-20210514084401-e8d321eab015
 golang.org/x/sys/cpu
 golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/plan9
