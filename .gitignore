@@ -3,4 +3,4 @@
 bitrise-add-new-project
 docker_linux_interactive/bitrise-add-new-project
 
-.idea
+/.idea/
