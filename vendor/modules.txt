@@ -16,7 +16,7 @@ github.com/bitrise-io/bitrise/tools/filterwriter
 github.com/bitrise-io/bitrise/tools/timeoutcmd
 github.com/bitrise-io/bitrise/utils
 github.com/bitrise-io/bitrise/version
-# github.com/bitrise-io/bitrise-init v0.0.0-20210726124629-228da329b98c
+# github.com/bitrise-io/bitrise-init v0.0.0-20210825103211-215b191850fd
 ## explicit
 github.com/bitrise-io/bitrise-init/analytics
 github.com/bitrise-io/bitrise-init/errormapper
