@@ -1,9 +1,10 @@
 package phases
 
 import (
+	"encoding/json"
 	"fmt"
+	"net/http"
 
-	"github.com/bitrise-io/bitrise-add-new-project/config"
 	"github.com/bitrise-io/go-utils/colorstring"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/manifoldco/promptui"
@@ -20,20 +21,63 @@ var defaultStacks = map[string]string{
 	"ios":          "osx-xcode-12.4.x",
 }
 
+type availableStacksResponse map[string]interface{}
+
+func fetchAvailableStacks(orgSlug string, apiToken string) ([]string, error) {
+	var url string
+	if orgSlug != "" {
+		url = fmt.Sprintf("https://api.bitrise.io/v0.1/organizations/%s/available-stacks", orgSlug)
+	} else {
+		url = "https://api.bitrise.io/v0.1/me/available-stacks"
+	}
+
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set("Authorization", "token "+apiToken)
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	if res.StatusCode != 200 {
+		return nil, fmt.Errorf("server response: %s", res.Status)
+	}
+
+	var jsonMap availableStacksResponse
+	if err := json.NewDecoder(res.Body).Decode(&jsonMap); err != nil {
+		return nil, err
+	}
+
+	keys := make([]string, 0, len(jsonMap))
+	for key := range jsonMap {
+		keys = append(keys, key)
+	}
+
+	return keys, nil
+}
+
 // Stack returns the selected stack for the project or an error
 // if something went wrong during stack autodetection.
-func Stack(projectType string) (string, error) {
+func Stack(orgSlug string, apiToken string, projectType string) (string, error) {
 	fmt.Println()
 	log.Infof("SELECT STACK")
 	stack := defaultStacks[projectType]
 	var err error
+
+	availableStacks, err := fetchAvailableStacks(orgSlug, apiToken)
+	if err != nil {
+		return "", fmt.Errorf("Failed to fetch available stacks: %s", err)
+	}
 
 	if stack == "" {
 		log.Warnf("Could not identify default stack for project. Falling back to manual stack selection.")
 
 		prompt := promptui.Select{
 			Label: "Please choose from the available stacks",
-			Items: config.Stacks(),
+			Items: availableStacks,
 			Templates: &promptui.SelectTemplates{
 				Selected: "Stack: {{ . | green }}",
 			},
@@ -78,7 +122,7 @@ func Stack(projectType string) (string, error) {
 
 		stackPrompt := promptui.Select{
 			Label: "Choose stack",
-			Items: config.Stacks(),
+			Items: availableStacks,
 			Templates: &promptui.SelectTemplates{
 				Selected: "Stack: {{ . | green }}",
 			},

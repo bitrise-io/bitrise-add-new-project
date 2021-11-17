@@ -115,7 +115,7 @@ func executePhases(cmd cobra.Command) (phases.Progress, error) {
 	progress.ProjectType = projectType
 
 	// stack
-	stack, err := phases.Stack(projectType)
+	stack, err := phases.Stack(progress.OrganizationSlug, cmdFlagAPIToken, projectType)
 	if err != nil {
 		return phases.Progress{}, err
 	}
