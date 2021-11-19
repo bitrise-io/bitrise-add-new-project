@@ -108,11 +108,14 @@ func executePhases(cmd cobra.Command) (phases.Progress, error) {
 	projectType := bitriseYML.ProjectType
 	if projectType == "" {
 		projectType = "other"
+		bitriseYML.ProjectType = "other"
 	}
 	progress.BitriseYML = bitriseYML
 	progress.PrimaryWorkflow = primaryWorkflow
 	progress.Branch = branch
 	progress.ProjectType = projectType
+
+	log.Debugf("project type\nprogress: %s, yml; %s", projectType, bitriseYML.ProjectType)
 
 	// stack
 	stack, err := phases.Stack(progress.OrganizationSlug, cmdFlagAPIToken, projectType)
@@ -120,6 +123,11 @@ func executePhases(cmd cobra.Command) (phases.Progress, error) {
 		return phases.Progress{}, err
 	}
 	progress.Stack = stack
+	progress.BitriseYML.Meta = map[string]interface{}{
+		"bitrise.io": map[string]string{
+			"stack": stack,
+		},
+	}
 
 	// webhook
 	wh, err := phases.AddWebhook()
