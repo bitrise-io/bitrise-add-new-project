@@ -34,7 +34,7 @@ type CodesignResult struct {
 }
 
 // Project types "web", "macos" are unsuppored as do not have ios and android native projects
-// Project types "xamarin", "flutter", "cordova", "ionic", "react-native" are unsupported, due to ucertainty that native (Xcode or Android) project is present
+// Project types "flutter", "cordova", "ionic", "react-native" are unsupported, due to ucertainty that native (Xcode or Android) project is present
 
 var unknownPlatforms = []string{"", "other"}
 

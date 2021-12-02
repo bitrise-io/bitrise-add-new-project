@@ -21,7 +21,6 @@ var configByProjectType = map[string]string{
 	"ios":          "default-ios-config",
 	"macos":        "default-macos-config",
 	"react-native": "default-react-native-config",
-	"xamarin":      "default-xamarin-config",
 	"other":        "other-config",
 }
 
