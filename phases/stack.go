@@ -11,7 +11,6 @@ import (
 )
 
 var defaultStacks = map[string]string{
-	"xamarin":      "osx-vs4mac-stable",
 	"cordova":      "osx-xcode-12.4.x",
 	"react-native": "osx-xcode-12.4.x",
 	"ionic":        "osx-xcode-12.4.x",
