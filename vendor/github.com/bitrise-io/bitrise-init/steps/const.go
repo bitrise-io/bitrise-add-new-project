@@ -90,7 +90,7 @@ const (
 	// InstallMissingAndroidToolsID ...
 	InstallMissingAndroidToolsID = "install-missing-android-tools"
 	// InstallMissingAndroidToolsVersion ...
-	InstallMissingAndroidToolsVersion = "2"
+	InstallMissingAndroidToolsVersion = "3"
 )
 
 const (
@@ -136,6 +136,13 @@ const (
 )
 
 const (
+	// XcodeBuildForTestID ...
+	XcodeBuildForTestID = "xcode-build-for-test"
+	// XcodeBuildForTestVersion ...
+	XcodeBuildForTestVersion = "1"
+)
+
+const (
 	// XcodeArchiveMacID ...
 	XcodeArchiveMacID = "xcode-archive-mac"
 	// XcodeArchiveMacVersion ...
@@ -160,7 +167,7 @@ const (
 	// CordovaArchiveID ...
 	CordovaArchiveID = "cordova-archive"
 	// CordovaArchiveVersion ...
-	CordovaArchiveVersion = "2"
+	CordovaArchiveVersion = "3"
 )
 
 const (
@@ -204,6 +211,16 @@ const (
 	// ExpoDetachVersion ...
 	ExpoDetachVersion = "1"
 )
+
+const (
+	// RunEASBuildID ...
+	RunEASBuildID = "run-eas-build"
+	// RunEASBuildVersion ...
+	RunEASBuildVersion = "0"
+)
+
+// RunEASBuildPlatforms ...
+var RunEASBuildPlatforms = []string{"all", "android", "ios"}
 
 const (
 	// YarnID ...

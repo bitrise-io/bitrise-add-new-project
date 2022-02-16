@@ -16,30 +16,26 @@ import (
 	envmanModels "github.com/bitrise-io/envman/models"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-xcode/xcodeproject/xcworkspace"
-	yaml "gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v2"
 )
 
 const (
 	scannerName                 = "flutter"
 	configName                  = "flutter-config"
 	projectLocationInputKey     = "project_location"
-	platformInputKey            = "platform"
-	defaultIOSConfiguration     = "Release"
 	projectLocationInputEnvKey  = "BITRISE_FLUTTER_PROJECT_LOCATION"
 	projectLocationInputTitle   = "Project location"
-	projectTypeInputEnvKey      = "BITRISE_FLUTTER_PROJECT_TYPE"
-	projectTypeInputTitle       = "Project Type"
-	testsInputTitle             = "Run tests found in the project"
-	platformInputTitle          = "Platform"
 	projectLocationInputSummary = "The path to your Flutter project, stored as an Environment Variable. In your Workflows, you can specify paths relative to this path. You can change this at any time."
-	testsInputSummary           = "Our Flutter Test Step can run the tests found in your project's repository."
+	platformInputKey            = "platform"
+	platformInputTitle          = "Platform"
 	platformInputSummary        = "The target platform for your first build. Your options are iOS, Android, both, or neither. You can change this in your Env Vars at any time."
+	iosOutputTypeKey            = "ios_output_type"
+	iosOutputTypeArchive        = "archive"
 	installerUpdateFlutterKey   = "is_update"
 )
 
 var (
 	platforms = []string{
-		"none",
 		"android",
 		"ios",
 		"both",
@@ -249,75 +245,16 @@ func (scanner *Scanner) Options() (models.OptionNode, models.Warnings, models.Ic
 	flutterProjectLocationOption := models.NewOption(projectLocationInputTitle, projectLocationInputSummary, projectLocationInputEnvKey, models.TypeSelector)
 
 	for _, project := range scanner.projects {
+		var testKey string
 		if project.hasTest {
-			flutterProjectHasTestOption := models.NewOption(testsInputTitle, testsInputSummary, "", models.TypeSelector)
-			flutterProjectLocationOption.AddOption(project.path, flutterProjectHasTestOption)
-
-			for _, v := range []string{"yes", "no"} {
-				cfg := configName
-				if v == "yes" {
-					cfg += "-test"
-				}
-
-				if project.hasIosProject || project.hasAndroidProject {
-					if project.hasIosProject {
-						projectPathOption := models.NewOption(ios.ProjectPathInputTitle, ios.ProjectPathInputSummary, ios.ProjectPathInputEnvKey, models.TypeSelector)
-						flutterProjectHasTestOption.AddOption(v, projectPathOption)
-
-						for xcodeWorkspacePath, schemes := range project.xcodeProjectPaths {
-							schemeOption := models.NewOption(ios.SchemeInputTitle, ios.SchemeInputSummary, ios.SchemeInputEnvKey, models.TypeSelector)
-							projectPathOption.AddOption(xcodeWorkspacePath, schemeOption)
-
-							for _, scheme := range schemes {
-								distributionMethodOption := models.NewOption(ios.DistributionMethodInputTitle, ios.DistributionMethodInputSummary, ios.DistributionMethodEnvKey, models.TypeSelector)
-								schemeOption.AddOption(scheme, distributionMethodOption)
-
-								for _, exportMethod := range ios.IosExportMethods {
-									configOption := models.NewConfigOption(cfg+"-app-"+getBuildablePlatform(project.hasAndroidProject, project.hasIosProject), nil)
-									distributionMethodOption.AddConfig(exportMethod, configOption)
-								}
-							}
-						}
-					} else {
-						configOption := models.NewConfigOption(cfg+"-app-"+getBuildablePlatform(project.hasAndroidProject, project.hasIosProject), nil)
-						flutterProjectHasTestOption.AddOption(v, configOption)
-					}
-				} else {
-					configOption := models.NewConfigOption(cfg, nil)
-					flutterProjectHasTestOption.AddOption(v, configOption)
-				}
-			}
+			testKey = "test"
 		} else {
-			cfg := configName
-
-			if project.hasIosProject || project.hasAndroidProject {
-				if project.hasIosProject {
-					projectPathOption := models.NewOption(ios.ProjectPathInputTitle, ios.ProjectPathInputSummary, ios.ProjectPathInputEnvKey, models.TypeSelector)
-					flutterProjectLocationOption.AddOption(project.path, projectPathOption)
-
-					for xcodeWorkspacePath, schemes := range project.xcodeProjectPaths {
-						schemeOption := models.NewOption(ios.SchemeInputTitle, ios.SchemeInputSummary, ios.SchemeInputEnvKey, models.TypeSelector)
-						projectPathOption.AddOption(xcodeWorkspacePath, schemeOption)
-
-						for _, scheme := range schemes {
-							distributionMethodOption := models.NewOption(ios.DistributionMethodInputTitle, ios.DistributionMethodInputSummary, ios.DistributionMethodEnvKey, models.TypeSelector)
-							schemeOption.AddOption(scheme, distributionMethodOption)
-
-							for _, exportMethod := range ios.IosExportMethods {
-								configOption := models.NewConfigOption(cfg+"-app-"+getBuildablePlatform(project.hasAndroidProject, project.hasIosProject), nil)
-								distributionMethodOption.AddConfig(exportMethod, configOption)
-							}
-						}
-					}
-				} else {
-					configOption := models.NewConfigOption(cfg+"-app-"+getBuildablePlatform(project.hasAndroidProject, project.hasIosProject), nil)
-					flutterProjectLocationOption.AddOption(project.path, configOption)
-				}
-			} else {
-				configOption := models.NewConfigOption(cfg, nil)
-				flutterProjectLocationOption.AddOption(project.path, configOption)
-			}
+			testKey = "notest"
 		}
+		cfg := configName + "-" + testKey
+
+		configOption := models.NewConfigOption(cfg+"-app-"+getBuildablePlatform(project.hasAndroidProject, project.hasIosProject), nil)
+		flutterProjectLocationOption.AddOption(project.path, configOption)
 	}
 
 	return *flutterProjectLocationOption, models.Warnings{}, nil, nil
@@ -338,87 +275,65 @@ func getBuildablePlatform(hasAndroidProject, hasIosProject bool) string {
 func (Scanner) DefaultOptions() models.OptionNode {
 	flutterProjectLocationOption := models.NewOption(projectLocationInputTitle, projectLocationInputSummary, projectLocationInputEnvKey, models.TypeUserInput)
 
-	flutterProjectHasTestOption := models.NewOption(testsInputTitle, testsInputSummary, "", models.TypeSelector)
-	flutterProjectLocationOption.AddOption("", flutterProjectHasTestOption)
+	cfg := configName + "-test"
 
-	for _, v := range []string{"yes", "no"} {
-		cfg := configName
-		if v == "yes" {
-			cfg += "-test"
-		}
-		flutterPlatformOption := models.NewOption(platformInputTitle, platformInputSummary, "", models.TypeSelector)
-		flutterProjectHasTestOption.AddOption(v, flutterPlatformOption)
+	flutterPlatformOption := models.NewOption(platformInputTitle, platformInputSummary, "", models.TypeSelector)
+	flutterProjectLocationOption.AddOption("", flutterPlatformOption)
 
-		for _, platform := range platforms {
-			if platform != "none" {
-				if platform != "android" {
-					projectPathOption := models.NewOption(ios.ProjectPathInputTitle, ios.ProjectPathInputSummary, ios.ProjectPathInputEnvKey, models.TypeUserInput)
-					flutterPlatformOption.AddOption(platform, projectPathOption)
-
-					schemeOption := models.NewOption(ios.SchemeInputTitle, ios.SchemeInputSummary, ios.SchemeInputEnvKey, models.TypeUserInput)
-					projectPathOption.AddOption("", schemeOption)
-
-					distributionMethodOption := models.NewOption(ios.DistributionMethodInputTitle, ios.DistributionMethodInputSummary, ios.DistributionMethodEnvKey, models.TypeSelector)
-					schemeOption.AddOption("", distributionMethodOption)
-
-					for _, exportMethod := range ios.IosExportMethods {
-						configOption := models.NewConfigOption(cfg+"-app-"+platform, nil)
-						distributionMethodOption.AddConfig(exportMethod, configOption)
-					}
-				} else {
-					configOption := models.NewConfigOption(cfg+"-app-"+platform, nil)
-					flutterPlatformOption.AddConfig(platform, configOption)
-				}
-			} else {
-				configOption := models.NewConfigOption(cfg, nil)
-				flutterPlatformOption.AddConfig(platform, configOption)
-			}
-		}
+	for _, platform := range platforms {
+		configOption := models.NewConfigOption(cfg+"-app-"+platform, nil)
+		flutterPlatformOption.AddConfig(platform, configOption)
 	}
 
 	return *flutterProjectLocationOption
 }
 
 // Configs ...
-func (scanner *Scanner) Configs() (models.BitriseConfigMap, error) {
-	return scanner.DefaultConfigs()
+func (scanner *Scanner) Configs(isPrivateRepository bool) (models.BitriseConfigMap, error) {
+	return scanner.generateConfigMap(isPrivateRepository)
 }
 
 // DefaultConfigs ...
 func (scanner Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
+	return scanner.generateConfigMap(true)
+}
+
+func (scanner Scanner) generateConfigMap(isPrivateRepository bool) (models.BitriseConfigMap, error) {
 	configs := models.BitriseConfigMap{}
 
 	for _, variant := range []struct {
 		configID string
 		test     bool
-		deploy   bool
 		platform string
 	}{
-		{test: false, deploy: false, configID: configName},
-		{test: true, deploy: false, configID: configName + "-test"},
-		{test: false, deploy: true, platform: "both", configID: configName + "-app-both"},
-		{test: true, deploy: true, platform: "both", configID: configName + "-test-app-both"},
-		{test: false, deploy: true, platform: "android", configID: configName + "-app-android"},
-		{test: true, deploy: true, platform: "android", configID: configName + "-test-app-android"},
-		{test: false, deploy: true, platform: "ios", configID: configName + "-app-ios"},
-		{test: true, deploy: true, platform: "ios", configID: configName + "-test-app-ios"},
+		{test: false, platform: "both", configID: configName + "-notest-app-both"},
+		{test: true, platform: "both", configID: configName + "-test-app-both"},
+		{test: false, platform: "android", configID: configName + "-notest-app-android"},
+		{test: true, platform: "android", configID: configName + "-test-app-android"},
+		{test: false, platform: "ios", configID: configName + "-notest-app-ios"},
+		{test: true, platform: "ios", configID: configName + "-test-app-ios"},
 	} {
 		configBuilder := models.NewDefaultConfigBuilder()
 
-		// primary
-
-		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultPrepareStepList(false)...)
-
-		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.FlutterInstallStepListItem(
+		// Common steps to all workflows
+		prepareSteps := steps.DefaultPrepareStepListV2(steps.PrepareListParams{
+			ShouldIncludeCache:       false,
+			ShouldIncludeActivateSSH: isPrivateRepository,
+		})
+		flutterInstallStep := steps.FlutterInstallStepListItem(
 			envmanModels.EnvironmentItemModel{installerUpdateFlutterKey: "false"},
-		))
+		)
+		deploySteps := steps.DefaultDeployStepListV2(true)
+
+		// primary
+		configBuilder.SetWorkflowDescriptionTo(models.PrimaryWorkflowID, primaryWorkflowDescription)
+
+		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, prepareSteps...)
+
+		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, flutterInstallStep)
 
 		// cache-pull is after flutter-installer, to prevent removal of pub system cache
 		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.CachePullStepListItem())
-
-		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.FlutterAnalyzeStepListItem(
-			envmanModels.EnvironmentItemModel{projectLocationInputKey: "$" + projectLocationInputEnvKey},
-		))
 
 		if variant.test {
 			configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.FlutterTestStepListItem(
@@ -426,49 +341,41 @@ func (scanner Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 			))
 		}
 
-		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultDeployStepList(true)...)
+		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, deploySteps...)
 
 		// deploy
+		configBuilder.SetWorkflowDescriptionTo(models.DeployWorkflowID, deployWorkflowDescription)
 
-		if variant.deploy {
-			configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.DefaultPrepareStepList(false)...)
+		configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, prepareSteps...)
 
-			if variant.platform != "android" {
-				configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.CertificateAndProfileInstallerStepListItem())
-			}
-
-			configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.FlutterInstallStepListItem(
-				envmanModels.EnvironmentItemModel{installerUpdateFlutterKey: "false"},
-			))
-
-			configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.CachePullStepListItem())
-
-			configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.FlutterAnalyzeStepListItem(
-				envmanModels.EnvironmentItemModel{projectLocationInputKey: "$" + projectLocationInputEnvKey},
-			))
-
-			if variant.test {
-				configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.FlutterTestStepListItem(
-					envmanModels.EnvironmentItemModel{projectLocationInputKey: "$" + projectLocationInputEnvKey},
-				))
-			}
-
-			configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.FlutterBuildStepListItem(
-				envmanModels.EnvironmentItemModel{projectLocationInputKey: "$" + projectLocationInputEnvKey},
-				envmanModels.EnvironmentItemModel{platformInputKey: variant.platform},
-			))
-
-			if variant.platform != "android" {
-				configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.XcodeArchiveStepListItem(
-					envmanModels.EnvironmentItemModel{ios.ProjectPathInputKey: "$" + ios.ProjectPathInputEnvKey},
-					envmanModels.EnvironmentItemModel{ios.SchemeInputKey: "$" + ios.SchemeInputEnvKey},
-					envmanModels.EnvironmentItemModel{ios.DistributionMethodInputKey: "$" + ios.DistributionMethodEnvKey},
-					envmanModels.EnvironmentItemModel{ios.ConfigurationInputKey: defaultIOSConfiguration},
-				))
-			}
-
-			configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.DefaultDeployStepList(true)...)
+		if variant.platform != "android" {
+			configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.CertificateAndProfileInstallerStepListItem())
 		}
+
+		configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, flutterInstallStep)
+
+		configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.CachePullStepListItem())
+
+		configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.FlutterAnalyzeStepListItem(
+			envmanModels.EnvironmentItemModel{projectLocationInputKey: "$" + projectLocationInputEnvKey},
+		))
+
+		if variant.test {
+			configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.FlutterTestStepListItem(
+				envmanModels.EnvironmentItemModel{projectLocationInputKey: "$" + projectLocationInputEnvKey},
+			))
+		}
+
+		flutterBuildInputs := []envmanModels.EnvironmentItemModel{
+			{projectLocationInputKey: "$" + projectLocationInputEnvKey},
+			{platformInputKey: variant.platform},
+		}
+		if variant.platform != "android" {
+			flutterBuildInputs = append(flutterBuildInputs, envmanModels.EnvironmentItemModel{iosOutputTypeKey: iosOutputTypeArchive})
+		}
+		configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.FlutterBuildStepListItem(flutterBuildInputs...))
+
+		configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, deploySteps...)
 
 		config, err := configBuilder.Generate(scannerName)
 		if err != nil {

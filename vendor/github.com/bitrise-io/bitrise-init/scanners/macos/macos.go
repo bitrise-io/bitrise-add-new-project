@@ -11,7 +11,8 @@ import (
 
 // Scanner ...
 type Scanner struct {
-	searchDir         string
+	detectResult ios.DetectResult
+
 	configDescriptors []ios.ConfigDescriptor
 }
 
@@ -27,14 +28,14 @@ func (Scanner) Name() string {
 
 // DetectPlatform ...
 func (scanner *Scanner) DetectPlatform(searchDir string) (bool, error) {
-	scanner.searchDir = searchDir
-
-	detected, err := ios.Detect(ios.XcodeProjectTypeMacOS, searchDir)
+	result, err := ios.ParseProjects(ios.XcodeProjectTypeMacOS, searchDir, true, false)
 	if err != nil {
 		return false, err
 	}
 
-	return detected, nil
+	scanner.detectResult = result
+	detected := len(result.Projects) > 0
+	return detected, err
 }
 
 // ExcludedScannerNames ...
@@ -44,7 +45,7 @@ func (Scanner) ExcludedScannerNames() []string {
 
 // Options ...
 func (scanner *Scanner) Options() (models.OptionNode, models.Warnings, models.Icons, error) {
-	options, configDescriptors, _, warnings, err := ios.GenerateOptions(ios.XcodeProjectTypeMacOS, scanner.searchDir, true, false)
+	options, configDescriptors, _, warnings, err := ios.GenerateOptions(ios.XcodeProjectTypeMacOS, scanner.detectResult)
 	if err != nil {
 		return models.OptionNode{}, warnings, nil, err
 	}
@@ -60,11 +61,11 @@ func (Scanner) DefaultOptions() models.OptionNode {
 }
 
 // Configs ...
-func (scanner *Scanner) Configs() (models.BitriseConfigMap, error) {
-	return ios.GenerateConfig(ios.XcodeProjectTypeMacOS, scanner.configDescriptors, true)
+func (scanner *Scanner) Configs(isPrivateRepository bool) (models.BitriseConfigMap, error) {
+	return ios.GenerateConfig(ios.XcodeProjectTypeMacOS, scanner.configDescriptors, isPrivateRepository)
 }
 
 // DefaultConfigs ...
 func (Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
-	return ios.GenerateDefaultConfig(ios.XcodeProjectTypeMacOS, true)
+	return ios.GenerateDefaultConfig(ios.XcodeProjectTypeMacOS)
 }
