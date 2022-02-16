@@ -231,7 +231,7 @@ func selectWorkflow(buildBitriseYML models.BitriseDataModel, inputReader io.Read
 	return workflow, nil
 }
 
-func getBitriseYML(searchDir string, inputReader io.Reader) (models.BitriseDataModel, string, error) {
+func getBitriseYML(searchDir string, inputReader io.Reader, isPrivateRepo bool) (models.BitriseDataModel, string, error) {
 	potentialBitriseYMLFilePath := filepath.Join(searchDir, bitriseYMLName)
 	if exist, err := pathutil.IsPathExists(potentialBitriseYMLFilePath); err != nil {
 		return models.BitriseDataModel{}, "", fmt.Errorf("failed to check if file (%s) exists, error: %s", potentialBitriseYMLFilePath, err)
@@ -289,7 +289,7 @@ func getBitriseYML(searchDir string, inputReader io.Reader) (models.BitriseDataM
 
 	fmt.Println()
 
-	scanResult, found := scanner.GenerateScanResult(searchDir)
+	scanResult, found := scanner.GenerateScanResult(searchDir, isPrivateRepo)
 	if !found {
 		log.Infof("Projects not found in repository. Select manual configuration.")
 		scanResult, err = scanner.ManualConfig()
@@ -311,10 +311,10 @@ func getBitriseYML(searchDir string, inputReader io.Reader) (models.BitriseDataM
 }
 
 // BitriseYML ...
-func BitriseYML(searchDir string) (models.BitriseDataModel, string, string, error) {
+func BitriseYML(searchDir string, isPrivateRepo bool) (models.BitriseDataModel, string, string, error) {
 	fmt.Println()
 	log.Infof("SETUP BITRISE.YML")
-	bitriseYML, branch, err := getBitriseYML(searchDir, os.Stdin)
+	bitriseYML, branch, err := getBitriseYML(searchDir, os.Stdin, isPrivateRepo)
 	if err != nil {
 		return models.BitriseDataModel{}, "", "", err
 	}
