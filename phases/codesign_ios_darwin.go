@@ -51,6 +51,7 @@ func iosCodesign(bitriseYML bitriseModels.BitriseDataModel, searchDir string) (C
 	archivePath, err := codesigndoc.BuildXcodeArchive(xcode.CommandModel{
 		ProjectFilePath: projectPathAbs,
 		Scheme:          scheme,
+		Destination:     "generic/platform=iOS",
 	}, nil)
 	if err != nil {
 		return CodesignResultsIOS{}, err
