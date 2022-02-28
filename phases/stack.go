@@ -10,14 +10,21 @@ import (
 	"github.com/manifoldco/promptui"
 )
 
+// Based on: https://github.com/bitrise-io/bitrise-website/blob/master/config/available_stacks.yml
+const (
+	defaultMacOSStack = "osx-xcode-13.1.x"
+	defaultLinuxStack = "linux-docker-android-20.04"
+)
+
 var defaultStacks = map[string]string{
-	"cordova":      "osx-xcode-12.4.x",
-	"react-native": "osx-xcode-12.4.x",
-	"ionic":        "osx-xcode-12.4.x",
-	"flutter":      "osx-xcode-12.4.x",
-	"android":      "linux-docker-android-20.04",
-	"macos":        "osx-xcode-12.4.x",
-	"ios":          "osx-xcode-12.4.x",
+	"ios":          defaultMacOSStack,
+	"macos":        defaultMacOSStack,
+	"android":      defaultLinuxStack,
+	"cordova":      defaultMacOSStack,
+	"ionic":        defaultMacOSStack,
+	"react-native": defaultMacOSStack,
+	"flutter":      defaultMacOSStack,
+	"other":        defaultLinuxStack,
 }
 
 type availableStacksResponse map[string]interface{}
@@ -64,7 +71,6 @@ func Stack(orgSlug string, apiToken string, projectType string) (string, error) 
 	fmt.Println()
 	log.Infof("SELECT STACK")
 	stack := defaultStacks[projectType]
-	var err error
 
 	availableStacks, err := fetchAvailableStacks(orgSlug, apiToken)
 	if err != nil {

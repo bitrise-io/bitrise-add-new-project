@@ -16,7 +16,7 @@ github.com/bitrise-io/bitrise/tools/filterwriter
 github.com/bitrise-io/bitrise/tools/timeoutcmd
 github.com/bitrise-io/bitrise/utils
 github.com/bitrise-io/bitrise/version
-# github.com/bitrise-io/bitrise-init v0.0.0-20220217153511-9fd066eb795f
+# github.com/bitrise-io/bitrise-init v0.0.0-20220223091922-37dca4521588
 ## explicit
 github.com/bitrise-io/bitrise-init/analytics
 github.com/bitrise-io/bitrise-init/errormapper
@@ -35,7 +35,7 @@ github.com/bitrise-io/bitrise-init/scanners/reactnative
 github.com/bitrise-io/bitrise-init/steps
 github.com/bitrise-io/bitrise-init/toolscanner
 github.com/bitrise-io/bitrise-init/utility
-# github.com/bitrise-io/codesigndoc v0.0.0-20210521081848-80756d2c5664
+# github.com/bitrise-io/codesigndoc v0.0.0-20220228120027-889a26b5d5c5
 ## explicit
 github.com/bitrise-io/codesigndoc/bitriseio
 github.com/bitrise-io/codesigndoc/bitriseio/bitrise
@@ -50,11 +50,9 @@ github.com/bitrise-io/codesigndoc/xcode
 github.com/bitrise-io/envman/models
 # github.com/bitrise-io/go-plist v0.0.0-20210301100253-4b1a112ccd10
 github.com/bitrise-io/go-plist
-# github.com/bitrise-io/go-steputils v0.0.0-20210527075147-910ce7a105a1
-## explicit
-github.com/bitrise-io/go-steputils/command/rubyscript
+# github.com/bitrise-io/go-steputils v1.0.1
 github.com/bitrise-io/go-steputils/step
-# github.com/bitrise-io/go-utils v0.0.0-20210713111255-08be784d45d0
+# github.com/bitrise-io/go-utils v1.0.1
 ## explicit
 github.com/bitrise-io/go-utils/colorstring
 github.com/bitrise-io/go-utils/command
@@ -74,7 +72,7 @@ github.com/bitrise-io/go-utils/stringutil
 github.com/bitrise-io/go-utils/urlutil
 github.com/bitrise-io/go-utils/versions
 github.com/bitrise-io/go-utils/ziputil
-# github.com/bitrise-io/go-xcode v0.0.0-20210714144817-465637d28b74
+# github.com/bitrise-io/go-xcode v1.0.3
 ## explicit
 github.com/bitrise-io/go-xcode/certificateutil
 github.com/bitrise-io/go-xcode/export
@@ -85,9 +83,9 @@ github.com/bitrise-io/go-xcode/plistutil
 github.com/bitrise-io/go-xcode/profileutil
 github.com/bitrise-io/go-xcode/utility
 github.com/bitrise-io/go-xcode/xcarchive
-github.com/bitrise-io/go-xcode/xcodeproj
+github.com/bitrise-io/go-xcode/xcodebuild
+github.com/bitrise-io/go-xcode/xcodeproject/schemeint
 github.com/bitrise-io/go-xcode/xcodeproject/serialized
-github.com/bitrise-io/go-xcode/xcodeproject/xcodebuild
 github.com/bitrise-io/go-xcode/xcodeproject/xcodeproj
 github.com/bitrise-io/go-xcode/xcodeproject/xcscheme
 github.com/bitrise-io/go-xcode/xcodeproject/xcworkspace
@@ -95,7 +93,7 @@ github.com/bitrise-io/go-xcode/xcodeproject/xcworkspace
 github.com/bitrise-io/goinp/goinp
 # github.com/bitrise-io/gows v0.0.0-20210505125306-dd92ff463938
 github.com/bitrise-io/gows/gows
-# github.com/bitrise-io/pkcs12 v0.0.0-20210430063833-0da06eb56630
+# github.com/bitrise-io/pkcs12 v0.0.0-20211108084543-e52728e011c8
 github.com/bitrise-io/pkcs12
 github.com/bitrise-io/pkcs12/internal/rc2
 # github.com/bitrise-io/stepman v0.0.0-20210517135458-203f7a48d37a
@@ -174,7 +172,7 @@ github.com/stretchr/testify/require
 # github.com/xanzy/ssh-agent v0.3.0
 ## explicit
 github.com/xanzy/ssh-agent
-# golang.org/x/crypto v0.0.0-20210711020723-a769d52b0f97
+# golang.org/x/crypto v0.0.0-20211202192323-5770296d904e
 ## explicit
 golang.org/x/crypto/blowfish
 golang.org/x/crypto/cast5
@@ -183,6 +181,7 @@ golang.org/x/crypto/curve25519
 golang.org/x/crypto/curve25519/internal/field
 golang.org/x/crypto/ed25519
 golang.org/x/crypto/ed25519/internal/edwards25519
+golang.org/x/crypto/internal/poly1305
 golang.org/x/crypto/internal/subtle
 golang.org/x/crypto/openpgp
 golang.org/x/crypto/openpgp/armor
@@ -190,27 +189,24 @@ golang.org/x/crypto/openpgp/elgamal
 golang.org/x/crypto/openpgp/errors
 golang.org/x/crypto/openpgp/packet
 golang.org/x/crypto/openpgp/s2k
-golang.org/x/crypto/poly1305
 golang.org/x/crypto/ssh
 golang.org/x/crypto/ssh/agent
 golang.org/x/crypto/ssh/internal/bcrypt_pbkdf
 golang.org/x/crypto/ssh/knownhosts
 golang.org/x/crypto/ssh/terminal
-# golang.org/x/net v0.0.0-20210716203947-853a461950ff
-## explicit
+# golang.org/x/net v0.0.0-20211112202133-69e39bad7dc2
 golang.org/x/net/context
 golang.org/x/net/internal/socks
 golang.org/x/net/proxy
-# golang.org/x/sys v0.0.0-20210630005230-0f9fa26af87c
-## explicit
+# golang.org/x/sys v0.0.0-20211205182925-97ca703d548d
 golang.org/x/sys/cpu
 golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/plan9
 golang.org/x/sys/unix
 golang.org/x/sys/windows
-# golang.org/x/term v0.0.0-20210615171337-6886f2dfbf5b
+# golang.org/x/term v0.0.0-20210927222741-03fcf44c2211
 golang.org/x/term
-# golang.org/x/text v0.3.6
+# golang.org/x/text v0.3.7
 golang.org/x/text/transform
 golang.org/x/text/unicode/norm
 # gopkg.in/src-d/go-billy.v4 v4.3.2
@@ -269,5 +265,5 @@ gopkg.in/warnings.v0
 gopkg.in/yaml.v2
 # gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 gopkg.in/yaml.v3
-# howett.net/plist v0.0.0-20201203080718-1454fab16a06
+# howett.net/plist v1.0.0
 howett.net/plist
