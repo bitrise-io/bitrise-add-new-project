@@ -35,7 +35,7 @@ github.com/bitrise-io/bitrise-init/scanners/reactnative
 github.com/bitrise-io/bitrise-init/steps
 github.com/bitrise-io/bitrise-init/toolscanner
 github.com/bitrise-io/bitrise-init/utility
-# github.com/bitrise-io/codesigndoc v0.0.0-20220225135931-9b47d0f0c17d
+# github.com/bitrise-io/codesigndoc v0.0.0-20220228120027-889a26b5d5c5
 ## explicit
 github.com/bitrise-io/codesigndoc/bitriseio
 github.com/bitrise-io/codesigndoc/bitriseio/bitrise
