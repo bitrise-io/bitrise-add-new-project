@@ -5,7 +5,7 @@ go 1.16
 require (
 	github.com/Microsoft/go-winio v0.5.0 // indirect
 	github.com/bitrise-io/bitrise v0.0.0-20210623145422-513e39485248
-	github.com/bitrise-io/bitrise-init v0.0.0-20220223091922-37dca4521588
+	github.com/bitrise-io/bitrise-init v0.0.0-20220302151827-6df2455ae686
 	github.com/bitrise-io/codesigndoc v0.0.0-20220228120027-889a26b5d5c5
 	github.com/bitrise-io/envman v0.0.0-20210630102032-df85af51bd1a
 	github.com/bitrise-io/go-utils v1.0.1

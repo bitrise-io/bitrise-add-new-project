@@ -63,8 +63,9 @@ github.com/bgentry/speakeasy v0.1.0/go.mod h1:+zsyZBPWlz7T6j88CTgSN5bM796AkVf0kB
 github.com/bitrise-io/bitrise v0.0.0-20210519130014-380842fb41c1/go.mod h1:Jqf2PLwOKL1bYdbQIhVkNd55YyYKJBXyY0EtlRg5uw4=
 github.com/bitrise-io/bitrise v0.0.0-20210623145422-513e39485248 h1:GfhBF379/Uwu4fmalhwwoJv3RcqlrlEo8+gGEcuXLsw=
 github.com/bitrise-io/bitrise v0.0.0-20210623145422-513e39485248/go.mod h1:jqk9VdrvlRpRfIqA2DZHVNEMvPycmlpBfpiKxk89R6w=
-github.com/bitrise-io/bitrise-init v0.0.0-20220223091922-37dca4521588 h1:x+s0oyOY3Uw8WBjzBJtaNdvZVL/5d5eHIVLrAvFgHag=
 github.com/bitrise-io/bitrise-init v0.0.0-20220223091922-37dca4521588/go.mod h1:7IdKULzEH9t/gmjuRWn+h59cpd0uq5WRD7bXpJ/SxVk=
+github.com/bitrise-io/bitrise-init v0.0.0-20220302151827-6df2455ae686 h1:IZZowaxddpOWNZ0PjhHxkv+Cz6B9F3FewPa35vtP+pU=
+github.com/bitrise-io/bitrise-init v0.0.0-20220302151827-6df2455ae686/go.mod h1:7IdKULzEH9t/gmjuRWn+h59cpd0uq5WRD7bXpJ/SxVk=
 github.com/bitrise-io/codesigndoc v0.0.0-20220228120027-889a26b5d5c5 h1:pNiAiC8h4kjhW9WPBSQ6CUWaW8e5OE9PqnSYmzBVICM=
 github.com/bitrise-io/codesigndoc v0.0.0-20220228120027-889a26b5d5c5/go.mod h1:IFp3kKcEYDzSF5HoxPJIkYzrgvoDf8/1sGif9QLY51w=
 github.com/bitrise-io/colorstring v0.0.0-20180614154802-a8cd70115192/go.mod h1:CIHVcxZUvsG99XUJV6JlR7okNsMMGY81jMvPC20W+O0=
