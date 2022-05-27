@@ -110,7 +110,7 @@ func AutoCodesign(bitriseYML bitriseModels.BitriseDataModel, searchDir string) (
 	if isAndroidCodesign(bitriseYML.ProjectType) {
 		for {
 			prmpt := promptui.Select{
-				Label: "Do you want to upload an Android keystore file",
+				Label: "Do you want to upload an Android keystore file?",
 				Items: []string{answerYes, answerNo},
 				Templates: &promptui.SelectTemplates{
 					Label:    fmt.Sprintf("%s {{.}} ", promptui.IconInitial),
