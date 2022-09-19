@@ -4,36 +4,60 @@ default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
 workflows:
   test:
     steps:
-      - go-list:
-      - golint:
-      - errcheck:
-      - go-test:
+    - go-list: { }
+    - golint: { }
+    - errcheck: { }
+    - go-test: { }
 
   test-linux-interactive:
     steps:
-      - script:
-          inputs:
-            - content: |-
-                #!/bin/env bash
-                env GOOS=linux go build -v github.com/bitrise-io/bitrise-add-new-project
-                cp bitrise-add-new-project ./docker_linux_interactive
-
-                cd docker_linux_interactive
-                docker build --tag bitrise-add-new-project-test-interactive .
-                docker run --rm -ti bitrise-add-new-project-test-interactive
+    - script:
+        inputs:
+        - content: |-
+            #!/bin/env bash
+            env GOOS=linux go build -v github.com/bitrise-io/bitrise-add-new-project
+            cp bitrise-add-new-project ./docker_linux_interactive
+            
+            cd docker_linux_interactive
+            docker build --tag bitrise-add-new-project-test-interactive .
+            docker run --rm -ti bitrise-add-new-project-test-interactive
 
   test-linux:
     steps:
-      - script:
-          inputs:
-            - content: |-
-                #!/bin/env bash
-                set -ex
-                docker build --tag bitrise-add-new-project-test docker_ci_linux/
-                docker run --rm bitrise-add-new-project-test
+    - script:
+        inputs:
+        - content: |-
+            #!/bin/env bash
+            set -ex
+            docker build --tag bitrise-add-new-project-test docker_ci_linux/
+            docker run --rm bitrise-add-new-project-test
 
-  maintenance:
+  create-release:
+    description: Creates Linux and Darwin binaries, then publishes a GitHub release
+    envs:
+    - GITHUB_TOKEN: $GIT_BOT_USER_ACCESS_TOKEN # Goreleaser expects this env var
     steps:
-      - go-test:
-          inputs:
-            - packages: "./maintenance"
+    - script:
+        title: Goreleaser (create binaries + publish to GH)
+        deps:
+          brew:
+          - name: goreleaser
+        inputs:
+        - content: |
+            #!/usr/bin/env bash
+            set -ex
+            goreleaser release
+
+  test-binary-build:
+    description: Tests the release build process by creating a snapshot release (without publishing)
+    steps:
+    - script:
+        title: Goreleaser (create snapshot binaries)
+        deps:
+          brew:
+          - name: goreleaser
+        inputs:
+        - content: |
+            #!/usr/bin/env bash
+            set -ex
+            goreleaser release --snapshot --rm-dist
