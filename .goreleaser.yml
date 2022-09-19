@@ -31,7 +31,7 @@ archives:
 # GitHub release should contain the raw binaries (no zip or tar.gz)
 - format: binary
   # Name format should match the curl install script
-  name_template: "{{ .ProjectName }}-{{ .Os }}-{{ .Arch }}"
+  name_template: "banp-{{ .Os }}-{{ .Arch }}"
   replacements:
     darwin: Darwin
     linux: Linux
@@ -48,17 +48,17 @@ release:
     To install this version, run the following command (in a bash shell):
     
       ```bash
-      curl -fL https://github.com/bitrise-io/{{ .ProjectName }}/releases/download/{{ .Tag }}/{{ .ProjectName }}-"$(uname -s)"-"$(uname -m)" > /usr/local/bin/{{ .ProjectName }}
+      curl -fL https://github.com/bitrise-io/{{ .ProjectName }}/releases/download/{{ .Tag }}/banp-"$(uname -s)"-"$(uname -m)" > /usr/local/bin/banp
       ```
     ℹ️ M1 machine: Please note by default `/usr/local/bin` does not exist on M1 machines and isn't encouraged by the community over `/opt/bin`. Use a custom folder path or use your own `bin` folder path. i.e `/opt/bin`
     
     Then:
     
       ```
-      chmod +x /usr/local/bin/{{ .ProjectName }}
+      chmod +x /usr/local/bin/banp
       ```
     
-      That's all, you're ready to call `{{ .ProjectName }}`!
+      That's all, you're ready to call `banp`!
 checksum:
   name_template: 'checksums.txt'
 snapshot:
