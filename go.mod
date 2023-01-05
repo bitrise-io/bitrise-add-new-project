@@ -1,14 +1,14 @@
 module github.com/bitrise-io/bitrise-add-new-project
 
-go 1.18
+go 1.19
 
 require (
 	github.com/bitrise-io/bitrise v0.0.0-20210623145422-513e39485248
-	github.com/bitrise-io/bitrise-init v0.0.0-20220302151827-6df2455ae686
+	github.com/bitrise-io/bitrise-init v0.0.0-20230105114151-b1a021c4060a
 	github.com/bitrise-io/codesigndoc v0.0.0-20220228120027-889a26b5d5c5
 	github.com/bitrise-io/envman v0.0.0-20210630102032-df85af51bd1a
 	github.com/bitrise-io/go-utils v1.0.1
-	github.com/bitrise-io/go-xcode v1.0.3
+	github.com/bitrise-io/go-xcode v1.0.6
 	github.com/manifoldco/promptui v0.8.0
 	github.com/spf13/cobra v1.2.1
 	github.com/stretchr/testify v1.7.0
