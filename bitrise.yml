@@ -3,6 +3,8 @@ default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
 
 workflows:
   test:
+    after_run:
+    - _test-binary-build
     steps:
     - go-list: { }
     - golint: { }
@@ -48,7 +50,7 @@ workflows:
             set -ex
             goreleaser release
 
-  test-binary-build:
+  _test-binary-build:
     description: Tests the release build process by creating a snapshot release (without publishing)
     steps:
     - script:

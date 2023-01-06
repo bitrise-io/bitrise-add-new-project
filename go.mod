@@ -1,6 +1,6 @@
 module github.com/bitrise-io/bitrise-add-new-project
 
-go 1.19
+go 1.17
 
 require (
 	github.com/bitrise-io/bitrise v0.0.0-20210623145422-513e39485248
