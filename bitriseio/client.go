@@ -73,6 +73,7 @@ func (c *Client) newRequest(method, urlStr string, body interface{}) (*http.Requ
 	}
 
 	req.Header.Set("Authorization", c.token)
+	req.Header.Set("User-Agent", "bitrise-add-new-project/0.14")
 
 	return req, nil
 }

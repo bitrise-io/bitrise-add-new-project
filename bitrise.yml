@@ -19,7 +19,7 @@ workflows:
             #!/bin/env bash
             env GOOS=linux go build -v github.com/bitrise-io/bitrise-add-new-project
             cp bitrise-add-new-project ./docker_linux_interactive
-            
+
             cd docker_linux_interactive
             docker build --tag bitrise-add-new-project-test-interactive .
             docker run --rm -ti bitrise-add-new-project-test-interactive
@@ -38,12 +38,11 @@ workflows:
     description: Creates Linux and Darwin binaries, then publishes a GitHub release
     envs:
     - GITHUB_TOKEN: $GIT_BOT_USER_ACCESS_TOKEN # Goreleaser expects this env var
+    before_run:
+    - _install-goreleaser
     steps:
     - script:
         title: Goreleaser (create binaries + publish to GH)
-        deps:
-          brew:
-          - name: goreleaser
         inputs:
         - content: |
             #!/usr/bin/env bash
@@ -52,14 +51,23 @@ workflows:
 
   _test-binary-build:
     description: Tests the release build process by creating a snapshot release (without publishing)
+    before_run:
+    - _install-goreleaser
     steps:
     - script:
         title: Goreleaser (create snapshot binaries)
-        deps:
-          brew:
-          - name: goreleaser
         inputs:
         - content: |
             #!/usr/bin/env bash
             set -ex
             goreleaser release --snapshot --rm-dist
+
+  _install-goreleaser:
+    steps:
+    - script:
+        title: Install goreleaser
+        inputs:
+        - content: |
+            #!/usr/bin/env bash
+            set -ex
+            go install github.com/goreleaser/goreleaser@latest
