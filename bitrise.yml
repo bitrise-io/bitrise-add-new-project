@@ -1,6 +1,11 @@
 format_version: "7"
 default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
 
+app:
+  envs:
+  # the field 'replacements' was removed in 1.19
+  # https://goreleaser.com/deprecations/#archivesreplacements
+  - GORELEASER_VERSION: "v1.18.2"
 workflows:
   test:
     after_run:
@@ -45,7 +50,7 @@ workflows:
         - content: |
             #!/usr/bin/env bash
             set -ex
-            curl -sfL https://goreleaser.com/static/run | bash -s -- release
+            curl -sfL https://goreleaser.com/static/run | VERSION=$GORELEASER_VERSION bash -s -- release
 
   _test-binary-build:
     description: Tests the release build process by creating a snapshot release (without publishing)
@@ -56,5 +61,5 @@ workflows:
         - content: |
             #!/usr/bin/env bash
             set -ex
-            curl -sfL https://goreleaser.com/static/run | bash -s -- release --snapshot --rm-dist
+            curl -sfL https://goreleaser.com/static/run | VERSION=$GORELEASER_VERSION bash -s -- release --snapshot --rm-dist
 
