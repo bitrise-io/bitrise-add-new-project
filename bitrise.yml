@@ -38,8 +38,6 @@ workflows:
     description: Creates Linux and Darwin binaries, then publishes a GitHub release
     envs:
     - GITHUB_TOKEN: $GIT_BOT_USER_ACCESS_TOKEN # Goreleaser expects this env var
-    before_run:
-    - _install-goreleaser
     steps:
     - script:
         title: Goreleaser (create binaries + publish to GH)
@@ -47,12 +45,10 @@ workflows:
         - content: |
             #!/usr/bin/env bash
             set -ex
-            goreleaser release
+            curl -sfL https://goreleaser.com/static/run | bash -s -- release
 
   _test-binary-build:
     description: Tests the release build process by creating a snapshot release (without publishing)
-    before_run:
-    - _install-goreleaser
     steps:
     - script:
         title: Goreleaser (create snapshot binaries)
@@ -60,14 +56,5 @@ workflows:
         - content: |
             #!/usr/bin/env bash
             set -ex
-            goreleaser release --snapshot --rm-dist
+            curl -sfL https://goreleaser.com/static/run | bash -s -- release --snapshot --rm-dist
 
-  _install-goreleaser:
-    steps:
-    - script:
-        title: Install goreleaser
-        inputs:
-        - content: |
-            #!/usr/bin/env bash
-            set -ex
-            go install github.com/goreleaser/goreleaser@latest
