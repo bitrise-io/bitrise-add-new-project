@@ -3,8 +3,8 @@ package phases
 import (
 	"bufio"
 	"bytes"
+	"crypto/ed25519"
 	"crypto/rand"
-	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
@@ -16,7 +16,6 @@ import (
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/retry"
 	"github.com/manifoldco/promptui"
-	"golang.org/x/crypto/ssh"
 )
 
 func readPrivateKey(keyFilePath string) ([]byte, error) {
@@ -30,23 +29,24 @@ func readPrivateKey(keyFilePath string) ([]byte, error) {
 }
 
 func generateSSHKey() (sshutil.SSHKeyPair, error) {
-	privateKey, err := rsa.GenerateKey(rand.Reader, 4096)
+	//privateKey, err := rsa.GenerateKey(rand.Reader, 4096)
+	publicKey, privateKey, err := ed25519.GenerateKey(rand.Reader)
+	if err != nil {
+		return sshutil.SSHKeyPair{}, err
+	}
+
+	privateKeyBytes, err := x509.MarshalPKCS8PrivateKey(privateKey)
 	if err != nil {
 		return sshutil.SSHKeyPair{}, err
 	}
 
 	var privateKeyPEM bytes.Buffer
-	privateKeyBlock := &pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(privateKey)}
+	privateKeyBlock := &pem.Block{Type: "RSA PRIVATE KEY", Bytes: privateKeyBytes}
 	if err := pem.Encode(&privateKeyPEM, privateKeyBlock); err != nil {
 		return sshutil.SSHKeyPair{}, err
 	}
 
-	publicKey, err := ssh.NewPublicKey(&privateKey.PublicKey)
-	if err != nil {
-		return sshutil.SSHKeyPair{}, err
-	}
-
-	publicKeyString := strings.TrimSuffix(string(ssh.MarshalAuthorizedKey(publicKey)), "\n")
+	publicKeyString := strings.TrimSuffix(string(publicKey), "\n")
 	publicKeyString = publicKeyString + " builds@bitrise.io\n"
 
 	return sshutil.SSHKeyPair{
