@@ -1,4 +1,4 @@
-FROM golang:1.12
+FROM golang:1.19
 
 RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y \
   rsync \
