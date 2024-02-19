@@ -2,14 +2,15 @@ package bitrise
 
 import (
 	"fmt"
+	"math"
 	"strings"
 	"time"
 	"unicode/utf8"
 
+	"github.com/bitrise-io/bitrise/log"
 	"github.com/bitrise-io/bitrise/models"
-	"github.com/bitrise-io/bitrise/toolkits"
+	"github.com/bitrise-io/bitrise/utils"
 	"github.com/bitrise-io/go-utils/colorstring"
-	log "github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/stringutil"
 	stepmanModels "github.com/bitrise-io/stepman/models"
 )
@@ -22,6 +23,42 @@ const (
 //------------------------------
 // Util methods
 //------------------------------
+
+func trimTitle(title string, titleSuffix string, titleBoxWidth int) string {
+	titleWithSuffix := combineTitleAndSuffix(title, titleSuffix)
+
+	titleWithSuffixLength := len(titleWithSuffix)
+	if titleWithSuffixLength > titleBoxWidth {
+		diff := titleWithSuffixLength - titleBoxWidth
+
+		// TODO: if len(titleWithSuffix) > titleBoxWidth because of a long suffix,
+		// 	might we trim too much from the title
+		if len(title) > 0 {
+			title = stringutil.MaxFirstCharsWithDots(title, len(title)-diff)
+		} else if len(titleSuffix) > 0 {
+			titleSuffix = stringutil.MaxFirstCharsWithDots(titleSuffix, len(titleSuffix)-diff)
+		}
+	}
+
+	return combineTitleAndSuffix(title, titleSuffix)
+}
+
+func combineTitleAndSuffix(title, suffix string) string {
+	var titleWithSuffix string
+
+	if len(title) > 0 {
+		titleWithSuffix = title
+	}
+
+	if len(suffix) > 0 {
+		if len(titleWithSuffix) > 0 {
+			titleWithSuffix += " "
+		}
+		titleWithSuffix += suffix
+	}
+
+	return titleWithSuffix
+}
 
 func getTrimmedStepName(stepRunResult models.StepRunResultsModel) string {
 	iconBoxWidth := len("   ")
@@ -39,155 +76,13 @@ func getTrimmedStepName(stepRunResult models.StepRunResultsModel) string {
 		title = fmt.Sprintf("[Deprecated] %s", title)
 	}
 
-	titleBox := ""
-	switch stepRunResult.Status {
-	case models.StepRunStatusCodeSuccess, models.StepRunStatusCodeSkipped, models.StepRunStatusCodeSkippedWithRunIf:
-		titleBox = fmt.Sprintf("%s", title)
-		if len(titleBox) > titleBoxWidth {
-			dif := len(titleBox) - titleBoxWidth
-			title = stringutil.MaxFirstCharsWithDots(title, len(title)-dif)
-			titleBox = fmt.Sprintf("%s", title)
-		}
-		break
-	case models.StepRunStatusCodeFailed, models.StepRunStatusCodeFailedSkippable:
-		titleBox = fmt.Sprintf("%s (exit code: %d)", title, stepRunResult.ExitCode)
-		if len(titleBox) > titleBoxWidth {
-			dif := len(titleBox) - titleBoxWidth
-			title = stringutil.MaxFirstCharsWithDots(title, len(title)-dif)
-			titleBox = fmt.Sprintf("%s (exit code: %d)", title, stepRunResult.ExitCode)
-		}
-		break
-	default:
-		log.Errorf("Unknown result code")
-		return ""
+	suffix := ""
+	reason := stepRunResult.Status.Name()
+	if reason != "" {
+		suffix = fmt.Sprintf("(%s)", reason)
 	}
 
-	return titleBox
-}
-
-func getRunningStepHeaderMainSection(stepInfo stepmanModels.StepInfoModel, idx int) string {
-	title := ""
-	if stepInfo.Step.Title != nil && *stepInfo.Step.Title != "" {
-		title = *stepInfo.Step.Title
-	}
-
-	content := fmt.Sprintf("| (%d) %s |", idx, title)
-	charDiff := len(content) - stepRunSummaryBoxWidthInChars
-
-	if charDiff < 0 {
-		// shorter than desired - fill with space
-		content = fmt.Sprintf("| (%d) %s%s |", idx, title, strings.Repeat(" ", -charDiff))
-	} else if charDiff > 0 {
-		// longer than desired - trim title
-		trimmedTitleWidth := len(title) - charDiff
-		if trimmedTitleWidth < 4 {
-			log.Errorf("Step title too long, can't present title at all! : %s", title)
-		} else {
-			content = fmt.Sprintf("| (%d) %s |", idx, stringutil.MaxFirstCharsWithDots(title, trimmedTitleWidth))
-		}
-	}
-	return content
-}
-
-func getRunningStepHeaderSubSection(step stepmanModels.StepModel, stepInfo stepmanModels.StepInfoModel) string {
-
-	idRow := ""
-	{
-		id := stepInfo.ID
-		idRow = fmt.Sprintf("| id: %s |", id)
-		charDiff := len(idRow) - stepRunSummaryBoxWidthInChars
-		if charDiff < 0 {
-			// shorter than desired - fill with space
-			idRow = fmt.Sprintf("| id: %s%s |", id, strings.Repeat(" ", -charDiff))
-		} else if charDiff > 0 {
-			// longer than desired - trim title
-			trimmedWidth := len(id) - charDiff
-			if trimmedWidth < 4 {
-				log.Errorf("Step id too long, can't present id at all! : %s", id)
-			} else {
-				idRow = fmt.Sprintf("| id: %s |", stringutil.MaxFirstCharsWithDots(id, trimmedWidth))
-			}
-		}
-	}
-
-	versionRow := ""
-	{
-		version := stepInfo.Version
-		versionRow = fmt.Sprintf("| version: %s |", version)
-		charDiff := len(versionRow) - stepRunSummaryBoxWidthInChars
-		if charDiff < 0 {
-			// shorter than desired - fill with space
-			versionRow = fmt.Sprintf("| version: %s%s |", version, strings.Repeat(" ", -charDiff))
-		} else if charDiff > 0 {
-			// longer than desired - trim title
-			trimmedWidth := len(version) - charDiff
-			if trimmedWidth < 4 {
-				log.Errorf("Step version too long, can't present version at all! : %s", version)
-			} else {
-				versionRow = fmt.Sprintf("| id: %s |", stringutil.MaxFirstCharsWithDots(version, trimmedWidth))
-			}
-		}
-	}
-
-	collectionRow := ""
-	{
-		collection := stepInfo.Library
-		collectionRow = fmt.Sprintf("| collection: %s |", collection)
-		charDiff := len(collectionRow) - stepRunSummaryBoxWidthInChars
-		if charDiff < 0 {
-			// shorter than desired - fill with space
-			collectionRow = fmt.Sprintf("| collection: %s%s |", collection, strings.Repeat(" ", -charDiff))
-		} else if charDiff > 0 {
-			// longer than desired - trim title
-			trimmedWidth := len(collection) - charDiff
-			if trimmedWidth < 4 {
-				log.Errorf("Step collection too long, can't present collection at all! : %s", collection)
-			} else {
-				collectionRow = fmt.Sprintf("| collection: %s |", stringutil.MaxLastCharsWithDots(collection, trimmedWidth))
-			}
-		}
-	}
-
-	toolkitRow := ""
-	{
-		toolkitForStep := toolkits.ToolkitForStep(step)
-		toolkitName := toolkitForStep.ToolkitName()
-		toolkitRow = fmt.Sprintf("| toolkit: %s |", toolkitName)
-		charDiff := len(toolkitRow) - stepRunSummaryBoxWidthInChars
-		if charDiff < 0 {
-			// shorter than desired - fill with space
-			toolkitRow = fmt.Sprintf("| toolkit: %s%s |", toolkitName, strings.Repeat(" ", -charDiff))
-		} else if charDiff > 0 {
-			// longer than desired - trim title
-			trimmedWidth := len(toolkitName) - charDiff
-			if trimmedWidth < 4 {
-				log.Errorf("Step toolkitName too long, can't present toolkitName at all! : %s", toolkitName)
-			} else {
-				toolkitRow = fmt.Sprintf("| toolkit: %s |", stringutil.MaxLastCharsWithDots(toolkitName, trimmedWidth))
-			}
-		}
-	}
-
-	timeRow := ""
-	{
-		logTime := time.Now().Format(time.RFC3339)
-		timeRow = fmt.Sprintf("| time: %s |", logTime)
-		charDiff := len(timeRow) - stepRunSummaryBoxWidthInChars
-		if charDiff < 0 {
-			// shorter than desired - fill with space
-			timeRow = fmt.Sprintf("| time: %s%s |", logTime, strings.Repeat(" ", -charDiff))
-		} else if charDiff > 0 {
-			// longer than desired - trim title
-			trimmedWidth := len(logTime) - charDiff
-			if trimmedWidth < 4 {
-				log.Errorf("Time too long, can't present time at all! : %s", logTime)
-			} else {
-				timeRow = fmt.Sprintf("| time: %s |", stringutil.MaxFirstCharsWithDots(logTime, trimmedWidth))
-			}
-		}
-	}
-
-	return fmt.Sprintf("%s\n%s\n%s\n%s\n%s", idRow, versionRow, collectionRow, toolkitRow, timeRow)
+	return trimTitle(title, suffix, titleBoxWidth)
 }
 
 func getRunningStepFooterMainSection(stepRunResult models.StepRunResultsModel) string {
@@ -203,19 +98,18 @@ func getRunningStepFooterMainSection(stepRunResult models.StepRunResultsModel) s
 	case models.StepRunStatusCodeSuccess:
 		icon = "✓"
 		coloringFunc = colorstring.Green
-		break
-	case models.StepRunStatusCodeFailed:
+	case models.StepRunStatusCodeFailed, models.StepRunStatusCodePreparationFailed:
 		icon = "x"
 		coloringFunc = colorstring.Red
-		break
+	case models.StepRunStatusAbortedWithCustomTimeout, models.StepRunStatusAbortedWithNoOutputTimeout:
+		icon = "/"
+		coloringFunc = colorstring.Red
 	case models.StepRunStatusCodeFailedSkippable:
 		icon = "!"
 		coloringFunc = colorstring.Yellow
-		break
 	case models.StepRunStatusCodeSkipped, models.StepRunStatusCodeSkippedWithRunIf:
 		icon = "-"
 		coloringFunc = colorstring.Blue
-		break
 	default:
 		log.Errorf("Unknown result code")
 		return ""
@@ -234,7 +128,7 @@ func getRunningStepFooterMainSection(stepRunResult models.StepRunResultsModel) s
 
 	titleBox := fmt.Sprintf(" %s%s", coloredTitle, strings.Repeat(" ", titleWhiteSpaceWidth))
 
-	runTimeStr, err := FormattedSecondsToMax8Chars(stepRunResult.RunTime)
+	runTimeStr, err := utils.FormattedSecondsToMax8Chars(stepRunResult.RunTime)
 	if err != nil {
 		log.Errorf("Failed to format time, error: %s", err)
 		runTimeStr = "999+ hour"
@@ -271,7 +165,7 @@ func getDeprecateNotesRows(notes string) string {
 	line := ""
 
 	for i, word := range words {
-		isLastLine := (i == len(words)-1)
+		isLastLine := i == len(words)-1
 
 		expectedLine := ""
 		if line == "" {
@@ -400,7 +294,11 @@ func getRunningStepFooterSubSection(stepRunResult models.StepRunResultsModel) st
 		}
 	}
 
-	isUpdateAvailable := isUpdateAvailable(stepRunResult.StepInfo)
+	isUpdateAvailable, err := utils.IsUpdateAvailable(stepRunResult.StepInfo.Version, stepRunResult.StepInfo.LatestVersion)
+	if err != nil {
+		log.Warn(err)
+	}
+
 	updateRow := ""
 	if isUpdateAvailable {
 		updateRow = getUpdateRow(stepInfo, stepRunSummaryBoxWidthInChars)
@@ -484,7 +382,7 @@ func getRunningStepFooterSubSection(stepRunResult models.StepRunResultsModel) st
 		content = updateRow
 		if stepInfo.Step.SourceCodeURL != nil && *stepInfo.Step.SourceCodeURL != "" {
 			content += "\n" + getRow("")
-			releasesURL := repoReleasesURL(*stepInfo.Step.SourceCodeURL)
+			releasesURL := utils.RepoReleasesURL(*stepInfo.Step.SourceCodeURL)
 			content += "\n" + getRow("Release notes are available below")
 			content += "\n" + getRow(releasesURL)
 		}
@@ -528,50 +426,10 @@ func getRunningStepFooterSubSection(stepRunResult models.StepRunResultsModel) st
 	return content
 }
 
-// PrintRunningStepHeader ...
-func PrintRunningStepHeader(stepInfo stepmanModels.StepInfoModel, step stepmanModels.StepModel, idx int) {
-	sep := fmt.Sprintf("+%s+", strings.Repeat("-", stepRunSummaryBoxWidthInChars-2))
-
-	fmt.Println(sep)
-	fmt.Println(getRunningStepHeaderMainSection(stepInfo, idx))
-	fmt.Println(sep)
-	fmt.Println(getRunningStepHeaderSubSection(step, stepInfo))
-	fmt.Println(sep)
-	fmt.Println("|" + strings.Repeat(" ", stepRunSummaryBoxWidthInChars-2) + "|")
-}
-
-// PrintRunningStepFooter ..
-func PrintRunningStepFooter(stepRunResult models.StepRunResultsModel, isLastStepInWorkflow bool) {
-	iconBoxWidth := len("   ")
-	timeBoxWidth := len(" time (s) ")
-	titleBoxWidth := stepRunSummaryBoxWidthInChars - 4 - iconBoxWidth - timeBoxWidth
-	sep := fmt.Sprintf("+%s+%s+%s+", strings.Repeat("-", iconBoxWidth), strings.Repeat("-", titleBoxWidth), strings.Repeat("-", timeBoxWidth))
-
-	fmt.Println("|" + strings.Repeat(" ", stepRunSummaryBoxWidthInChars-2) + "|")
-
-	fmt.Println(sep)
-	fmt.Println(getRunningStepFooterMainSection(stepRunResult))
-	fmt.Println(sep)
-	if stepRunResult.ErrorStr != "" || stepRunResult.StepInfo.GroupInfo.RemovalDate != "" || isUpdateAvailable(stepRunResult.StepInfo) {
-		footerSubSection := getRunningStepFooterSubSection(stepRunResult)
-		if footerSubSection != "" {
-			fmt.Println(footerSubSection)
-			fmt.Println(sep)
-		}
-	}
-
-	if !isLastStepInWorkflow {
-		fmt.Println()
-		fmt.Println(strings.Repeat(" ", 42) + "▼")
-		fmt.Println()
-	}
-}
-
 // PrintRunningWorkflow ...
 func PrintRunningWorkflow(title string) {
-	fmt.Println()
-	log.Printf("%s %s", colorstring.Blue("Switching to workflow:"), title)
-	fmt.Println()
+	log.Print()
+	log.Infof("Switching to workflow: %s", title)
 }
 
 // PrintSummary ...
@@ -580,34 +438,44 @@ func PrintSummary(buildRunResults models.BuildRunResultsModel) {
 	timeBoxWidth := len(" time (s) ")
 	titleBoxWidth := stepRunSummaryBoxWidthInChars - 4 - iconBoxWidth - timeBoxWidth
 
-	fmt.Println()
-	fmt.Println()
-	fmt.Printf("+%s+\n", strings.Repeat("-", stepRunSummaryBoxWidthInChars-2))
-	whitespaceWidth := (stepRunSummaryBoxWidthInChars - 2 - len("bitrise summary ")) / 2
-	fmt.Printf("|%sbitrise summary %s|\n", strings.Repeat(" ", whitespaceWidth), strings.Repeat(" ", whitespaceWidth))
-	fmt.Printf("+%s+%s+%s+\n", strings.Repeat("-", iconBoxWidth), strings.Repeat("-", titleBoxWidth), strings.Repeat("-", timeBoxWidth))
+	log.Print()
+	log.Print()
+	log.Printf("+%s+", strings.Repeat("-", stepRunSummaryBoxWidthInChars-2))
 
-	whitespaceWidth = stepRunSummaryBoxWidthInChars - len("|   | title") - len("| time (s) |")
-	fmt.Printf("|   | title%s| time (s) |\n", strings.Repeat(" ", whitespaceWidth))
-	fmt.Printf("+%s+%s+%s+\n", strings.Repeat("-", iconBoxWidth), strings.Repeat("-", titleBoxWidth), strings.Repeat("-", timeBoxWidth))
+	title := fmt.Sprintf("bitrise summary: %s", buildRunResults.WorkflowID)
+	whitespace := float64(stepRunSummaryBoxWidthInChars - 2 - len(title))
+	if whitespace < 0 {
+		whitespace = 0
+	}
+	leftPadding := int(math.Floor(whitespace / 2.0))
+	rightPadding := int(math.Ceil(whitespace / 2.0))
+	log.Printf("|%s%s%s|", strings.Repeat(" ", leftPadding), title, strings.Repeat(" ", rightPadding))
+	log.Printf("+%s+%s+%s+", strings.Repeat("-", iconBoxWidth), strings.Repeat("-", titleBoxWidth), strings.Repeat("-", timeBoxWidth))
+
+	whitespaceWidth := stepRunSummaryBoxWidthInChars - len("|   | title") - len("| time (s) |")
+	log.Printf("|   | title%s| time (s) |", strings.Repeat(" ", whitespaceWidth))
+	log.Printf("+%s+%s+%s+", strings.Repeat("-", iconBoxWidth), strings.Repeat("-", titleBoxWidth), strings.Repeat("-", timeBoxWidth))
 
 	orderedResults := buildRunResults.OrderedResults()
 	tmpTime := time.Time{}
 	for _, stepRunResult := range orderedResults {
 		tmpTime = tmpTime.Add(stepRunResult.RunTime)
-		fmt.Println(getRunningStepFooterMainSection(stepRunResult))
-		fmt.Printf("+%s+%s+%s+\n", strings.Repeat("-", iconBoxWidth), strings.Repeat("-", titleBoxWidth), strings.Repeat("-", timeBoxWidth))
-		if stepRunResult.ErrorStr != "" || stepRunResult.StepInfo.GroupInfo.RemovalDate != "" || isUpdateAvailable(stepRunResult.StepInfo) {
+		log.Print(getRunningStepFooterMainSection(stepRunResult))
+		log.Printf("+%s+%s+%s+", strings.Repeat("-", iconBoxWidth), strings.Repeat("-", titleBoxWidth), strings.Repeat("-", timeBoxWidth))
+
+		updateAvailable, _ := utils.IsUpdateAvailable(stepRunResult.StepInfo.Version, stepRunResult.StepInfo.LatestVersion)
+
+		if stepRunResult.ErrorStr != "" || stepRunResult.StepInfo.GroupInfo.RemovalDate != "" || updateAvailable {
 			footerSubSection := getRunningStepFooterSubSection(stepRunResult)
 			if footerSubSection != "" {
-				fmt.Println(footerSubSection)
-				fmt.Printf("+%s+%s+%s+\n", strings.Repeat("-", iconBoxWidth), strings.Repeat("-", titleBoxWidth), strings.Repeat("-", timeBoxWidth))
+				log.Print(footerSubSection)
+				log.Printf("+%s+%s+%s+", strings.Repeat("-", iconBoxWidth), strings.Repeat("-", titleBoxWidth), strings.Repeat("-", timeBoxWidth))
 			}
 		}
 	}
 	runtime := tmpTime.Sub(time.Time{})
 
-	runTimeStr, err := FormattedSecondsToMax8Chars(runtime)
+	runTimeStr, err := utils.FormattedSecondsToMax8Chars(runtime)
 	if err != nil {
 		log.Errorf("Failed to format time, error: %s", err)
 		runTimeStr = "999+ hour"
@@ -619,8 +487,8 @@ func PrintSummary(buildRunResults models.BuildRunResultsModel) {
 		whitespaceWidth = 0
 	}
 
-	fmt.Printf("| Total runtime: %s%s|\n", runTimeStr, strings.Repeat(" ", whitespaceWidth))
-	fmt.Printf("+%s+\n", strings.Repeat("-", stepRunSummaryBoxWidthInChars-2))
+	log.Printf("| Total runtime: %s%s|", runTimeStr, strings.Repeat(" ", whitespaceWidth))
+	log.Printf("+%s+", strings.Repeat("-", stepRunSummaryBoxWidthInChars-2))
 
-	fmt.Println()
+	log.Print()
 }

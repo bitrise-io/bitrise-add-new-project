@@ -11,17 +11,17 @@ import (
 	"time"
 
 	"github.com/bitrise-io/bitrise/configs"
+	"github.com/bitrise-io/bitrise/log"
 	"github.com/bitrise-io/bitrise/models"
+	"github.com/bitrise-io/bitrise/progress"
 	"github.com/bitrise-io/bitrise/tools"
 	"github.com/bitrise-io/bitrise/utils"
 	"github.com/bitrise-io/go-utils/command"
 	"github.com/bitrise-io/go-utils/pathutil"
-	"github.com/bitrise-io/go-utils/progress"
 	"github.com/bitrise-io/go-utils/retry"
 	"github.com/bitrise-io/go-utils/versions"
 	"github.com/bitrise-io/gows/gows"
 	stepmanModels "github.com/bitrise-io/stepman/models"
-	log "github.com/sirupsen/logrus"
 )
 
 // === Base Toolkit struct ===
@@ -136,7 +136,7 @@ func parseGoVersionFromGoVersionOutput(goVersionCallOutput string) (string, erro
 	}
 
 	// example goVersionCallOutput: go version go1.7 darwin/amd64
-	goVerExp := regexp.MustCompile(`go version go(?P<goVersionNumber>[0-9.]+) (?P<platform>[a-zA-Z0-9]+/[a-zA-Z0-9]+)`)
+	goVerExp := regexp.MustCompile(`go version go(?P<goVersionNumber>[0-9.]+)[a-zA-Z0-9]* (?P<platform>[a-zA-Z0-9]+/[a-zA-Z0-9]+)`)
 	expRes := goVerExp.FindStringSubmatch(goVersionCallOutput)
 	if expRes == nil {
 		return "", fmt.Errorf("Failed to parse Go version, error: failed to find version in input: %s", origGoVersionCallOutput)
@@ -225,7 +225,7 @@ func (toolkit GoToolkit) Install() error {
 	goArchiveDownloadPath := filepath.Join(goTmpDirPath, localFileName)
 
 	var downloadErr error
-	progress.NewDefaultWrapper("Downloading").WrapAction(func() {
+	progress.ShowIndicator("Downloading", func() {
 		downloadErr = retry.Times(2).Wait(5 * time.Second).Try(func(attempt uint) error {
 			if attempt > 0 {
 				log.Warnf("==> Download failed, retrying ...")
@@ -237,14 +237,14 @@ func (toolkit GoToolkit) Install() error {
 		return fmt.Errorf("Failed to download toolkit (%s), error: %s", downloadURL, downloadErr)
 	}
 
-	fmt.Println("=> Installing ...")
+	log.Print("=> Installing ...")
 	if err := installGoTar(goArchiveDownloadPath); err != nil {
 		return fmt.Errorf("Failed to install Go toolkit, error: %s", err)
 	}
 	if err := os.Remove(goArchiveDownloadPath); err != nil {
 		return fmt.Errorf("Failed to remove the downloaded Go archive (path: %s), error: %s", goArchiveDownloadPath, err)
 	}
-	fmt.Println("=> Installing [DONE]")
+	log.Print("=> Installing [DONE]")
 
 	return nil
 }
@@ -302,12 +302,15 @@ func goBuildInGoPathMode(cmdRunner commandRunner, goConfig GoConfigurationModel,
 		return fmt.Errorf("Failed to create Project->Workspace symlink, error: %s", err)
 	}
 
-	cmd := gows.CreateCommand(workspaceRootPath, workspaceRootPath,
-		goConfig.GoBinaryPath, "build", "-o", outputBinPath, packageName)
+	cmd := gows.CreateCommand(workspaceRootPath, workspaceRootPath, goConfig.GoBinaryPath, "build", "-o", outputBinPath, packageName)
+	cmd.Stdout = nil
+	cmd.Stderr = nil
+	cmd.Stdin = nil
 	cmd.Env = append(cmd.Env, "GOROOT="+goConfig.GOROOT)
+
 	buildCmd := command.NewWithCmd(cmd)
 
-	if err := cmdRunner.run(buildCmd); err != nil {
+	if _, err := cmdRunner.runForOutput(buildCmd); err != nil {
 		return fmt.Errorf("Failed to install package, error: %s", err)
 	}
 
@@ -327,8 +330,10 @@ func stepBinaryFilename(sIDData models.StepIDData) string {
 		return ""
 	}
 
-	compositeStepID := fmt.Sprintf("%s-%s-%s",
-		sIDData.SteplibSource, sIDData.IDorURI, sIDData.Version)
+	compositeStepID := fmt.Sprintf("%s-%s", sIDData.SteplibSource, sIDData.IDorURI)
+	if sIDData.Version != "" {
+		compositeStepID += "-" + sIDData.Version
+	}
 
 	safeStepID := replaceRexp.ReplaceAllString(compositeStepID, "_")
 	//

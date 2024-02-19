@@ -19,7 +19,6 @@ const scannerName = "fastlane"
 
 const (
 	unknownProjectType = "other"
-	fastlaneWorkflowID = scannerName
 )
 
 const (
@@ -53,6 +52,11 @@ const (
 const (
 	fastlaneXcodeListTimeoutEnvKey   = "FASTLANE_XCODE_LIST_TIMEOUT"
 	fastlaneXcodeListTimeoutEnvValue = "120"
+)
+
+const (
+	cacheInputKey = "enable_cache"
+	cacheInputNo  = "no"
 )
 
 //------------------
@@ -173,10 +177,10 @@ func (*Scanner) DefaultOptions() models.OptionNode {
 	workDirOption := models.NewOption(workDirInputTitle, workDirInputSummary, workDirInputEnvKey, models.TypeUserInput)
 
 	laneOption := models.NewOption(laneInputTitle, laneInputSummary, laneInputEnvKey, models.TypeUserInput)
-	workDirOption.AddOption("", laneOption)
+	workDirOption.AddOption(models.UserInputOptionDefaultValue, laneOption)
 
 	projectTypeOption := models.NewOption(projectTypeInputTitle, projectTypeInputSummary, "", models.TypeSelector)
-	laneOption.AddOption("", projectTypeOption)
+	laneOption.AddOption(models.UserInputOptionDefaultValue, projectTypeOption)
 
 	for _, p := range platforms {
 		configOption := models.NewConfigOption(fmt.Sprintf(defaultConfigNameFormat, p), nil)
@@ -186,11 +190,12 @@ func (*Scanner) DefaultOptions() models.OptionNode {
 	return *workDirOption
 }
 
-// Configs ...
-func (scanner *Scanner) Configs(_ bool) (models.BitriseConfigMap, error) {
+func (scanner *Scanner) Configs(sshKeyActivation models.SSHKeyActivation) (models.BitriseConfigMap, error) {
 	generateConfig := func(isIOS bool) (bitriseModels.BitriseDataModel, error) {
 		configBuilder := models.NewDefaultConfigBuilder()
-		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultPrepareStepList(false)...)
+		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultPrepareStepList(steps.PrepareListParams{
+			SSHKeyActivation: sshKeyActivation,
+		})...)
 
 		if isIOS {
 			configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.CertificateAndProfileInstallerStepListItem())
@@ -199,9 +204,10 @@ func (scanner *Scanner) Configs(_ bool) (models.BitriseConfigMap, error) {
 		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.FastlaneStepListItem(
 			envmanModels.EnvironmentItemModel{laneInputKey: "$" + laneInputEnvKey},
 			envmanModels.EnvironmentItemModel{workDirInputKey: "$" + workDirInputEnvKey},
+			envmanModels.EnvironmentItemModel{cacheInputKey: cacheInputNo},
 		))
 
-		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultDeployStepList(false)...)
+		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultDeployStepList()...)
 
 		// Fill in project type later, from the list of detected project types
 		return configBuilder.Generate(unknownProjectType,
@@ -235,13 +241,12 @@ func (scanner *Scanner) Configs(_ bool) (models.BitriseConfigMap, error) {
 	return nameToConfigString, nil
 }
 
-// DefaultConfigs ...
 func (*Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 	configMap := models.BitriseConfigMap{}
 
 	for _, p := range platforms {
 		configBuilder := models.NewDefaultConfigBuilder()
-		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultPrepareStepList(false)...)
+		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultPrepareStepList(steps.PrepareListParams{SSHKeyActivation: models.SSHKeyActivationConditional})...)
 
 		if p == iosPlatform {
 			configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.CertificateAndProfileInstallerStepListItem())
@@ -250,8 +255,9 @@ func (*Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.FastlaneStepListItem(
 			envmanModels.EnvironmentItemModel{laneInputKey: "$" + laneInputEnvKey},
 			envmanModels.EnvironmentItemModel{workDirInputKey: "$" + workDirInputEnvKey},
+			envmanModels.EnvironmentItemModel{cacheInputKey: cacheInputNo},
 		))
-		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultDeployStepList(false)...)
+		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultDeployStepList()...)
 
 		config, err := configBuilder.Generate(p, envmanModels.EnvironmentItemModel{fastlaneXcodeListTimeoutEnvKey: fastlaneXcodeListTimeoutEnvValue})
 		if err != nil {

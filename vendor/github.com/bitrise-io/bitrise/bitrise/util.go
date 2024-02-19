@@ -7,12 +7,9 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 
-	"gopkg.in/yaml.v2"
-
-	log "github.com/sirupsen/logrus"
 	"github.com/bitrise-io/bitrise/configs"
+	"github.com/bitrise-io/bitrise/log"
 	"github.com/bitrise-io/bitrise/models"
 	"github.com/bitrise-io/bitrise/tools"
 	envmanModels "github.com/bitrise-io/envman/models"
@@ -20,7 +17,9 @@ import (
 	"github.com/bitrise-io/go-utils/command/git"
 	"github.com/bitrise-io/go-utils/fileutil"
 	"github.com/bitrise-io/go-utils/pathutil"
+	"github.com/bitrise-io/go-utils/pointers"
 	stepmanModels "github.com/bitrise-io/stepman/models"
+	"gopkg.in/yaml.v2"
 )
 
 // InventoryModelFromYAMLBytes ...
@@ -85,6 +84,52 @@ func ApplyOutputAliases(onEnvs, basedOnEnvs []envmanModels.EnvironmentItemModel)
 			onEnvs[idx] = envmanModels.EnvironmentItemModel{
 				envKeyAlias:             origValue,
 				envmanModels.OptionsKey: origOptions,
+			}
+		}
+	}
+	return onEnvs, nil
+}
+
+// ApplySensitiveOutputs ...
+func ApplySensitiveOutputs(onEnvs, basedOnEnvs []envmanModels.EnvironmentItemModel) ([]envmanModels.EnvironmentItemModel, error) {
+	for _, basedOnEnv := range basedOnEnvs {
+		envKey, _, err := basedOnEnv.GetKeyValuePair()
+		if err != nil {
+			return []envmanModels.EnvironmentItemModel{}, err
+		}
+
+		opts, err := basedOnEnv.GetOptions()
+		if err != nil {
+			return []envmanModels.EnvironmentItemModel{}, err
+		}
+
+		if opts.IsSensitive == nil || !*opts.IsSensitive {
+			continue
+		}
+
+		envToAlias, idx, err := searchEnvInSlice(envKey, onEnvs)
+		if err != nil {
+			return []envmanModels.EnvironmentItemModel{}, err
+		}
+
+		if idx > -1 {
+			origKey, origValue, err := envToAlias.GetKeyValuePair()
+			if err != nil {
+				return []envmanModels.EnvironmentItemModel{}, err
+			}
+
+			origOptions, err := envToAlias.GetOptions()
+			if err != nil {
+				return []envmanModels.EnvironmentItemModel{}, err
+			}
+
+			if origKey == envKey {
+				origOptions.IsSensitive = pointers.NewBoolPtr(true)
+
+				onEnvs[idx] = envmanModels.EnvironmentItemModel{
+					origKey:                 origValue,
+					envmanModels.OptionsKey: origOptions,
+				}
 			}
 		}
 	}
@@ -167,32 +212,6 @@ func SetBuildFailedEnv(failed bool) error {
 	return os.Setenv("BITRISE_BUILD_STATUS", statusStr)
 }
 
-// FormattedSecondsToMax8Chars ...
-func FormattedSecondsToMax8Chars(t time.Duration) (string, error) {
-	sec := t.Seconds()
-	min := t.Minutes()
-	hour := t.Hours()
-
-	if sec < 1.0 {
-		// 0.999999 sec -> 0.99 sec
-		return fmt.Sprintf("%.2f sec", sec), nil // 8
-	} else if sec < 60.0 {
-		// 59.99999 sec -> 59.99 sec
-		return fmt.Sprintf("%.2f sec", sec), nil // 8
-	} else if min < 60 {
-		// 59,999 min -> 59.9 min
-		return fmt.Sprintf("%.1f min", min), nil // 8
-	} else if hour < 10 {
-		// 9.999 hour -> 9.9 hour
-		return fmt.Sprintf("%.1f hour", hour), nil // 8
-	} else if hour < 1000 {
-		// 999,999 hour -> 999 hour
-		return fmt.Sprintf("%.f hour", hour), nil // 8
-	}
-
-	return "", fmt.Errorf("time (%f hour) greater than max allowed (999 hour)", hour)
-}
-
 // SaveConfigToFile ...
 func SaveConfigToFile(pth string, bitriseConf models.BitriseDataModel) error {
 	contBytes, err := generateYAML(bitriseConf)
@@ -269,11 +288,11 @@ func ReadBitriseConfig(pth string) (models.BitriseDataModel, []string, error) {
 	}
 
 	if strings.HasSuffix(pth, ".json") {
-		log.Debugln("=> Using JSON parser for: ", pth)
+		log.Debug("=> Using JSON parser for: ", pth)
 		return ConfigModelFromJSONBytes(bytes)
 	}
 
-	log.Debugln("=> Using YAML parser for: ", pth)
+	log.Debug("=> Using YAML parser for: ", pth)
 	return ConfigModelFromYAMLBytes(bytes)
 }
 
@@ -411,9 +430,16 @@ func removeStepDefaultsAndFillStepOutputs(stepListItem *models.StepListItemModel
 			return err
 		}
 
-		if err := repo.CloneTagOrBranch(stepIDData.IDorURI, stepIDData.Version).Run(); err != nil {
+		var cloneCmd *command.Model
+		if stepIDData.Version == "" {
+			cloneCmd = repo.Clone(stepIDData.IDorURI, "--depth=1")
+		} else {
+			cloneCmd = repo.CloneTagOrBranch(stepIDData.IDorURI, stepIDData.Version, "--depth=1")
+		}
+		if err := cloneCmd.Run(); err != nil {
 			return err
 		}
+
 		if err := command.CopyFile(filepath.Join(tempStepCloneDirPath, "step.yml"), tempStepYMLFilePath); err != nil {
 			return err
 		}

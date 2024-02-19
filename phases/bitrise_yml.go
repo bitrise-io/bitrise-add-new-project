@@ -15,8 +15,8 @@ import (
 	"github.com/bitrise-io/go-utils/colorstring"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
+	"github.com/go-git/go-git/v5"
 	"github.com/manifoldco/promptui"
-	"gopkg.in/src-d/go-git.v4"
 )
 
 const bitriseYMLName = "bitrise.yml"

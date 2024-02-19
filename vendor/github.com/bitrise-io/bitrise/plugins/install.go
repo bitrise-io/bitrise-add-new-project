@@ -9,10 +9,10 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/bitrise-io/bitrise/log"
+	"github.com/bitrise-io/bitrise/progress"
 	"github.com/bitrise-io/go-utils/command"
-	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
-	"github.com/bitrise-io/go-utils/progress"
 	"github.com/bitrise-io/go-utils/sliceutil"
 	ver "github.com/hashicorp/go-version"
 )
@@ -162,14 +162,14 @@ func installLocalPlugin(pluginSourceURI, pluginLocalPth string) (Plugin, error) 
 	executableURL := newPlugin.ExecutableURL()
 	if executableURL != "" {
 		tmpPluginBinDir := filepath.Join(tmpPluginDir, "bin")
-		if err := os.MkdirAll(tmpPluginBinDir, 0777); err != nil {
+		if err := os.MkdirAll(tmpPluginBinDir, 0755); err != nil {
 			return Plugin{}, fmt.Errorf("failed to create tmp plugin bin dir, error: %s", err)
 		}
 
 		tmpPluginBinPth := filepath.Join(tmpPluginBinDir, newPlugin.Name)
 
 		var err error
-		progress.NewDefaultWrapper("Downloading plugin binary").WrapAction(func() {
+		progress.ShowIndicator("Downloading plugin binary", func() {
 			err = downloadPluginBin(executableURL, tmpPluginBinPth)
 		})
 		if err != nil {
@@ -180,7 +180,7 @@ func installLocalPlugin(pluginSourceURI, pluginLocalPth string) (Plugin, error) 
 
 	// Install plugin source
 	tmpPluginSrcDir := filepath.Join(tmpPluginDir, "src")
-	if err := os.MkdirAll(tmpPluginSrcDir, 0777); err != nil {
+	if err := os.MkdirAll(tmpPluginSrcDir, 0755); err != nil {
 		return Plugin{}, fmt.Errorf("failed to create tmp plugin src dir, error: %s", err)
 	}
 
@@ -191,7 +191,7 @@ func installLocalPlugin(pluginSourceURI, pluginLocalPth string) (Plugin, error) 
 
 	// Create plugin work dir
 	tmpPluginDataDir := filepath.Join(tmpPluginDir, "data")
-	if err := os.MkdirAll(tmpPluginDataDir, 0777); err != nil {
+	if err := os.MkdirAll(tmpPluginDataDir, 0755); err != nil {
 		return Plugin{}, fmt.Errorf("failed to create tmp plugin data dir (%s), error: %s", tmpPluginDataDir, err)
 	}
 	// ---
@@ -207,7 +207,7 @@ func installLocalPlugin(pluginSourceURI, pluginLocalPth string) (Plugin, error) 
 	if executableURL != "" {
 		pluginBinDir := GetPluginBinDir(newPlugin.Name)
 		pluginBinPth := filepath.Join(pluginBinDir, newPlugin.Name)
-		if err := os.Chmod(pluginBinPth, 0777); err != nil {
+		if err := os.Chmod(pluginBinPth, 0755); err != nil {
 			if err := cleanupPlugin(newPlugin.Name); err != nil {
 				log.Warnf("Failed to cleanup plugin (%s), error: %s", newPlugin.Name, err)
 			}
@@ -252,7 +252,7 @@ func InstallPlugin(pluginSourceURI, versionTag string) (Plugin, string, error) {
 		version := ""
 		err = nil
 
-		progress.NewDefaultWrapper("git clone plugin source").WrapAction(func() {
+		progress.ShowIndicator("git clone plugin source", func() {
 			version, err = GitCloneAndCheckoutVersionOrLatestVersion(pluginSrcTmpDir, pluginSourceURI, versionTag)
 		})
 

@@ -87,7 +87,7 @@ func (o *scannerOutput) AddWarnings(tag string, errs ...string) {
 }
 
 // Config ...
-func Config(searchDir string, isPrivateRepository bool) models.ScanResultModel {
+func Config(searchDir string, hasSSHKey bool) models.ScanResultModel {
 	result := models.ScanResultModel{}
 
 	//
@@ -146,35 +146,31 @@ func Config(searchDir string, isPrivateRepository bool) models.ScanResultModel {
 	fmt.Println()
 
 	// Collect scanner outputs, by scanner name
-	scannerToOutput := map[string]scannerOutput{}
-	{
-		projectScannerToOutputs := runScanners(scanners.ProjectScanners(), searchDir, isPrivateRepository)
-		detectedProjectTypes := getDetectedScannerNames(projectScannerToOutputs)
-		log.Printf("Detected project types: %s", detectedProjectTypes)
-		fmt.Println()
+	projectScannerToOutputs := runScanners(scanners.ProjectScanners(), searchDir, hasSSHKey)
+	detectedProjectTypes := getDetectedScannerNames(projectScannerToOutputs)
+	log.Printf("Detected project types: %s", detectedProjectTypes)
+	fmt.Println()
 
-		// Project types are needed by tool scanners, to create decision tree on which project type
-		// to actually use in bitrise.yml
-		if len(detectedProjectTypes) == 0 {
-			detectedProjectTypes = []string{otherProjectType}
-		}
+	// Project types are needed by tool scanners, to create decision tree on which project type
+	// to actually use in bitrise.yml
+	if len(detectedProjectTypes) == 0 {
+		detectedProjectTypes = []string{otherProjectType}
+	}
 
-		automationToolScanners := scanners.AutomationToolScanners()
+	automationToolScanners := scanners.AutomationToolScanners()
 
-		for _, toolScanner := range automationToolScanners {
-			toolScanner.(scanners.AutomationToolScanner).SetDetectedProjectTypes(detectedProjectTypes)
-		}
+	for _, toolScanner := range automationToolScanners {
+		toolScanner.(scanners.AutomationToolScanner).SetDetectedProjectTypes(detectedProjectTypes)
+	}
 
-		toolScannerToOutputs := runScanners(automationToolScanners, searchDir, isPrivateRepository)
-		detectedAutomationToolScanners := getDetectedScannerNames(toolScannerToOutputs)
-		log.Printf("Detected automation tools: %s", detectedAutomationToolScanners)
-		fmt.Println()
+	scannerToOutput := runScanners(automationToolScanners, searchDir, hasSSHKey)
+	detectedAutomationToolScanners := getDetectedScannerNames(scannerToOutput)
+	log.Printf("Detected automation tools: %s", detectedAutomationToolScanners)
+	fmt.Println()
 
-		// Merge project and tool scanner outputs
-		scannerToOutput = toolScannerToOutputs
-		for scanner, scannerOutput := range projectScannerToOutputs {
-			scannerToOutput[scanner] = scannerOutput
-		}
+	// Merge project and tool scanner outputs
+	for scanner, scannerOutput := range projectScannerToOutputs {
+		scannerToOutput[scanner] = scannerOutput
 	}
 
 	scannerToWarnings := map[string]models.Warnings{}
@@ -216,7 +212,7 @@ func Config(searchDir string, isPrivateRepository bool) models.ScanResultModel {
 	}
 }
 
-func runScanners(scannerList []scanners.ScannerInterface, searchDir string, isPrivateRepository bool) map[string]scannerOutput {
+func runScanners(scannerList []scanners.ScannerInterface, searchDir string, hasSSHKey bool) map[string]scannerOutput {
 	scannerOutputs := map[string]scannerOutput{}
 	var excludedScannerNames []string
 	for _, scanner := range scannerList {
@@ -229,7 +225,7 @@ func runScanners(scannerList []scanners.ScannerInterface, searchDir string, isPr
 
 		log.TPrintf("+------------------------------------------------------------------------------+")
 		log.TPrintf("|                                                                              |")
-		scannerOutput := runScanner(scanner, searchDir, isPrivateRepository)
+		scannerOutput := runScanner(scanner, searchDir, hasSSHKey)
 		log.TPrintf("|                                                                              |")
 		log.TPrintf("+------------------------------------------------------------------------------+")
 		fmt.Println()
@@ -241,7 +237,7 @@ func runScanners(scannerList []scanners.ScannerInterface, searchDir string, isPr
 }
 
 // Collect output of a specific scanner
-func runScanner(detector scanners.ScannerInterface, searchDir string, isPrivateRepository bool) scannerOutput {
+func runScanner(detector scanners.ScannerInterface, searchDir string, hasSSHKey bool) scannerOutput {
 	output := scannerOutput{}
 
 	if isDetect, err := detector.DetectPlatform(searchDir); err != nil {
@@ -278,7 +274,13 @@ func runScanner(detector scanners.ScannerInterface, searchDir string, isPrivateR
 	}
 
 	// Generate configs
-	configs, err := detector.Configs(isPrivateRepository)
+	var sshKeyActivation models.SSHKeyActivation
+	if hasSSHKey {
+		sshKeyActivation = models.SSHKeyActivationMandatory
+	} else {
+		sshKeyActivation = models.SSHKeyActivationNone
+	}
+	configs, err := detector.Configs(sshKeyActivation)
 	if err != nil {
 		data := detectorErrorData(detector.Name(), err)
 		analytics.LogError(configsFailedTag, data, "%s detector Configs failed", detector.Name())

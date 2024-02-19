@@ -6,16 +6,16 @@ import (
 	"runtime"
 
 	"github.com/bitrise-io/bitrise/configs"
+	"github.com/bitrise-io/bitrise/log"
 	"github.com/bitrise-io/bitrise/plugins"
 	"github.com/bitrise-io/bitrise/toolkits"
 	"github.com/bitrise-io/bitrise/version"
 	"github.com/bitrise-io/go-utils/colorstring"
-	"github.com/bitrise-io/go-utils/log"
 )
 
 const (
-	minEnvmanVersion  = "2.3.1"
-	minStepmanVersion = "0.13.1"
+	minEnvmanVersion  = "2.4.2"
+	minStepmanVersion = "0.16.1"
 )
 
 // PluginDependency ..
@@ -28,26 +28,26 @@ type PluginDependency struct {
 var PluginDependencyMap = map[string]PluginDependency{
 	"init": {
 		Source:     "https://github.com/bitrise-io/bitrise-plugins-init.git",
-		MinVersion: "1.3.6",
+		MinVersion: "1.10.0",
 	},
 	"step": {
 		Source:     "https://github.com/bitrise-io/bitrise-plugins-step.git",
-		MinVersion: "0.10.1",
+		MinVersion: "0.10.4",
 	},
 	"workflow-editor": {
 		Source:     "https://github.com/bitrise-io/bitrise-workflow-editor.git",
-		MinVersion: "1.3.87",
+		MinVersion: "1.3.246",
 	},
 	"analytics": {
 		Source:     "https://github.com/bitrise-io/bitrise-plugins-analytics.git",
-		MinVersion: "0.12.4",
+		MinVersion: "0.13.1",
 	},
 }
 
 // RunSetupIfNeeded ...
 func RunSetupIfNeeded(appVersion string, isFullSetupMode bool) error {
 	if !configs.CheckIsSetupWasDoneForVersion(version.VERSION) {
-		log.Warnf(colorstring.Yellow("Setup was not performed for this version of bitrise, doing it now..."))
+		log.Warnf("Setup was not performed for this version of bitrise, doing it now...")
 		return RunSetup(version.VERSION, false, false)
 	}
 	return nil
@@ -96,7 +96,7 @@ func RunSetup(appVersion string, isFullSetupMode bool, isCleanSetupMode bool) er
 		return fmt.Errorf("Failed to do Toolkits setup, error: %s", err)
 	}
 
-	fmt.Println()
+	log.Print()
 	log.Donef("All the required tools are installed! We're ready to rock!!")
 
 	if err := configs.SaveSetupSuccessForVersion(appVersion); err != nil {
@@ -107,7 +107,7 @@ func RunSetup(appVersion string, isFullSetupMode bool, isCleanSetupMode bool) er
 }
 
 func doSetupToolkits() error {
-	fmt.Println()
+	log.Print()
 	log.Infof("Checking Bitrise Toolkits...")
 
 	coreToolkits := toolkits.AllSupportedToolkits()
@@ -141,7 +141,7 @@ func doSetupToolkits() error {
 }
 
 func doSetupPlugins() error {
-	fmt.Println()
+	log.Print()
 	log.Infof("Checking Bitrise Plugins...")
 
 	for pluginName, pluginDependency := range PluginDependencyMap {
@@ -154,7 +154,7 @@ func doSetupPlugins() error {
 }
 
 func doSetupBitriseCoreTools() error {
-	fmt.Println()
+	log.Print()
 	log.Infof("Checking Bitrise Core tools...")
 
 	if err := CheckIsEnvmanInstalled(minEnvmanVersion); err != nil {
@@ -169,8 +169,8 @@ func doSetupBitriseCoreTools() error {
 }
 
 func doSetupOnOSX(isMinimalSetupMode bool) error {
-	fmt.Println()
-	log.Infof("Doing OS X specific setup")
+	log.Print()
+	log.Infof("Doing macOS-specific setup")
 	log.Printf("Checking required tools...")
 
 	if err := CheckIsHomebrewInstalled(isMinimalSetupMode); err != nil {
