@@ -13,7 +13,7 @@ require (
 	github.com/manifoldco/promptui v0.8.0
 	github.com/spf13/cobra v1.2.1
 	github.com/stretchr/testify v1.8.4
-	golang.org/x/crypto v0.16.0
+	golang.org/x/crypto v0.17.0
 	gopkg.in/src-d/go-git.v4 v4.13.1
 	gopkg.in/yaml.v2 v2.4.0
 )
@@ -30,7 +30,7 @@ require (
 	github.com/bitrise-io/pkcs12 v0.0.0-20211108084543-e52728e011c8 // indirect
 	github.com/bitrise-io/stepman v0.0.0-20210517135458-203f7a48d37a // indirect
 	github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e // indirect
-	github.com/cloudflare/circl v1.3.3 // indirect
+	github.com/cloudflare/circl v1.3.7 // indirect
 	github.com/cyphar/filepath-securejoin v0.2.4 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
