@@ -5,7 +5,7 @@ app:
   envs:
   # the field 'replacements' was removed in 1.19
   # https://goreleaser.com/deprecations/#archivesreplacements
-  - GORELEASER_VERSION: "v1.18.2"
+  - GORELEASER_VERSION: v1.18.2
 workflows:
   test:
     after_run:
@@ -47,7 +47,8 @@ workflows:
   create-release:
     description: Creates Linux and Darwin binaries, then publishes a GitHub release
     envs:
-    - GITHUB_TOKEN: $GIT_BOT_USER_ACCESS_TOKEN # Goreleaser expects this env var
+    # Goreleaser expects this env var
+    - GITHUB_TOKEN: $GIT_BOT_USER_ACCESS_TOKEN
     steps:
     - script:
         title: Goreleaser (create binaries + publish to GH)
@@ -67,4 +68,3 @@ workflows:
             #!/usr/bin/env bash
             set -ex
             curl -sfL https://goreleaser.com/static/run | VERSION=$GORELEASER_VERSION bash -s -- release --snapshot --rm-dist
-
