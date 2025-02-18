@@ -32,6 +32,8 @@ func TestRegistrationParams(t *testing.T) {
 
 		// When
 		params, err := toRegistrationParams(progress)
+		require.NoError(t, err)
+
 		bytes, err := json.Marshal(params)
 
 		// Then

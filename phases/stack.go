@@ -115,30 +115,26 @@ func Stack(orgSlug string, apiToken string, projectType string) (string, error) 
 		},
 	}
 
-	for {
-		_, keep, err := prompt.Run()
-		if err != nil {
-			return "", fmt.Errorf("scan user input: %s", err)
-		}
+	_, keep, err := prompt.Run()
+	if err != nil {
+		return "", fmt.Errorf("scan user input: %s", err)
+	}
 
-		if keep == optionYes {
-			return stack, nil
-		}
-
-		stackPrompt := promptui.Select{
-			Label: "Choose stack",
-			Items: availableStacks,
-			Templates: &promptui.SelectTemplates{
-				Selected: "Stack: {{ . | green }}",
-			},
-		}
-		_, stack, err = stackPrompt.Run()
-		if err != nil {
-			return "", fmt.Errorf("user input: %s", err)
-		}
-
+	if keep == optionYes {
 		return stack, nil
 	}
 
-	return "", fmt.Errorf("invalid state")
+	stackPrompt := promptui.Select{
+		Label: "Choose stack",
+		Items: availableStacks,
+		Templates: &promptui.SelectTemplates{
+			Selected: "Stack: {{ . | green }}",
+		},
+	}
+	_, stack, err = stackPrompt.Run()
+	if err != nil {
+		return "", fmt.Errorf("user input: %s", err)
+	}
+
+	return stack, nil
 }
