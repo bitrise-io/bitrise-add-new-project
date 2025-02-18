@@ -11,9 +11,14 @@ workflows:
     after_run:
     - _test-binary-build
     steps:
-    - go-list: { }
-    - golint: { }
-    - errcheck: { }
+    - git::https://github.com/bitrise-steplib/steps-check.git:
+        title: Lint
+        inputs:
+        - workflow: lint
+        - skip_step_yml_validation: "yes"
+    - go-list:
+        inputs:
+        - exclude: "*/mocks"
     - go-test: { }
 
   test-linux-interactive:
