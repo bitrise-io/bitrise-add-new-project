@@ -55,7 +55,8 @@ func ValidateSSHAddedManually(repo SSHRepo) error {
 		log.Printf("Hit enter if you have finished with the setup")
 		if _, err := bufio.NewReader(os.Stdin).ReadString('\n'); err != nil {
 			err = fmt.Errorf("failed to read line from input, error: %s", err)
-			return nil
+			log.Errorf(err.Error())
+			return err
 		}
 
 		if valid, err := ValidatePrivateKey(repo.Keys.PrivateKey, repo.Username, repo.URL); !valid {

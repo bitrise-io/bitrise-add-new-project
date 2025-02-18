@@ -172,6 +172,6 @@ bash -l -c "$(curl -sfL https://raw.githubusercontent.com/bitrise-io/codesigndoc
 		return err
 	}
 
-	log.Printf("Project created: %s", colorstring.Greenf("https://app.bitrise.io/app/"+app.Slug))
+	log.Printf("Project created: %s", colorstring.Green("https://app.bitrise.io/app/"+app.Slug))
 	return nil
 }

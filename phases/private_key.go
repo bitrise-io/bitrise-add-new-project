@@ -87,7 +87,6 @@ func PrivateKey(repoURL RepoDetails) (sshutil.SSHKeyPair, bool, error) {
 	}
 
 	if method == methodAuto {
-		register = true
 		if SSHKeys, err = generateSSHKey(); err != nil {
 			return SSHKeys, false, err
 		}
