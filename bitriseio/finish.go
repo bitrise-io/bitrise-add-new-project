@@ -16,7 +16,7 @@ var configByProjectType = map[string]string{
 	"android":      "default-android-config",
 	"cordova":      "default-cordova-config",
 	"fastlane":     "default-fastlane-android-config",
-	"flutter":      "flutter-config-test-app-android",
+	"flutter":      "flutter-config-test-android-2",
 	"ionic":        "default-ionic-config",
 	"ios":          "default-ios-config",
 	"macos":        "default-macos-config",
