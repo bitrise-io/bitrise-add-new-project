@@ -263,5 +263,4 @@ func Repo(searchDir string, isPublicApp bool) (RepoDetails, error) {
 	default:
 		return RepoDetails{}, fmt.Errorf("invalid state")
 	}
-	return *repoDetails, nil
 }
