@@ -1,6 +1,8 @@
 package ios
 
-import "github.com/bitrise-io/bitrise-init/models"
+import (
+	"github.com/bitrise-io/bitrise-init/models"
+)
 
 //------------------
 // ScannerInterface
@@ -22,7 +24,7 @@ func NewScanner() *Scanner {
 }
 
 // Name ...
-func (Scanner) Name() string {
+func (scanner *Scanner) Name() string {
 	return string(XcodeProjectTypeIOS)
 }
 
@@ -33,13 +35,20 @@ func (scanner *Scanner) DetectPlatform(searchDir string) (bool, error) {
 		return false, err
 	}
 
+	if len(result.Projects) == 0 {
+		result, err = ParseSPMProject(XcodeProjectTypeIOS, searchDir)
+		if err != nil {
+			return false, err
+		}
+	}
+
 	scanner.DetectResult = result
 	detected := len(result.Projects) > 0
 	return detected, nil
 }
 
 // ExcludedScannerNames ...
-func (Scanner) ExcludedScannerNames() []string {
+func (scanner *Scanner) ExcludedScannerNames() []string {
 	return []string{}
 }
 
@@ -56,21 +65,20 @@ func (scanner *Scanner) Options() (models.OptionNode, models.Warnings, models.Ic
 }
 
 // DefaultOptions ...
-func (Scanner) DefaultOptions() models.OptionNode {
+func (scanner *Scanner) DefaultOptions() models.OptionNode {
 	return GenerateDefaultOptions(XcodeProjectTypeIOS)
 }
 
-// Configs ...
-func (scanner *Scanner) Configs(isPrivateRepository bool) (models.BitriseConfigMap, error) {
-	return GenerateConfig(XcodeProjectTypeIOS, scanner.ConfigDescriptors, isPrivateRepository)
+func (scanner *Scanner) Configs(sshKeyActivation models.SSHKeyActivation) (models.BitriseConfigMap, error) {
+	return GenerateConfig(XcodeProjectTypeIOS, scanner.ConfigDescriptors, sshKeyActivation)
 }
 
 // DefaultConfigs ...
-func (Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
+func (scanner *Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 	return GenerateDefaultConfig(XcodeProjectTypeIOS)
 }
 
 // GetProjectType returns the project_type property used in a bitrise config
-func (Scanner) GetProjectType() string {
+func (scanner *Scanner) GetProjectType() string {
 	return string(XcodeProjectTypeIOS)
 }

@@ -33,6 +33,13 @@ func (scanner *Scanner) DetectPlatform(searchDir string) (bool, error) {
 		return false, err
 	}
 
+	if len(result.Projects) == 0 {
+		result, err = ios.ParseSPMProject(ios.XcodeProjectTypeMacOS, searchDir)
+		if err != nil {
+			return false, err
+		}
+	}
+
 	scanner.detectResult = result
 	detected := len(result.Projects) > 0
 	return detected, err
@@ -55,17 +62,14 @@ func (scanner *Scanner) Options() (models.OptionNode, models.Warnings, models.Ic
 	return options, warnings, nil, nil
 }
 
-// DefaultOptions ...
 func (Scanner) DefaultOptions() models.OptionNode {
 	return ios.GenerateDefaultOptions(ios.XcodeProjectTypeMacOS)
 }
 
-// Configs ...
-func (scanner *Scanner) Configs(isPrivateRepository bool) (models.BitriseConfigMap, error) {
-	return ios.GenerateConfig(ios.XcodeProjectTypeMacOS, scanner.configDescriptors, isPrivateRepository)
+func (scanner *Scanner) Configs(sshKeyActivation models.SSHKeyActivation) (models.BitriseConfigMap, error) {
+	return ios.GenerateConfig(ios.XcodeProjectTypeMacOS, scanner.configDescriptors, sshKeyActivation)
 }
 
-// DefaultConfigs ...
 func (Scanner) DefaultConfigs() (models.BitriseConfigMap, error) {
 	return ios.GenerateDefaultConfig(ios.XcodeProjectTypeMacOS)
 }

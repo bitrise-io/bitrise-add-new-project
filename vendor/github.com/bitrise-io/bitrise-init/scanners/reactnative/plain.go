@@ -7,8 +7,8 @@ import (
 	"github.com/bitrise-io/bitrise-init/scanners/android"
 	"github.com/bitrise-io/bitrise-init/scanners/ios"
 	"github.com/bitrise-io/bitrise-init/steps"
-	bitriseModels "github.com/bitrise-io/bitrise/models"
-	envmanModels "github.com/bitrise-io/envman/models"
+	bitriseModels "github.com/bitrise-io/bitrise/v2/models"
+	envmanModels "github.com/bitrise-io/envman/v2/models"
 	"gopkg.in/yaml.v2"
 )
 
@@ -33,9 +33,6 @@ func (d configDescriptor) configName() string {
 	}
 	if d.hasIOS {
 		name += "-ios"
-		if d.ios.MissingSharedSchemes {
-			name += "-missing-shared-schemes"
-		}
 		if d.ios.HasPodfile {
 			name += "-pod"
 		}
@@ -71,7 +68,14 @@ func generateIOSOptions(result ios.DetectResult, hasAndroid, hasTests, hasYarnLo
 			schemeOption.AddOption(scheme.Name, exportMethodOption)
 
 			for _, exportMethod := range ios.IosExportMethods {
-				iosConfig := ios.NewConfigDescriptor(project.IsPodWorkspace, project.CarthageCommand, scheme.HasXCTests, scheme.HasAppClip, exportMethod, scheme.Missing)
+				iosConfig := ios.NewConfigDescriptor(
+					project.IsPodWorkspace,
+					project.CarthageCommand,
+					scheme.HasXCTests,
+					scheme.HasAppClip,
+					result.HasSPMDependencies,
+					false,
+					exportMethod)
 				descriptor := configDescriptor{
 					hasIOS:          true,
 					hasAndroid:      hasAndroid,
@@ -155,11 +159,11 @@ func (scanner *Scanner) defaultOptions() models.OptionNode {
 	schemeOption := models.NewOption(ios.SchemeInputTitle, ios.SchemeInputSummary, ios.SchemeInputEnvKey, models.TypeUserInput)
 
 	variantOption.AddOption(defaultVariant, projectPathOption)
-	projectPathOption.AddOption("", schemeOption)
+	projectPathOption.AddOption(models.UserInputOptionDefaultValue, schemeOption)
 
 	exportMethodOption := models.NewOption(ios.DistributionMethodInputTitle, ios.DistributionMethodInputSummary, ios.DistributionMethodEnvKey, models.TypeSelector)
 	for _, exportMethod := range ios.IosExportMethods {
-		schemeOption.AddOption("", exportMethodOption)
+		schemeOption.AddOption(models.UserInputOptionDefaultValue, exportMethodOption)
 
 		exportMethodOption.AddConfig(exportMethod, models.NewConfigOption(defaultConfigName, nil))
 	}
@@ -167,8 +171,7 @@ func (scanner *Scanner) defaultOptions() models.OptionNode {
 	return *androidOptions
 }
 
-// configs implements ScannerInterface.Configs function for plain React Native projects.
-func (scanner *Scanner) configs(isPrivateRepo bool) (models.BitriseConfigMap, error) {
+func (scanner *Scanner) configs(sshKeyActivation models.SSHKeyActivation) (models.BitriseConfigMap, error) {
 	configMap := models.BitriseConfigMap{}
 
 	if len(scanner.configDescriptors) == 0 {
@@ -186,19 +189,18 @@ func (scanner *Scanner) configs(isPrivateRepo bool) (models.BitriseConfigMap, er
 		}
 
 		configBuilder.SetWorkflowDescriptionTo(models.PrimaryWorkflowID, primaryDescription)
-		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultPrepareStepListV2(steps.PrepareListParams{
-			ShouldIncludeCache:       false,
-			ShouldIncludeActivateSSH: isPrivateRepo,
+		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultPrepareStepList(steps.PrepareListParams{
+			SSHKeyActivation: sshKeyActivation,
 		})...)
+		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.RestoreNPMCache())
 		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, testSteps...)
-
-		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultDeployStepListV2(false)...)
+		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.SaveNPMCache())
+		configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultDeployStepList()...)
 
 		// cd
 		configBuilder.SetWorkflowDescriptionTo(models.DeployWorkflowID, deployWorkflowDescription)
-		configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.DefaultPrepareStepListV2(steps.PrepareListParams{
-			ShouldIncludeCache:       false,
-			ShouldIncludeActivateSSH: isPrivateRepo,
+		configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.DefaultPrepareStepList(steps.PrepareListParams{
+			SSHKeyActivation: sshKeyActivation,
 		})...)
 		configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, testSteps...)
 
@@ -218,12 +220,6 @@ func (scanner *Scanner) configs(isPrivateRepo bool) (models.BitriseConfigMap, er
 
 		// ios cd
 		if descriptor.hasIOS {
-			if descriptor.ios.MissingSharedSchemes {
-				configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.RecreateUserSchemesStepListItem(
-					envmanModels.EnvironmentItemModel{ios.ProjectPathInputKey: "$" + ios.ProjectPathInputEnvKey},
-				))
-			}
-
 			if descriptor.ios.HasPodfile {
 				configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.CocoapodsInstallStepListItem())
 			}
@@ -243,7 +239,7 @@ func (scanner *Scanner) configs(isPrivateRepo bool) (models.BitriseConfigMap, er
 			))
 		}
 
-		configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.DefaultDeployStepListV2(false)...)
+		configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.DefaultDeployStepList()...)
 
 		bitriseDataModel, err := configBuilder.Generate(scannerName)
 		if err != nil {
@@ -261,25 +257,24 @@ func (scanner *Scanner) configs(isPrivateRepo bool) (models.BitriseConfigMap, er
 	return configMap, nil
 }
 
-// defaultConfigs implements ScannerInterface.DefaultConfigs function for plain React Native projects.
 func (scanner *Scanner) defaultConfigs() (models.BitriseConfigMap, error) {
 	configBuilder := models.NewDefaultConfigBuilder()
 
 	// primary
 	configBuilder.SetWorkflowDescriptionTo(models.PrimaryWorkflowID, primaryWorkflowDescription)
-	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultPrepareStepListV2(steps.PrepareListParams{
-		ShouldIncludeCache:       false,
-		ShouldIncludeActivateSSH: true,
+	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultPrepareStepList(steps.PrepareListParams{
+		SSHKeyActivation: models.SSHKeyActivationConditional,
 	})...)
+	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.RestoreNPMCache())
 	// Assuming project uses yarn and has tests
 	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, getTestSteps("", true, true)...)
-	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultDeployStepListV2(false)...)
+	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.SaveNPMCache())
+	configBuilder.AppendStepListItemsTo(models.PrimaryWorkflowID, steps.DefaultDeployStepList()...)
 
 	// deploy
 	configBuilder.SetWorkflowDescriptionTo(models.DeployWorkflowID, deployWorkflowDescription)
-	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.DefaultPrepareStepListV2(steps.PrepareListParams{
-		ShouldIncludeCache:       false,
-		ShouldIncludeActivateSSH: true,
+	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.DefaultPrepareStepList(steps.PrepareListParams{
+		SSHKeyActivation: models.SSHKeyActivationConditional,
 	})...)
 	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, getTestSteps("", true, true)...)
 
@@ -304,7 +299,7 @@ func (scanner *Scanner) defaultConfigs() (models.BitriseConfigMap, error) {
 		envmanModels.EnvironmentItemModel{ios.AutomaticCodeSigningInputKey: ios.AutomaticCodeSigningInputAPIKeyValue},
 	))
 
-	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.DefaultDeployStepListV2(false)...)
+	configBuilder.AppendStepListItemsTo(models.DeployWorkflowID, steps.DefaultDeployStepList()...)
 
 	bitriseDataModel, err := configBuilder.Generate(scannerName)
 	if err != nil {

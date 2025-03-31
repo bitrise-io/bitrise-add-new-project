@@ -1,7 +1,10 @@
 package phases
 
-import bitriseModels "github.com/bitrise-io/bitrise/models"
-import "errors"
+import (
+	"errors"
+
+	bitriseModels "github.com/bitrise-io/bitrise/v2/models"
+)
 
 func iosCodesign(bitriseYML bitriseModels.BitriseDataModel, searchDir string) (CodesignResultsIOS, error) {
 	return CodesignResultsIOS{}, errors.New("Not supported on linux")

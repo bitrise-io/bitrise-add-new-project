@@ -11,15 +11,13 @@ import (
 	"sort"
 	"strings"
 
-	plist "github.com/bitrise-io/go-plist"
+	"github.com/bitrise-io/go-plist"
 	"github.com/bitrise-io/go-utils/fileutil"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
 	"github.com/bitrise-io/go-utils/pretty"
 	"github.com/bitrise-io/go-xcode/xcodebuild"
 	"github.com/bitrise-io/go-xcode/xcodeproject/serialized"
-	"github.com/bitrise-io/go-xcode/xcodeproject/xcscheme"
-	"golang.org/x/text/unicode/norm"
 )
 
 const (
@@ -110,6 +108,9 @@ func (p XcodeProj) TargetInfoplistPath(target, configuration string) (string, er
 // The returned list contains each target only once, using the target ID for uniqueness.
 func (p XcodeProj) DependentTargetsOfTarget(target Target) []Target {
 	var dependentTargets []Target
+
+	log.TDebugf("Locating all dependencies of target: %s", target.Name)
+
 	for _, dependency := range target.Dependencies {
 		childTarget, ok := p.Proj.Target(dependency.TargetID)
 		if !ok {
@@ -121,6 +122,8 @@ func (p XcodeProj) DependentTargetsOfTarget(target Target) []Target {
 		childDependentTargets := p.DependentTargetsOfTarget(childTarget)
 		dependentTargets = append(dependentTargets, childDependentTargets...)
 	}
+
+	log.TDebugf("Located %v dependencies of target: %s", len(dependentTargets), target.Name)
 
 	return deduplicateTargetList(dependentTargets)
 }
@@ -325,28 +328,6 @@ func (p XcodeProj) TargetBuildSettings(target, configuration string, customOptio
 	return commandModel.RunAndReturnSettings()
 }
 
-// Scheme returns the project's scheme by name and the project's absolute path.
-func (p XcodeProj) Scheme(name string) (*xcscheme.Scheme, string, error) {
-	schemes, err := p.Schemes()
-	if err != nil {
-		return nil, "", err
-	}
-
-	normName := norm.NFC.String(name)
-	for _, scheme := range schemes {
-		if norm.NFC.String(scheme.Name) == normName {
-			return &scheme, p.Path, nil
-		}
-	}
-
-	return nil, "", xcscheme.NotFoundError{Scheme: name, Container: p.Name}
-}
-
-// Schemes ...
-func (p XcodeProj) Schemes() ([]xcscheme.Scheme, error) {
-	return xcscheme.FindSchemesIn(p.Path)
-}
-
 // Open ...
 func Open(pth string) (XcodeProj, error) {
 	absPth, err := pathutil.AbsPath(pth)
@@ -368,6 +349,8 @@ func Open(pth string) (XcodeProj, error) {
 
 	p.Path = absPth
 	p.Name = strings.TrimSuffix(filepath.Base(absPth), filepath.Ext(absPth))
+
+	log.TDebugf("Opened xcode project")
 
 	return *p, nil
 }
@@ -540,7 +523,13 @@ func writeAttributeForAllSDKs(buildSettings serialized.Object, newKey string, ne
 //
 // Overrides the project.pbxproj file of the XcodeProj with the contents of `rawProj`
 func (p XcodeProj) Save() error {
-	return p.savePBXProj()
+	log.Debugf("Saving PBX file")
+
+	err := p.savePBXProj()
+
+	log.Debugf("Saved PBX file")
+
+	return err
 }
 
 // savePBXProj overrides the project.pbxproj file of  the XcodeProj with the contents of `rawProj`
@@ -739,6 +728,8 @@ func deduplicateTargetList(targets []Target) []Target {
 			uniqueTargets = append(uniqueTargets, target)
 		}
 	}
+
+	log.Debugf("Deduplicating targets result: %v/%v", len(targets), len(uniqueTargets))
 
 	return uniqueTargets
 }
