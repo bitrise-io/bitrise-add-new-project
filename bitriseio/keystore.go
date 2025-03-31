@@ -3,7 +3,7 @@ package bitriseio
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -77,7 +77,7 @@ func (s *AppService) UploadKeystore(pth string, params UploadKeystoreParams) err
 		return err
 	}
 
-	content, err := ioutil.ReadAll(f)
+	content, err := io.ReadAll(f)
 	if err != nil {
 		return err
 	}
