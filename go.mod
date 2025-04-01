@@ -2,8 +2,6 @@ module github.com/bitrise-io/bitrise-add-new-project
 
 go 1.22.0
 
-toolchain go1.23.2
-
 require (
 	github.com/bitrise-io/bitrise-init v0.0.0-20250328140845-0fdc2f389785
 	github.com/bitrise-io/bitrise/v2 v2.30.5
