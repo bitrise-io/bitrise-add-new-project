@@ -5,10 +5,10 @@ import (
 	"path/filepath"
 	"sort"
 
-	bitriseModels "github.com/bitrise-io/bitrise/models"
+	bitriseModels "github.com/bitrise-io/bitrise/v2/models"
 	"github.com/bitrise-io/codesigndoc/codesigndoc"
 	"github.com/bitrise-io/codesigndoc/xcode"
-	envmanModels "github.com/bitrise-io/envman/models"
+	envmanModels "github.com/bitrise-io/envman/v2/models"
 	"github.com/bitrise-io/go-utils/colorstring"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"

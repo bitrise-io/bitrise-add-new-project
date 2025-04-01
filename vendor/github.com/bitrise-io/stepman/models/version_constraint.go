@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
-
-	"github.com/bitrise-io/go-utils/log"
 )
 
 // Semver represents a semantic version
@@ -18,7 +16,7 @@ func (v *Semver) String() string {
 	return fmt.Sprintf("%d.%d.%d", v.Major, v.Minor, v.Patch)
 }
 
-func parseSemver(version string) (Semver, error) {
+func ParseSemver(version string) (Semver, error) {
 	versionParts := strings.Split(version, ".")
 	if len(versionParts) != 3 {
 		return Semver{}, fmt.Errorf("parse %s: should consist by 3 components", version)
@@ -42,6 +40,31 @@ func parseSemver(version string) (Semver, error) {
 		Minor: minor,
 		Patch: patch,
 	}, nil
+}
+
+func CmpSemver(a, b Semver) int {
+	if a.Major < b.Major {
+		return -1
+	}
+	if a.Major > b.Major {
+		return 1
+	}
+
+	if a.Minor < b.Minor {
+		return -1
+	}
+	if a.Minor > b.Minor {
+		return 1
+	}
+
+	if a.Patch < b.Patch {
+		return -1
+	}
+	if a.Patch > b.Patch {
+		return 1
+	}
+
+	return 0
 }
 
 // VersionLockType is the type of version lock
@@ -152,9 +175,8 @@ func latestMatchingStepVersion(constraint VersionConstraint, stepVersions StepGr
 			latestStep := StepModel{}
 
 			for fullVersion, step := range stepVersions.Versions {
-				stepVersion, err := parseSemver(fullVersion)
+				stepVersion, err := ParseSemver(fullVersion)
 				if err != nil {
-					log.Warnf("Invalid step (%s) version: %s", step.Source, fullVersion)
 					continue
 				}
 				if stepVersion.Major != constraint.Version.Major ||
@@ -182,9 +204,8 @@ func latestMatchingStepVersion(constraint VersionConstraint, stepVersions StepGr
 			latestStep := StepModel{}
 
 			for fullVersion, step := range stepVersions.Versions {
-				stepVersion, err := parseSemver(fullVersion)
+				stepVersion, err := ParseSemver(fullVersion)
 				if err != nil {
-					log.Warnf("Invalid step (%s) version: %s", step.Source, fullVersion)
 					continue
 				}
 				if stepVersion.Major != constraint.Version.Major {

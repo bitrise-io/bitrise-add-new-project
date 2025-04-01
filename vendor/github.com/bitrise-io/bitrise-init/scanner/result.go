@@ -16,8 +16,8 @@ import (
 )
 
 // GenerateScanResult runs the scanner, returns the results and if any platform was detected.
-func GenerateScanResult(searchDir string, isPrivateRepository bool) (models.ScanResultModel, bool) {
-	scanResult := Config(searchDir, isPrivateRepository)
+func GenerateScanResult(searchDir string, hasSSHKey bool) (models.ScanResultModel, bool) {
+	scanResult := Config(searchDir, hasSSHKey)
 
 	logUnknownTools(searchDir)
 
@@ -27,11 +27,10 @@ func GenerateScanResult(searchDir string, isPrivateRepository bool) (models.Scan
 	}
 
 	if len(platforms) == 0 {
-		errorMessage := "No known platform detected"
-		analytics.LogError(noPlatformDetectedTag, nil, errorMessage)
+		analytics.LogError(noPlatformDetectedTag, nil, "No known platform detected")
 
 		scanResult.AddErrorWithRecommendation("general", models.ErrorWithRecommendations{
-			Error: errorMessage,
+			Error: "No known platform detected",
 			Recommendations: step.Recommendation{
 				"NoPlatformDetected":            true,
 				errormapper.DetailedErrorRecKey: newNoPlatformDetectedGenericDetail(),

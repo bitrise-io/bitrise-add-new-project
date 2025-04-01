@@ -3,22 +3,19 @@ package models
 import (
 	"time"
 
-	envmanModels "github.com/bitrise-io/envman/models"
+	envmanModels "github.com/bitrise-io/envman/v2/models"
 )
 
-// StepSourceModel ...
 type StepSourceModel struct {
 	Git    string `json:"git,omitempty" yaml:"git,omitempty"`
 	Commit string `json:"commit,omitempty" yaml:"commit,omitempty"`
 }
 
-// DependencyModel ...
 type DependencyModel struct {
 	Manager string `json:"manager,omitempty" yaml:"manager,omitempty"`
 	Name    string `json:"name,omitempty" yaml:"name,omitempty"`
 }
 
-// BrewDepModel ...
 type BrewDepModel struct {
 	// Name is the package name for Brew
 	Name string `json:"name,omitempty" yaml:"name,omitempty"`
@@ -29,7 +26,6 @@ type BrewDepModel struct {
 	BinName string `json:"bin_name,omitempty" yaml:"bin_name,omitempty"`
 }
 
-// AptGetDepModel ...
 type AptGetDepModel struct {
 	// Name is the package name for Apt-get
 	Name string `json:"name,omitempty" yaml:"name,omitempty"`
@@ -40,33 +36,29 @@ type AptGetDepModel struct {
 	BinName string `json:"bin_name,omitempty" yaml:"bin_name,omitempty"`
 }
 
-// CheckOnlyDepModel ...
-type CheckOnlyDepModel struct {
-	Name string `json:"name,omitempty" yaml:"name,omitempty"`
-}
-
-// DepsModel ...
 type DepsModel struct {
-	Brew      []BrewDepModel      `json:"brew,omitempty" yaml:"brew,omitempty"`
-	AptGet    []AptGetDepModel    `json:"apt_get,omitempty" yaml:"apt_get,omitempty"`
-	CheckOnly []CheckOnlyDepModel `json:"check_only,omitempty" yaml:"check_only,omitempty"`
+	Brew   []BrewDepModel   `json:"brew,omitempty" yaml:"brew,omitempty"`
+	AptGet []AptGetDepModel `json:"apt_get,omitempty" yaml:"apt_get,omitempty"`
 }
 
-// BashStepToolkitModel ...
 type BashStepToolkitModel struct {
 	EntryFile string `json:"entry_file,omitempty" yaml:"entry_file,omitempty"`
 }
 
-// GoStepToolkitModel ...
 type GoStepToolkitModel struct {
 	// PackageName - required
 	PackageName string `json:"package_name" yaml:"package_name"`
 }
 
-// StepToolkitModel ...
+type SwiftStepToolkitModel struct {
+	BinaryLocation string `json:"binary_location,omitempty" yaml:"binary_location,omitempty"`
+	ExecutableName string `json:"executable_name,omitempty" yaml:"executable_name,omitempty"`
+}
+
 type StepToolkitModel struct {
-	Bash *BashStepToolkitModel `json:"bash,omitempty" yaml:"bash,omitempty"`
-	Go   *GoStepToolkitModel   `json:"go,omitempty" yaml:"go,omitempty"`
+	Bash  *BashStepToolkitModel  `json:"bash,omitempty" yaml:"bash,omitempty"`
+	Go    *GoStepToolkitModel    `json:"go,omitempty" yaml:"go,omitempty"`
+	Swift *SwiftStepToolkitModel `json:"swift,omitempty" yaml:"swift,omitempty"`
 }
 
 // StepModel ...
@@ -98,22 +90,23 @@ type StepModel struct {
 	//  steps will run which are marked with IsAlwaysRun.
 	IsSkippable *bool `json:"is_skippable,omitempty" yaml:"is_skippable,omitempty"`
 	// RunIf : only run the step if the template example evaluates to true
-	RunIf   *string                `json:"run_if,omitempty" yaml:"run_if,omitempty"`
-	Timeout *int                   `json:"timeout,omitempty" yaml:"timeout,omitempty"`
-	Meta    map[string]interface{} `json:"meta,omitempty" yaml:"meta,omitempty"`
+	RunIf   *string `json:"run_if,omitempty" yaml:"run_if,omitempty"`
+	Timeout *int    `json:"timeout,omitempty" yaml:"timeout,omitempty"`
+	// The timeout (in seconds) until a Step with no output (stdout/stderr) is aborted
+	// 0 means timeout is disabled.
+	NoOutputTimeout *int                   `json:"no_output_timeout,omitempty" yaml:"no_output_timeout,omitempty"`
+	Meta            map[string]interface{} `json:"meta,omitempty" yaml:"meta,omitempty"`
 	//
 	Inputs  []envmanModels.EnvironmentItemModel `json:"inputs,omitempty" yaml:"inputs,omitempty"`
 	Outputs []envmanModels.EnvironmentItemModel `json:"outputs,omitempty" yaml:"outputs,omitempty"`
 }
 
-// StepVersionModel ...
 type StepVersionModel struct {
 	Step                   StepModel
 	Version                string
 	LatestAvailableVersion string
 }
 
-// StepGroupInfoModel ...
 type StepGroupInfoModel struct {
 	RemovalDate    string            `json:"removal_date,omitempty" yaml:"removal_date,omitempty"`
 	DeprecateNotes string            `json:"deprecate_notes,omitempty" yaml:"deprecate_notes,omitempty"`
@@ -121,14 +114,12 @@ type StepGroupInfoModel struct {
 	Maintainer     string            `json:"maintainer,omitempty" yaml:"maintainer,omitempty"`
 }
 
-// StepGroupModel ...
 type StepGroupModel struct {
 	Info                StepGroupInfoModel   `json:"info,omitempty" yaml:"info,omitempty"`
 	LatestVersionNumber string               `json:"latest_version_number,omitempty" yaml:"latest_version_number,omitempty"`
 	Versions            map[string]StepModel `json:"versions,omitempty" yaml:"versions,omitempty"`
 }
 
-// LatestVersion ...
 func (stepGroup StepGroupModel) LatestVersion() (StepModel, bool) {
 	step, found := stepGroup.Versions[stepGroup.LatestVersionNumber]
 	if !found {
@@ -137,16 +128,13 @@ func (stepGroup StepGroupModel) LatestVersion() (StepModel, bool) {
 	return step, true
 }
 
-// StepHash ...
 type StepHash map[string]StepGroupModel
 
-// DownloadLocationModel ...
 type DownloadLocationModel struct {
 	Type string `json:"type"`
 	Src  string `json:"src"`
 }
 
-// StepCollectionModel ...
 type StepCollectionModel struct {
 	FormatVersion         string                  `json:"format_version" yaml:"format_version"`
 	GeneratedAtTimeStamp  int64                   `json:"generated_at_timestamp" yaml:"generated_at_timestamp"`
@@ -156,7 +144,6 @@ type StepCollectionModel struct {
 	Steps                 StepHash                `json:"steps" yaml:"steps"`
 }
 
-// EnvInfoModel ...
 type EnvInfoModel struct {
 	Key          string   `json:"key,omitempty" yaml:"key,omitempty"`
 	Title        string   `json:"title,omitempty" yaml:"title,omitempty"`
@@ -167,7 +154,6 @@ type EnvInfoModel struct {
 	IsSensitive  bool     `json:"is_sensitive" yaml:"is_sensitive"`
 }
 
-// StepInfoModel ...
 type StepInfoModel struct {
 	Library         string             `json:"library,omitempty" yaml:"library,omitempty"`
 	ID              string             `json:"id,omitempty" yaml:"id,omitempty"`
@@ -179,13 +165,11 @@ type StepInfoModel struct {
 	DefinitionPth   string             `json:"definition_pth,omitempty" yaml:"definition_pth,omitempty"`
 }
 
-// StepListModel ...
 type StepListModel struct {
 	StepLib string   `json:"steplib,omitempty" yaml:"steplib,omitempty"`
 	Steps   []string `json:"steps,omitempty" yaml:"steps,omitempty"`
 }
 
-// SteplibInfoModel ...
 type SteplibInfoModel struct {
 	URI      string `json:"uri,omitempty" yaml:"uri,omitempty"`
 	SpecPath string `json:"spec_path,omitempty" yaml:"spec_path,omitempty"`

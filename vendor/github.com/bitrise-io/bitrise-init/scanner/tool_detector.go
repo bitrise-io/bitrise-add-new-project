@@ -2,7 +2,7 @@ package scanner
 
 import (
 	"io/fs"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -33,11 +33,9 @@ type DetectionResult struct {
 var UnknownToolDetectors = []UnknownToolDetector{
 	toolDetector{toolName: "Tuist", primaryFile: "Project.swift"},
 	toolDetector{toolName: "Xcodegen", primaryFile: "project.yml"},
-	toolDetector{toolName: "Swift Package Manager", primaryFile: "Package.swift"},
 	toolDetector{toolName: "Bazel", primaryFile: "WORKSPACE", optionalFiles: []string{"WORKSPACE.bazel", "BUILD", "BUILD.bazel", ".bazelrc", ".bazelversion", ".bazelignore"}},
 	toolDetector{toolName: "Buck", primaryFile: "BUCK", optionalFiles: []string{".buckversion", ".buckconfig", ".buckjavaargs"}},
 	kotlinMultiplatformDetector{},
-	toolDetector{toolName: "Gradle Kotlin build script", primaryFile: "build.gradle.kts", optionalFiles: []string{"settings.gradle.kts"}},
 }
 
 var excludedDirs = []string{
@@ -103,21 +101,20 @@ func (d kotlinMultiplatformDetector) DetectToolIn(rootPath string) (DetectionRes
 	}
 
 	fileNamePattern := `.+\.gradle(\.kts)?$`
+	re, err := regexp.Compile(fileNamePattern)
+	if err != nil {
+		return DetectionResult{}, err
+	}
 	var potentialFilePaths []string
 	for index, fileName := range fileNames {
-		match, err := regexp.MatchString(fileNamePattern, fileName)
-		if err != nil {
-			log.Warnf(err.Error())
-			continue
-		}
-		if match {
+		if re.MatchString(fileName) {
 			potentialFilePaths = append(potentialFilePaths, filePaths[index])
 		}
 	}
 
 	detected := false
 	for _, path := range potentialFilePaths {
-		bytes, err := ioutil.ReadFile(path)
+		bytes, err := os.ReadFile(path)
 		if err != nil {
 			log.Warnf(err.Error())
 			continue

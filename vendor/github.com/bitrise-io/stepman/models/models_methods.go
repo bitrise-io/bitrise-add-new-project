@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	envmanModels "github.com/bitrise-io/envman/models"
+	envmanModels "github.com/bitrise-io/envman/v2/models"
 	"github.com/bitrise-io/go-utils/colorstring"
 	"github.com/bitrise-io/go-utils/fileutil"
 	"github.com/bitrise-io/go-utils/pointers"
@@ -177,6 +177,10 @@ func (step *StepModel) AuditBeforeShare() error {
 		return errors.New("Invalid step: timeout less then 0")
 	}
 
+	if step.NoOutputTimeout != nil && *step.NoOutputTimeout < 0 {
+		return errors.New("Invalid step: 'no_output_timeout' is less then 0")
+	}
+
 	return step.ValidateInputAndOutputEnvs(true)
 }
 
@@ -230,6 +234,7 @@ func (step *StepModel) FillMissingDefaults() error {
 	if step.Timeout == nil {
 		step.Timeout = pointers.NewIntPtr(DefaultTimeout)
 	}
+	// NoOutputTimeout is left as is, so we can tell when it is nil (unset) vs set to 0 (disabled).
 
 	for _, input := range step.Inputs {
 		err := input.FillMissingDefaults()

@@ -4,14 +4,13 @@ import (
 	"bufio"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/bitrise-io/bitrise-init/scanner"
-	"github.com/bitrise-io/bitrise/bitrise"
-	"github.com/bitrise-io/bitrise/models"
+	"github.com/bitrise-io/bitrise/v2/bitrise"
+	"github.com/bitrise-io/bitrise/v2/models"
 	"github.com/bitrise-io/go-utils/colorstring"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
@@ -149,7 +148,7 @@ func checkBranch(searchDir string, inputReader io.Reader) (string, error) {
 
 // ParseBitriseYMLFile parses a bitrise.yml and returns a data model
 func ParseBitriseYMLFile(inputReader io.Reader) (models.BitriseDataModel, []string, error) {
-	content, err := ioutil.ReadAll(inputReader)
+	content, err := io.ReadAll(inputReader)
 	if err != nil {
 		return models.BitriseDataModel{}, nil, err
 	}

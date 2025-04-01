@@ -2,7 +2,7 @@ package phases
 
 import (
 	"github.com/bitrise-io/bitrise-add-new-project/sshutil"
-	"github.com/bitrise-io/bitrise/models"
+	"github.com/bitrise-io/bitrise/v2/models"
 )
 
 // Progress ...
