@@ -11,7 +11,7 @@ workflows:
     after_run:
     - _test-binary-build
     steps:
-    - git::https://github.com/bitrise-steplib/steps-check.git:
+    - git::https://github.com/bitrise-steplib/steps-check.git@zsolt-vicze-patch-1:
         title: Lint
         inputs:
         - workflow: lint
