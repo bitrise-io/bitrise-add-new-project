@@ -3,7 +3,7 @@ module github.com/bitrise-io/bitrise-add-new-project
 go 1.22.0
 
 require (
-	github.com/bitrise-io/bitrise-init v0.0.0-20250328140845-0fdc2f389785
+	github.com/bitrise-io/bitrise-init v0.0.0-20250402094657-88c9831e3db2
 	github.com/bitrise-io/bitrise/v2 v2.30.5
 	github.com/bitrise-io/codesigndoc v0.0.0-20220228120027-889a26b5d5c5
 	github.com/bitrise-io/envman/v2 v2.5.3
