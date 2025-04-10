@@ -13,15 +13,17 @@ import (
 // and select any of the give project type's default configs.
 // Later the tool updated the project's bitrise.yml by calling the '/apps/slug/bitrise.yml' endpoint.
 var configByProjectType = map[string]string{
-	"android":      "default-android-config",
-	"cordova":      "default-cordova-config",
-	"fastlane":     "default-fastlane-android-config",
-	"flutter":      "flutter-config-test-android-2",
-	"ionic":        "default-ionic-config",
-	"ios":          "default-ios-config",
-	"macos":        "default-macos-config",
-	"react-native": "default-react-native-config",
-	"other":        "other-config",
+	"android":              "default-android-config",
+	"cordova":              "default-cordova-config",
+	"fastlane":             "default-fastlane-android-config",
+	"flutter":              "flutter-config-test-android-2",
+	"ionic":                "default-ionic-config",
+	"ios":                  "default-ios-config",
+	"macos":                "default-macos-config",
+	"react-native":         "default-react-native-config",
+	"kotlin-multiplatform": "default-kotlin-multiplatform-config",
+	"node-js":              "default-node-js-npm-config",
+	"other":                "other-config",
 }
 
 // RegisterFinishParams ...
