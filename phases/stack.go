@@ -12,19 +12,21 @@ import (
 
 // Based on: https://github.com/bitrise-io/bitrise-website/blob/master/config/available_stacks.yml
 const (
-	defaultMacOSStack = "osx-xcode-13.1.x"
-	defaultLinuxStack = "linux-docker-android-20.04"
+	defaultMacOSStack = "osx-xcode-16.0.x"
+	defaultLinuxStack = "linux-docker-android-22.04"
 )
 
 var defaultStacks = map[string]string{
-	"ios":          defaultMacOSStack,
-	"macos":        defaultMacOSStack,
-	"android":      defaultLinuxStack,
-	"cordova":      defaultMacOSStack,
-	"ionic":        defaultMacOSStack,
-	"react-native": defaultMacOSStack,
-	"flutter":      defaultMacOSStack,
-	"other":        defaultLinuxStack,
+	"ios":                  defaultMacOSStack,
+	"macos":                defaultMacOSStack,
+	"android":              defaultLinuxStack,
+	"cordova":              defaultMacOSStack,
+	"ionic":                defaultMacOSStack,
+	"react-native":         defaultMacOSStack,
+	"flutter":              defaultMacOSStack,
+	"node-js":              defaultLinuxStack,
+	"kotlin-multiplatform": defaultMacOSStack,
+	"other":                defaultLinuxStack,
 }
 
 type availableStacksResponse map[string]interface{}
