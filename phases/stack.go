@@ -26,6 +26,7 @@ var defaultStacks = map[string]string{
 	"flutter":              defaultMacOSStack,
 	"node-js":              defaultLinuxStack,
 	"kotlin-multiplatform": defaultMacOSStack,
+	"java":                 defaultLinuxStack,
 	"other":                defaultLinuxStack,
 }
 
