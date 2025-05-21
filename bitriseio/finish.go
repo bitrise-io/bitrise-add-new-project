@@ -23,6 +23,7 @@ var configByProjectType = map[string]string{
 	"react-native":         "default-react-native-config",
 	"kotlin-multiplatform": "default-kotlin-multiplatform-config",
 	"node-js":              "default-node-js-npm-config",
+	"java":                 "default-java-gradle-config",
 	"other":                "other-config",
 }
 
