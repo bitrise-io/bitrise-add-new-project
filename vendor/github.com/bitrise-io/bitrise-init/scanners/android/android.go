@@ -54,8 +54,8 @@ const (
 
 	ProjectLocationInputKey     = "project_location"
 	ProjectLocationInputEnvKey  = "PROJECT_LOCATION"
-	ProjectLocationInputTitle   = "The root directory of an Android project"
-	ProjectLocationInputSummary = "The root directory of your Android project, stored as an Environment Variable. In your Workflows, you can specify paths relative to this path. You can change this at any time."
+	ProjectLocationInputTitle   = "The root directory of your Android project"
+	ProjectLocationInputSummary = "The root directory of your Android project where the gradlew or gradlew.bat wrapper is located. This is stored as an Environment Variable (PROJECT_LOCATION) and you can specify paths relative to this path in your Workflows. It can be changed any time."
 
 	ModuleBuildGradlePathInputKey = "build_gradle_path"
 
@@ -80,7 +80,7 @@ const (
 	gradleKotlinBuildFile = "build.gradle.kts"
 )
 
-type gradleModule struct {
+type GradleModule struct {
 	ModulePath     string
 	BuildScriptPth string
 	UsesKotlinDSL  bool
@@ -108,7 +108,7 @@ func (scanner *Scanner) ExcludedScannerNames() []string {
 
 type DetectResult struct {
 	GradleProject gradle.Project
-	Modules       []gradleModule
+	Modules       []GradleModule
 	Icons         models.Icons
 }
 
@@ -179,11 +179,11 @@ func (scanner *Scanner) DetectPlatform(searchDir string) (_ bool, err error) {
 		}
 
 		log.TPrintf("Scanning Gradle modules...")
-		var modules []gradleModule
+		var modules []GradleModule
 		if len(gradleProject.IncludedProjects) > 0 {
 			for _, includedProject := range gradleProject.IncludedProjects {
 				modulePath := modulePathFromBuildScriptPath(gradleProject.RootDirEntry.RelPath, includedProject.BuildScriptFileEntry.RelPath)
-				modules = append(modules, gradleModule{
+				modules = append(modules, GradleModule{
 					ModulePath:     modulePath,
 					BuildScriptPth: includedProject.BuildScriptFileEntry.RelPath,
 					UsesKotlinDSL:  strings.HasSuffix(includedProject.BuildScriptFileEntry.RelPath, ".kts"),
@@ -201,7 +201,7 @@ func (scanner *Scanner) DetectPlatform(searchDir string) (_ bool, err error) {
 					// Skipp top-level build script file
 					continue
 				}
-				modules = append(modules, gradleModule{
+				modules = append(modules, GradleModule{
 					ModulePath:     modulePath,
 					BuildScriptPth: buildScript.RelPath,
 					UsesKotlinDSL:  strings.HasSuffix(buildScript.RelPath, ".kts"),
@@ -394,7 +394,7 @@ func (scanner *Scanner) generateConfigBuilder(sshKeyActivation models.SSHKeyActi
 	configBuilder.AppendStepListItemsTo(runInstrumentedTestsWorkflowID, steps.AvdManagerStepListItem())
 	configBuilder.AppendStepListItemsTo(runInstrumentedTestsWorkflowID, steps.WaitForAndroidEmulatorStepListItem())
 	configBuilder.AppendStepListItemsTo(runInstrumentedTestsWorkflowID, steps.GradleRunnerStepListItem(
-		gradlewPath,
+		projectLocationEnv,
 		fmt.Sprintf("connectedAndroidTest \\\n  -Pandroid.testInstrumentationRunnerArguments.numShards=$%s \\\n  -Pandroid.testInstrumentationRunnerArguments.shardIndex=$%s",
 			ParallelTotalEnvKey,
 			ParallelIndexEnvKey,

@@ -3,7 +3,7 @@ module github.com/bitrise-io/bitrise-add-new-project
 go 1.22.0
 
 require (
-	github.com/bitrise-io/bitrise-init v0.0.0-20250520133318-e1981b5c0db4
+	github.com/bitrise-io/bitrise-init v0.0.0-20260218153855-a39cf058bdb8
 	github.com/bitrise-io/bitrise/v2 v2.30.5
 	github.com/bitrise-io/codesigndoc v0.0.0-20220228120027-889a26b5d5c5
 	github.com/bitrise-io/envman/v2 v2.5.3
@@ -20,6 +20,7 @@ require (
 
 require (
 	dario.cat/mergo v1.0.0 // indirect
+	github.com/BurntSushi/toml v1.5.0 // indirect
 	github.com/Masterminds/semver/v3 v3.2.1 // indirect
 	github.com/Microsoft/go-winio v0.6.1 // indirect
 	github.com/ProtonMail/go-crypto v1.1.3 // indirect

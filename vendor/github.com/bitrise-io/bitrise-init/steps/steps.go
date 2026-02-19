@@ -92,11 +92,11 @@ func AndroidBuildStepListItem(inputs ...envmanModels.EnvironmentItemModel) bitri
 	return stepListItem(stepIDComposite, "", "", inputs...)
 }
 
-func GradleRunnerStepListItem(gradlewPath, gradleTask string, additionalInputs ...envmanModels.EnvironmentItemModel) bitriseModels.StepListItemModel {
+func GradleRunnerStepListItem(buildDir, gradleTask string, additionalInputs ...envmanModels.EnvironmentItemModel) bitriseModels.StepListItemModel {
 	stepIDComposite := stepIDComposite(GradleRunnerID, GradleRunnerVersion)
 	return stepListItem(stepIDComposite, "", "",
 		append([]envmanModels.EnvironmentItemModel{
-			{"gradlew_path": gradlewPath},
+			{"build_root_directory": buildDir},
 			{"gradle_task": gradleTask}},
 			additionalInputs...)...)
 }
@@ -256,22 +256,14 @@ func YarnStepListItem(command, workdir string) bitriseModels.StepListItemModel {
 	return stepListItem(stepIDComposite, "yarn "+command, "", inputs...)
 }
 
-func FlutterInstallStepListItem(version string, isUpdate bool) bitriseModels.StepListItemModel {
+func FlutterInstallStepListItem(version string) bitriseModels.StepListItemModel {
 	const versionInputKey = "version"
-	const isUpdateInputKey = "is_update"
 
 	var inputs []envmanModels.EnvironmentItemModel
 
 	if version != "" {
 		inputs = append(inputs, envmanModels.EnvironmentItemModel{versionInputKey: version})
 	}
-
-	isUpdateStr := "false"
-	if isUpdate {
-		isUpdateStr = "true"
-	}
-
-	inputs = append(inputs, envmanModels.EnvironmentItemModel{isUpdateInputKey: isUpdateStr})
 
 	stepIDComposite := stepIDComposite(FlutterInstallID, FlutterInstallVersion)
 	return stepListItem(stepIDComposite, "", "", inputs...)
