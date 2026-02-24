@@ -33,12 +33,7 @@ var defaultStacks = map[string]string{
 type availableStacksResponse map[string]interface{}
 
 func fetchAvailableStacks(orgSlug string, apiToken string) ([]string, error) {
-	var url string
-	if orgSlug != "" {
-		url = fmt.Sprintf("https://api.bitrise.io/v0.1/organizations/%s/available-stacks", orgSlug)
-	} else {
-		url = "https://api.bitrise.io/v0.1/me/available-stacks"
-	}
+	url := fmt.Sprintf("https://api.bitrise.io/v0.1/organizations/%s/available-stacks", orgSlug)
 
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
