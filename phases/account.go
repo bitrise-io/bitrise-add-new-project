@@ -96,7 +96,7 @@ func Account(apiToken string, personal bool, orgSlug string) (string, error) {
 	}
 
 	orgNameToSlug := map[string]string{}
-	items := []string{user.Data.Username}
+	items := []string{}
 	for _, data := range orgs.Data {
 		orgNameToSlug[data.Name] = data.Slug
 		items = append(items, data.Name)
@@ -138,5 +138,11 @@ func Account(apiToken string, personal bool, orgSlug string) (string, error) {
 
 	fmt.Println()
 
-	return orgNameToSlug[acc], nil
+	chosenOrgSlug := orgNameToSlug[acc]
+
+	if chosenOrgSlug == "" {
+		return "", fmt.Errorf("invalid account selected: %s", acc)
+	}
+
+	return chosenOrgSlug, nil
 }
