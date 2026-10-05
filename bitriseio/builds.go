@@ -2,7 +2,6 @@ package bitriseio
 
 import (
 	"fmt"
-	"net/http"
 )
 
 // TriggerBuildURL ...
@@ -32,7 +31,7 @@ func (s *AppService) TriggerBuild(workflowID, branch string) error {
 			Type: "bitrise",
 		},
 	}
-	req, err := s.client.newRequest(http.MethodPost, TriggerBuildURL(s.Slug), p)
+	req, err := s.client.newPostRequest(TriggerBuildURL(s.Slug), p)
 	if err != nil {
 		return err
 	}

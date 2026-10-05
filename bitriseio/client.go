@@ -47,7 +47,7 @@ func NewClient(token string) (*Client, error) {
 }
 
 // newRequest creates a new http.Request
-func (c *Client) newRequest(method, urlStr string, body interface{}) (*http.Request, error) {
+func (c *Client) newPostRequest(urlStr string, body interface{}) (*http.Request, error) {
 	u, err := c.BaseURL.Parse(urlStr)
 	if err != nil {
 		return nil, err
@@ -63,7 +63,7 @@ func (c *Client) newRequest(method, urlStr string, body interface{}) (*http.Requ
 		}
 	}
 
-	req, err := http.NewRequest(method, u.String(), buf)
+	req, err := http.NewRequest(http.MethodPost, u.String(), buf)
 	if err != nil {
 		return nil, err
 	}

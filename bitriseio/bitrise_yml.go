@@ -2,7 +2,6 @@ package bitriseio
 
 import (
 	"fmt"
-	"net/http"
 )
 
 // BitriseYMLURL ...
@@ -20,7 +19,7 @@ func (s *AppService) UploadBitriseYML(config string) error {
 		AppConfigDatastoreYAML: config,
 	}
 
-	req, err := s.client.newRequest(http.MethodPost, BitriseYMLURL(s.Slug), p)
+	req, err := s.client.newPostRequest(BitriseYMLURL(s.Slug), p)
 	if err != nil {
 		return err
 	}

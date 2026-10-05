@@ -1,9 +1,5 @@
 package bitriseio
 
-import (
-	"net/http"
-)
-
 // RegisterURL ...
 const RegisterURL = AppsServiceURL + "register"
 
@@ -35,7 +31,7 @@ func (s *AppsService) Register(params RegisterParams) (*AppService, error) {
 	p := Params{RegisterParams: params}
 	p.Type = "git"
 
-	req, err := s.client.newRequest(http.MethodPost, RegisterURL, p)
+	req, err := s.client.newPostRequest(RegisterURL, p)
 	if err != nil {
 		return nil, err
 	}
