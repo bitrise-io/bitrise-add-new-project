@@ -40,6 +40,9 @@ func fetchFromAPI(apiToken, url string, out interface{}) error {
 	if err != nil {
 		return err
 	}
+	defer func() {
+		_ = res.Body.Close()
+	}()
 
 	if res.StatusCode != 200 {
 		return fmt.Errorf("server response: %s", res.Status)
