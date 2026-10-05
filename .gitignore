@@ -6,3 +6,4 @@ docker_linux_interactive/bitrise-add-new-project
 /.idea/
 
 dist/
+/bin
