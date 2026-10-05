@@ -207,7 +207,7 @@ func getAndroidKeystoreSettings() (CodesignResultAndroid, error) {
 	}
 
 	if err := validateAndroidCodesignParams(keystoreSettings); err != nil {
-		return CodesignResultAndroid{}, fmt.Errorf("Invalid keystore parameters, error: %s", err)
+		return CodesignResultAndroid{}, fmt.Errorf("invalid keystore parameters, error: %s", err)
 	}
 
 	return keystoreSettings, nil

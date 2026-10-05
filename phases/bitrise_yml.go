@@ -154,7 +154,7 @@ func ParseBitriseYMLFile(inputReader io.Reader) (models.BitriseDataModel, []stri
 	}
 	decodedBitriseYML, warnings, err := bitrise.ConfigModelFromYAMLBytes(content)
 	if err != nil {
-		return models.BitriseDataModel{}, nil, fmt.Errorf("Configuration is not valid: %s", err)
+		return models.BitriseDataModel{}, nil, fmt.Errorf("configuration is not valid: %s", err)
 	}
 	return decodedBitriseYML, warnings, nil
 }

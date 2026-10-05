@@ -72,7 +72,7 @@ func Stack(orgSlug string, apiToken string, projectType string) (string, error) 
 
 	availableStacks, err := fetchAvailableStacks(orgSlug, apiToken)
 	if err != nil {
-		return "", fmt.Errorf("Failed to fetch available stacks: %s", err)
+		return "", fmt.Errorf("failed to fetch available stacks: %s", err)
 	}
 
 	if stack == "" {

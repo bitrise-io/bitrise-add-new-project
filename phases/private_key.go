@@ -25,7 +25,7 @@ func readPrivateKey(keyFilePath string) ([]byte, error) {
 		return nil, fmt.Errorf("SSH private key read failed: %s", err)
 	}
 	privateKey = strings.TrimSuffix(privateKey, "\n")
-	privateKey = strings.Replace(privateKey, "OPENSSH", "RSA", -1)
+	privateKey = strings.ReplaceAll(privateKey, "OPENSSH", "RSA")
 	return []byte(privateKey), nil
 }
 
