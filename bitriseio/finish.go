@@ -2,7 +2,6 @@ package bitriseio
 
 import (
 	"fmt"
-	"net/http"
 )
 
 // configByProjectType maps default config names to project types.
@@ -63,7 +62,7 @@ func (s *AppService) RegisterFinish(params RegisterFinishParams) (*RegisterFinis
 	p.Mode = "manual"
 	p.Config = config
 
-	req, err := s.client.newRequest(http.MethodPost, RegisterFinishURL(s.Slug), p)
+	req, err := s.client.newPostRequest(RegisterFinishURL(s.Slug), p)
 	if err != nil {
 		return nil, err
 	}

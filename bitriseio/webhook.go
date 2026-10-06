@@ -2,7 +2,6 @@ package bitriseio
 
 import (
 	"fmt"
-	"net/http"
 )
 
 // RegisterWebhookURL ...
@@ -12,7 +11,7 @@ func RegisterWebhookURL(appSlug string) string {
 
 // RegisterWebhook ...
 func (s *AppService) RegisterWebhook() error {
-	req, err := s.client.newRequest(http.MethodPost, RegisterWebhookURL(s.Slug), nil)
+	req, err := s.client.newPostRequest(RegisterWebhookURL(s.Slug), nil)
 	if err != nil {
 		return err
 	}

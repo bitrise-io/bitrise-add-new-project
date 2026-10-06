@@ -1,4 +1,4 @@
-format_version: "7"
+format_version: "13"
 default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
 
 app:
@@ -11,15 +11,32 @@ workflows:
     after_run:
     - _test-binary-build
     steps:
-    - git::https://github.com/bitrise-steplib/steps-check.git:
-        title: Lint
+    - script@1:
+        title: yamlfmt
         inputs:
-        - workflow: lint
-        - skip_step_yml_validation: "yes"
-    - go-list:
+        - content: |-
+            #!/bin/env bash
+            set -eo pipefail
+            set -x
+            go run github.com/google/yamlfmt/cmd/yamlfmt@v0.21.0 -lint -conf .ymlfmt -match_type doublestar -exclude "_tmp/**,.bitrise.secrets.yml,.git/**,.github/**,vendor/**" '**/*.yml'
+    - script@1:
+        title: golangci-lint
         inputs:
-        - exclude: "*/mocks"
-    - go-test: { }
+        - content: |-
+            #!/bin/env bash
+            set -eo pipefail
+            set -x
+            curl -sSfL https://golangci-lint.run/install.sh | sh -s v2.13.2
+            ./bin/golangci-lint run --timeout 5m --color always --config .golangci.yml
+    - script@1:
+        title: go build & test
+        inputs:
+        - content: |-
+            #!/bin/env bash
+            set -exo pipefail
+
+            go build ./...
+            go test -v ./...
 
   test-linux-interactive:
     steps:
@@ -64,7 +81,7 @@ workflows:
     - script:
         title: Goreleaser (create snapshot binaries)
         inputs:
-        - content: |
+        - content: |-
             #!/usr/bin/env bash
             set -ex
             curl -sfL https://goreleaser.com/static/run | VERSION=$GORELEASER_VERSION bash -s -- release --snapshot --rm-dist

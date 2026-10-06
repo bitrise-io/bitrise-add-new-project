@@ -59,7 +59,7 @@ func (s *AppService) UploadKeystore(pth string, params UploadKeystoreParams) err
 	p.UploadFileName = name
 
 	// register keystore
-	req, err := s.client.newRequest(http.MethodPost, UploadKeystoreURL(s.Slug), p)
+	req, err := s.client.newPostRequest(UploadKeystoreURL(s.Slug), p)
 	if err != nil {
 		return err
 	}
@@ -93,7 +93,7 @@ func (s *AppService) UploadKeystore(pth string, params UploadKeystoreParams) err
 	}
 
 	// confirm upload
-	req, err = s.client.newRequest(http.MethodPost, UploadKeystoreConfirmURL(s.Slug, r.Data.Slug), nil)
+	req, err = s.client.newPostRequest(UploadKeystoreConfirmURL(s.Slug, r.Data.Slug), nil)
 	if err != nil {
 		return err
 	}

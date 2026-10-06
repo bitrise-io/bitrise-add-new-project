@@ -27,7 +27,7 @@ func iosCodesign(bitriseYML bitriseModels.BitriseDataModel, searchDir string) (C
 	projectPath, pathOk := appEnvToValue["BITRISE_PROJECT_PATH"]
 	scheme, schemeOk := appEnvToValue["BITRISE_SCHEME"]
 
-	if !(pathOk && schemeOk) {
+	if !pathOk || !schemeOk {
 		log.Debugf("could not find Xcode project path and scheme in bitrise.yml")
 
 		projectPath, err = askXcodeProjectPath()
@@ -111,7 +111,7 @@ the one you usually open in Xcode, then hit Enter.
 			log.Warnf("Project directory does not exist.")
 		}
 
-		if validProject && !(xcodeproj.IsXcodeProj(path) || xcworkspace.IsWorkspace(path)) {
+		if validProject && !xcodeproj.IsXcodeProj(path) && !xcworkspace.IsWorkspace(path) {
 			validProject = false
 			log.Warnf("Directory is not an Xcode project or workspace.")
 		}

@@ -27,24 +27,33 @@ type meResponse struct {
 	Data meData
 }
 
-func fetchOrgs(apiToken string) (*organizationsRespone, error) {
-	req, err := http.NewRequest(http.MethodGet, "https://api.bitrise.io/v0.1/organizations", nil)
+// fetchFromAPI performs an authenticated GET against the Bitrise API and
+// decodes the response body into out.
+func fetchFromAPI(apiToken, url string, out interface{}) error {
+	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	req.Header.Set("Authorization", "token "+apiToken)
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return nil, err
+		return err
 	}
+	defer func() {
+		_ = res.Body.Close()
+	}()
 
 	if res.StatusCode != 200 {
-		return nil, fmt.Errorf("server response: %s", res.Status)
+		return fmt.Errorf("server response: %s", res.Status)
 	}
 
+	return json.NewDecoder(res.Body).Decode(out)
+}
+
+func fetchOrgs(apiToken string) (*organizationsRespone, error) {
 	var orgs organizationsRespone
-	if err := json.NewDecoder(res.Body).Decode(&orgs); err != nil {
+	if err := fetchFromAPI(apiToken, "https://api.bitrise.io/v0.1/organizations", &orgs); err != nil {
 		return nil, err
 	}
 
@@ -52,23 +61,8 @@ func fetchOrgs(apiToken string) (*organizationsRespone, error) {
 }
 
 func fetchUser(apiToken string) (*meResponse, error) {
-	req, err := http.NewRequest(http.MethodGet, "https://api.bitrise.io/v0.1/me", nil)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Set("Authorization", "token "+apiToken)
-	res, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return nil, err
-	}
-
-	if res.StatusCode != 200 {
-		return nil, fmt.Errorf("server response: %s", res.Status)
-	}
-
 	var me meResponse
-	if err := json.NewDecoder(res.Body).Decode(&me); err != nil {
+	if err := fetchFromAPI(apiToken, "https://api.bitrise.io/v0.1/me", &me); err != nil {
 		return nil, err
 	}
 

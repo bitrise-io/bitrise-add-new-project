@@ -154,12 +154,12 @@ func ParseBitriseYMLFile(inputReader io.Reader) (models.BitriseDataModel, []stri
 	}
 	decodedBitriseYML, warnings, err := bitrise.ConfigModelFromYAMLBytes(content)
 	if err != nil {
-		return models.BitriseDataModel{}, nil, fmt.Errorf("Configuration is not valid: %s", err)
+		return models.BitriseDataModel{}, nil, fmt.Errorf("configuration is not valid: %s", err)
 	}
 	return decodedBitriseYML, warnings, nil
 }
 
-func selectBitriseYMLFile(inputReader io.Reader, potentialBitriseYMLFilePath string) (models.BitriseDataModel, error) {
+func selectBitriseYMLFile(potentialBitriseYMLFilePath string) (models.BitriseDataModel, error) {
 	for {
 		filePath, err := askBitriseYMLFile(potentialBitriseYMLFilePath)
 		if err != nil {
@@ -194,7 +194,7 @@ func selectBitriseYMLFile(inputReader io.Reader, potentialBitriseYMLFilePath str
 	}
 }
 
-func selectWorkflow(buildBitriseYML models.BitriseDataModel, inputReader io.Reader) (string, error) {
+func selectWorkflow(buildBitriseYML models.BitriseDataModel) (string, error) {
 	if len(buildBitriseYML.Workflows) == 0 {
 		return "", fmt.Errorf("no workflows found in bitrise.yml")
 	}
@@ -230,7 +230,7 @@ func selectWorkflow(buildBitriseYML models.BitriseDataModel, inputReader io.Read
 	return workflow, nil
 }
 
-func getBitriseYML(searchDir string, inputReader io.Reader, isPrivateRepo bool) (models.BitriseDataModel, string, error) {
+func getBitriseYML(searchDir string, isPrivateRepo bool) (models.BitriseDataModel, string, error) {
 	potentialBitriseYMLFilePath := filepath.Join(searchDir, bitriseYMLName)
 	if exist, err := pathutil.IsPathExists(potentialBitriseYMLFilePath); err != nil {
 		return models.BitriseDataModel{}, "", fmt.Errorf("failed to check if file (%s) exists, error: %s", potentialBitriseYMLFilePath, err)
@@ -263,7 +263,7 @@ func getBitriseYML(searchDir string, inputReader io.Reader, isPrivateRepo bool) 
 	}
 
 	if answer == optionAlreadyExisting {
-		bitriseYML, err := selectBitriseYMLFile(inputReader, potentialBitriseYMLFilePath)
+		bitriseYML, err := selectBitriseYMLFile(potentialBitriseYMLFilePath)
 		if err != nil {
 			return models.BitriseDataModel{}, "", fmt.Errorf("failed to select bitrise.yml, error: %s", err)
 		}
@@ -313,12 +313,12 @@ func getBitriseYML(searchDir string, inputReader io.Reader, isPrivateRepo bool) 
 func BitriseYML(searchDir string, isPrivateRepo bool) (models.BitriseDataModel, string, string, error) {
 	fmt.Println()
 	log.Infof("SETUP BITRISE.YML")
-	bitriseYML, branch, err := getBitriseYML(searchDir, os.Stdin, isPrivateRepo)
+	bitriseYML, branch, err := getBitriseYML(searchDir, isPrivateRepo)
 	if err != nil {
 		return models.BitriseDataModel{}, "", "", err
 	}
 
-	workflow, err := selectWorkflow(bitriseYML, os.Stdin)
+	workflow, err := selectWorkflow(bitriseYML)
 	if err != nil {
 		return models.BitriseDataModel{}, "", "", fmt.Errorf("failed to select workflow, error: %s", err)
 	}

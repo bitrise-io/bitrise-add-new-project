@@ -2,7 +2,6 @@ package bitriseio
 
 import (
 	"fmt"
-	"net/http"
 
 	"github.com/bitrise-io/bitrise-add-new-project/sshutil"
 	"github.com/bitrise-io/go-utils/log"
@@ -22,7 +21,7 @@ func RegisterSSHKeyURL(appSlug string) string {
 }
 
 func (s *AppService) registerSSHKeyRequest(params RegisterSSHKeyParams) error {
-	req, err := s.client.newRequest(http.MethodPost, RegisterSSHKeyURL(s.Slug), params)
+	req, err := s.client.newPostRequest(RegisterSSHKeyURL(s.Slug), params)
 	if err != nil {
 		return err
 	}
